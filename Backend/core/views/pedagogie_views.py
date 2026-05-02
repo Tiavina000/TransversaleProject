@@ -9,6 +9,7 @@ from core.serializers.pedagogie_serializers import (
     NiveauScolaireSerializer, MatiereSerializer, ChapitreSerializer,
     LeconSerializer, FichierMultimediaSerializer, ChapitreDetailSerializer
 )
+from core.permissions import IsEnseignantOrReadOnly, IsAdminOrReadOnly
 
 
 class StandardPagination(PageNumberPagination):
@@ -21,6 +22,7 @@ class NiveauScolaireViewSet(viewsets.ModelViewSet):
     """API pour gérer les niveaux scolaires"""
     queryset = NiveauScolaire.objects.all()
     serializer_class = NiveauScolaireSerializer
+    permission_classes = [IsAdminOrReadOnly]
     pagination_class = StandardPagination
     ordering_fields = ['ordre']
     ordering = ['ordre']
@@ -30,6 +32,7 @@ class MatiereViewSet(viewsets.ModelViewSet):
     """API pour gérer les matières"""
     queryset = Matiere.objects.all()
     serializer_class = MatiereSerializer
+    permission_classes = [IsAdminOrReadOnly]
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['nom', 'code']
@@ -48,6 +51,7 @@ class MatiereViewSet(viewsets.ModelViewSet):
 class ChapitreViewSet(viewsets.ModelViewSet):
     """API pour gérer les chapitres"""
     queryset = Chapitre.objects.all()
+    permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['order']
@@ -63,6 +67,7 @@ class LeconViewSet(viewsets.ModelViewSet):
     """API pour gérer les leçons"""
     queryset = Lecon.objects.all()
     serializer_class = LeconSerializer
+    permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['order']
@@ -73,6 +78,7 @@ class FichierMultimediaViewSet(viewsets.ModelViewSet):
     """API pour gérer les fichiers multimédia"""
     queryset = FichierMultimedia.objects.all()
     serializer_class = FichierMultimediaSerializer
+    permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['titre', 'type_fichier']

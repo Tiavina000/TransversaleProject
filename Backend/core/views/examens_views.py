@@ -9,6 +9,7 @@ from core.serializers.examens_serializers import (
     ExamenSerializer, QuestionExamenSerializer, CopieExamenSerializer,
     ReponseExamenSerializer, LogSurveillanceSerializer
 )
+from core.permissions import IsEnseignantOrReadOnly
 
 
 class StandardPagination(PageNumberPagination):
@@ -21,6 +22,7 @@ class ExamenViewSet(viewsets.ModelViewSet):
     """API pour gérer les examens"""
     queryset = Examen.objects.all()
     serializer_class = ExamenSerializer
+    permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['titre', 'matiere__nom', 'enseignant__utilisateur__username']
@@ -43,6 +45,7 @@ class QuestionExamenViewSet(viewsets.ModelViewSet):
     """API pour gérer les questions d'examen"""
     queryset = QuestionExamen.objects.all()
     serializer_class = QuestionExamenSerializer
+    permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['ordre']
