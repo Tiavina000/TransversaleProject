@@ -1,3 +1,15 @@
-# Register your models here.
+from django.contrib import admin
+from modeltranslation.admin import TranslationAdmin
+from .models.pedagogie import NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia
+from .models.examens import Examen, QuestionExamen
+from .models.boutique import RessourceBoutique
+from .models.communications import Actualite, Notification
+from .models.etablissements import Etablissement, AdminEtablissement
+from .models.visioconference import SessionVisio
+from .models.utilisateurs import Enseignant
 
-# Register your models here.
+@admin.register(NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia, 
+                Examen, QuestionExamen, RessourceBoutique, Actualite, Notification,
+                Etablissement, AdminEtablissement, SessionVisio, Enseignant)
+class TranslatedModelAdmin(TranslationAdmin):
+    pass
