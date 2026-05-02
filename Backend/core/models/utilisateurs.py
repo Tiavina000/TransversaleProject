@@ -34,32 +34,46 @@ class Utilisateur(AbstractUser , TimeStampedModel , SoftDeleteModel):
 
 class Etudiant(models.Model):
     utilisateur = models.OneToOneField(Utilisateur , on_delete=models.CASCADE , related_name='etudiant_profile')
+<<<<<<< HEAD
     etablissement = models.ForeignKey('core.Etablissement', on_delete=models.CASCADE, related_name='etudiants', null=True)
     numero_etudiant = models.CharField(max_length=20, unique=True, null=True, blank=True)
     niveau = models.ForeignKey('core.NiveauScolaire', on_delete=models.SET_NULL, null=True, blank=True, related_name='etudiants')
     classe = models.ForeignKey('core.Classe', on_delete=models.SET_NULL, null=True, blank=True, related_name='etudiants')
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     points_global = models.IntegerField(default=0 , validators=[MinValueValidator(0)])
     date_inscription = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name = "Etudiant"
         verbose_name_plural = "Etudiants"
+<<<<<<< HEAD
         ordering = ['-id']
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     def __str__(self):
         return f"Etudiant: {self.utilisateur.username}"
 
 class Enseignant(models.Model):
     utilisateur = models.OneToOneField(Utilisateur , on_delete=models.CASCADE , related_name='enseignant_profile')
+<<<<<<< HEAD
     etablissement = models.ForeignKey('core.Etablissement', on_delete=models.CASCADE, related_name='enseignants', null=True)
     specialite = models.CharField(max_length=100 , blank=True)
     date_embauche = models.DateField()
     niveau = models.ForeignKey('core.NiveauScolaire', on_delete=models.SET_NULL, null=True, blank=True, related_name='enseignants', help_text="Niveau unique que cet enseignant peut enseigner")
+=======
+    specialite = models.CharField(max_length=100 , blank=True)
+    date_embauche = models.DateField()
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     class Meta:
         verbose_name = "Enseignant"
         verbose_name_plural = "Enseignants"
+<<<<<<< HEAD
         ordering = ['-id']
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         
     def __str__(self):
         return f"Enseignant: {self.utilisateur.username}"
@@ -71,7 +85,10 @@ class AdminPlateforme(models.Model):
     class Meta:
         verbose_name = "Administrateur"
         verbose_name_plural = "Administrateurs"
+<<<<<<< HEAD
         ordering = ['-id']
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         
     def __str__(self):
         return f"Administrateur : {self.utilisateur.username}"

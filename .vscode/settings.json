@@ -1,8 +1,0 @@
-{
-    "python.defaultInterpreterPath": "/home/tiavina/Documents/Projet_Transversale_L2_S4/ENENI/venv/bin/python",
-    "python.analysis.extraPaths": [
-        "/home/tiavina/Documents/Projet_Transversale_L2_S4/ENENI/venv/lib/python3.10/site-packages",
-        "/home/tiavina/Documents/Projet_Transversale_L2_S4/ENENI/venv/lib/python3.11/site-packages",
-        "/home/tiavina/Documents/Projet_Transversale_L2_S4/ENENI/venv/lib/python3.12/site-packages"
-    ]
-}

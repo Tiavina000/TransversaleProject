@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+=======
+from rest_framework import viewsets, filters
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 from core.models import RessourceBoutique, Panier, PanierItem, Commande
 from core.serializers.boutique_serializers import (
     RessourceBoutiqueSerializer, PanierSerializer, PanierItemSerializer,
@@ -44,6 +51,7 @@ class PanierViewSet(viewsets.ModelViewSet):
     serializer_class = PanierSerializer
     pagination_class = StandardPagination
 
+<<<<<<< HEAD
     @action(detail=False, methods=['post'])
     def add(self, request):
         """Ajouter un article au panier de l'étudiant connecté"""
@@ -75,6 +83,8 @@ class PanierViewSet(viewsets.ModelViewSet):
         serializer = PanierSerializer(panier)
         return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 class PanierItemViewSet(viewsets.ModelViewSet):
     """API pour gérer les articles du panier"""

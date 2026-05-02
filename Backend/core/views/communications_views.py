@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -9,6 +10,13 @@ from django.utils import timezone
 from core.models import Actualite, Notification, Partenaire, Renovation
 from core.serializers.communications_serializers import (
     ActualiteSerializer, NotificationSerializer, PartenaireSerializer, RenovationSerializer
+=======
+from rest_framework import viewsets, filters
+from rest_framework.pagination import PageNumberPagination
+from core.models import Actualite, Notification
+from core.serializers.communications_serializers import (
+    ActualiteSerializer, NotificationSerializer
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 )
 
 
@@ -20,6 +28,7 @@ class StandardPagination(PageNumberPagination):
 
 class ActualiteViewSet(viewsets.ModelViewSet):
     """API pour gérer les actualités"""
+<<<<<<< HEAD
     queryset = Actualite.objects.filter(est_publie=True)
     serializer_class = ActualiteSerializer
     pagination_class = StandardPagination
@@ -71,6 +80,15 @@ class ActualiteViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset()
         serializer = self.get_serializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
+=======
+    queryset = Actualite.objects.all()
+    serializer_class = ActualiteSerializer
+    pagination_class = StandardPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['titre', 'contenu']
+    ordering_fields = ['date_creation', 'date_expiration']
+    ordering = ['-date_creation']
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -81,6 +99,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['date_creation']
     ordering = ['-date_creation']
+<<<<<<< HEAD
 
     def get_queryset(self):
         qs = Notification.objects.all()
@@ -187,3 +206,5 @@ class RenovationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RenovationSerializer
     permission_classes = [AllowAny]
     pagination_class = None
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

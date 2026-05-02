@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from rest_framework import viewsets, filters, status
 from rest_framework.views import APIView
 from rest_framework.decorators import action
@@ -18,6 +19,20 @@ from core.serializers.pedagogie_serializers import (
     SessionEtudeSerializer, ClasseDetailSerializer
 )
 from core.permissions import IsEnseignantOrReadOnly, IsAdminOrReadOnly, IsEtudiant
+=======
+from rest_framework import viewsets, filters
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from core.models import (
+    NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia
+)
+from core.serializers.pedagogie_serializers import (
+    NiveauScolaireSerializer, MatiereSerializer, ChapitreSerializer,
+    LeconSerializer, FichierMultimediaSerializer, ChapitreDetailSerializer
+)
+from core.permissions import IsEnseignantOrReadOnly, IsAdminOrReadOnly
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class StandardPagination(PageNumberPagination):
@@ -47,6 +62,7 @@ class MatiereViewSet(viewsets.ModelViewSet):
     ordering_fields = ['ordre', 'nom']
     ordering = ['ordre']
 
+<<<<<<< HEAD
     def get_queryset(self):
         qs = Matiere.objects.all()
         niveau = self.request.query_params.get('niveau')
@@ -95,6 +111,14 @@ class MatiereViewSet(viewsets.ModelViewSet):
                 chapitres = chapitres.none()
 
         serializer = ChapitreDetailSerializer(chapitres, many=True, context={'request': request})
+=======
+    @action(detail=True, methods=['get'])
+    def chapitres(self, request, pk=None):
+        """Retourner tous les chapitres d'une matière"""
+        matiere = self.get_object()
+        chapitres = matiere.chapitres.all()
+        serializer = ChapitreDetailSerializer(chapitres, many=True)
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         return Response(serializer.data)
 
 
@@ -103,16 +127,23 @@ class ChapitreViewSet(viewsets.ModelViewSet):
     queryset = Chapitre.objects.all()
     permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
+<<<<<<< HEAD
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['order']
     ordering = ['order']
     search_fields = ['titre', 'description']
+=======
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['order']
+    ordering = ['order']
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return ChapitreDetailSerializer
         return ChapitreSerializer
 
+<<<<<<< HEAD
     def get_queryset(self):
         qs = Chapitre.objects.all()
         user = self.request.user
@@ -344,6 +375,8 @@ class ChapitreViewSet(viewsets.ModelViewSet):
         serializer = FichierMultimediaSerializer(fm)
         return Response(serializer.data, status=201)
 
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 class LeconViewSet(viewsets.ModelViewSet):
     """API pour gérer les leçons"""
@@ -351,6 +384,7 @@ class LeconViewSet(viewsets.ModelViewSet):
     serializer_class = LeconSerializer
     permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
+<<<<<<< HEAD
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['order']
     ordering = ['order']
@@ -548,6 +582,11 @@ class SessionEtudeViewSet(viewsets.ModelViewSet):
         session.save()
         return Response({"status": "ended", "total_time": session.temps_cumule_secondes})
 
+=======
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['order']
+    ordering = ['order']
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class FichierMultimediaViewSet(viewsets.ModelViewSet):
@@ -558,6 +597,7 @@ class FichierMultimediaViewSet(viewsets.ModelViewSet):
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['titre', 'type_fichier']
+<<<<<<< HEAD
 
 class PublicSearchView(APIView):
     """API de recherche publique pour la landing page"""
@@ -648,3 +688,5 @@ class ClasseViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(id=user.etudiant_profile.classe_id)
 
         return qs
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

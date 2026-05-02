@@ -3,6 +3,7 @@ from core.models import RessourceBoutique, Panier, PanierItem, Commande
 
 
 class RessourceBoutiqueSerializer(serializers.ModelSerializer):
+<<<<<<< HEAD
     title = serializers.ReadOnlyField(source='titre')
     desc = serializers.ReadOnlyField(source='description')
     type = serializers.ReadOnlyField(source='type_contenu')
@@ -21,6 +22,17 @@ class RessourceBoutiqueSerializer(serializers.ModelSerializer):
     def get_isPurchased(self, obj):
         return False
 
+=======
+    class Meta:
+        model = RessourceBoutique
+        fields = [
+            'id', 'titre', 'description', 'prix', 'type_contenu',
+            'fichier', 'niveau', 'matiere', 'est_disponible', 'stock',
+            'date_creation', 'date_modification'
+        ]
+        read_only_fields = ['id', 'date_creation', 'date_modification']
+
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 class PanierItemSerializer(serializers.ModelSerializer):
     ressources = RessourceBoutiqueSerializer(read_only=True)

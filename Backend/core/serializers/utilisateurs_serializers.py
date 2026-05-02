@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from core.models import Utilisateur, Etudiant, Enseignant, AdminPlateforme
 from .base_serializers import UtilisateurSerializer
+<<<<<<< HEAD
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -102,11 +103,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         data['user'] = user_data
         return data
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class EtudiantSerializer(serializers.ModelSerializer):
     utilisateur = UtilisateurSerializer(read_only=True)
     utilisateur_id = serializers.IntegerField(write_only=True)
+<<<<<<< HEAD
     niveau_nom = serializers.ReadOnlyField(source='niveau.nom')
     etablissement_nom = serializers.ReadOnlyField(source='etablissement.nom')
 
@@ -114,16 +118,30 @@ class EtudiantSerializer(serializers.ModelSerializer):
         model = Etudiant
         fields = ['id', 'utilisateur', 'utilisateur_id', 'numero_etudiant', 'points_global', 'date_inscription', 'niveau', 'niveau_nom', 'etablissement', 'etablissement_nom']
         read_only_fields = ['id', 'date_inscription', 'niveau_nom', 'etablissement_nom']
+=======
+
+    class Meta:
+        model = Etudiant
+        fields = ['id', 'utilisateur', 'utilisateur_id', 'points_global', 'date_inscription']
+        read_only_fields = ['id', 'date_inscription']
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class EnseignantSerializer(serializers.ModelSerializer):
     utilisateur = UtilisateurSerializer(read_only=True)
     utilisateur_id = serializers.IntegerField(write_only=True)
+<<<<<<< HEAD
     niveau_nom = serializers.ReadOnlyField(source='niveau.nom')
 
     class Meta:
         model = Enseignant
         fields = ['id', 'utilisateur', 'utilisateur_id', 'specialite', 'date_embauche', 'niveau', 'niveau_nom']
+=======
+
+    class Meta:
+        model = Enseignant
+        fields = ['id', 'utilisateur', 'utilisateur_id', 'specialite', 'date_embauche']
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         read_only_fields = ['id']
 
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _ 
@@ -10,21 +11,37 @@ class Etablissement(models.Model):
         ('EPP', 'EPP'),
         ('AUTRE', 'Autre'),
     ]
+=======
+from django.db import models 
+from django.core.validators import RegexValidator 
+
+
+class Etablissement(models.Model):
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     nom = models.CharField(max_length=255)
     adresse = models.CharField(max_length=255)
     telephone = models.CharField(max_length=20 , validators=[RegexValidator(regex=r'^\+?[0-9]{8,15}$' )])
     email = models.EmailField()
     code_etablissement = models.CharField(max_length=20 , unique=True)
+<<<<<<< HEAD
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='AUTRE')
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     class Meta:
         app_label = 'core'
         verbose_name = "Etablissement"
         verbose_name_plural = "Etablissements"
+<<<<<<< HEAD
         ordering = ['type', 'nom']
     
     def __str__(self):
         return f"[{self.get_type_display()}] {self.nom}" 
+=======
+    
+    def __str__(self):
+        return self.nom 
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
 class AdminEtablissement(models.Model):
     utilisateur = models.OneToOneField('core.Utilisateur' , on_delete=models.CASCADE)
@@ -35,6 +52,7 @@ class AdminEtablissement(models.Model):
         app_label = 'core'
         verbose_name = "Administrateur  d'Etablissement"
         verbose_name_plural = "Adminstrateurs d' Etablissement "
+<<<<<<< HEAD
         ordering = ['-id']
     
     def __str__(self):
@@ -55,3 +73,8 @@ class Classe(models.Model):
 
     def __str__(self):
         return f"{self.nom} - {self.etablissement.nom}"
+=======
+    
+    def __str__(self):
+        return f"{self.utilisateur.username} - {self.etablissement.nom}"
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

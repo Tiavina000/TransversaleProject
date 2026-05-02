@@ -59,7 +59,11 @@ ENENI-main/
 │   └── test_apis.py                # Script de test des APIs
 │
 ├── manage.py
+<<<<<<< HEAD
 └── (PostgreSQL)
+=======
+└── db.sqlite3
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 ```
 
 ---
@@ -113,7 +117,11 @@ ENENI-main/
                                     │
                                     ↓
 ┌──────────────────────────────────────────────────────────────────────┐
+<<<<<<< HEAD
 │                    Base de données (PostgreSQL)                       │
+=======
+│                    Base de données (db.sqlite3)                      │
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 │  ┌────────────────────────────────────────────────────────────────┐  │
 │  │  Tables SQL:                                                  │  │
 │  │  - auth_user / core_utilisateur                              │  │
@@ -391,7 +399,12 @@ ENENI-main/
 │                DATABASE LAYER                         │
 ├────────────────────────────────────────────────────────┤
 │  ORM              │ Django ORM    │ ✅ Utilisé        │
+<<<<<<< HEAD
 │  Database         │ PostgreSQL    │ ✅ Utilisé        │
+=======
+│  Database         │ SQLite 3      │ ✅ Par défaut     │
+│  (Production)     │ PostgreSQL    │ ⏳ Recommandé     │
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 └────────────────────────────────────────────────────────┘
 ```
 

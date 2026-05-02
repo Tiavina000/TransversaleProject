@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # pyrefly: ignore [missing-import]
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 from rest_framework import permissions
 
 class IsEnseignantOrReadOnly(permissions.BasePermission):
@@ -37,6 +40,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             request.user.is_authenticated and 
             request.user.type_utilisateur == 'ADMINISTRATEUR'
         )
+<<<<<<< HEAD
 
 class IsEtudiant(permissions.BasePermission):
     """
@@ -48,3 +52,5 @@ class IsEtudiant(permissions.BasePermission):
             request.user.is_authenticated and 
             request.user.type_utilisateur == 'ETUDIANT'
         )
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

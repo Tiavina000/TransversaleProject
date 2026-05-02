@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,12 +7,21 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from core.models import (
     Examen, QuestionExamen, CopieExamen, ReponseExamen, LogSurveillance,
     Enseignant, Notification, Etudiant
+=======
+from rest_framework import viewsets, filters
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from core.models import (
+    Examen, QuestionExamen, CopieExamen, ReponseExamen, LogSurveillace
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 )
 from core.serializers.examens_serializers import (
     ExamenSerializer, QuestionExamenSerializer, CopieExamenSerializer,
     ReponseExamenSerializer, LogSurveillanceSerializer
 )
 from core.permissions import IsEnseignantOrReadOnly
+<<<<<<< HEAD
 from django.utils.translation import gettext as _
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -19,6 +29,8 @@ from datetime import timedelta
 from django.db import IntegrityError
 import traceback
 import re
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class StandardPagination(PageNumberPagination):
@@ -31,13 +43,18 @@ class ExamenViewSet(viewsets.ModelViewSet):
     """API pour gérer les examens"""
     queryset = Examen.objects.all()
     serializer_class = ExamenSerializer
+<<<<<<< HEAD
     permission_classes = [IsAuthenticated]
+=======
+    permission_classes = [IsEnseignantOrReadOnly]
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['titre', 'matiere__nom', 'enseignant__utilisateur__username']
     ordering_fields = ['date_debut', 'titre']
     ordering = ['-date_debut']
 
+<<<<<<< HEAD
     def get_queryset(self):
         qs = Examen.objects.all()
         user = self.request.user
@@ -74,6 +91,12 @@ class ExamenViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def publies(self, request):
         examens = self.get_queryset().filter(est_publie=True)
+=======
+    @action(detail=False, methods=['get'])
+    def publies(self, request):
+        """Retourner les examens publiés uniquement"""
+        examens = self.queryset.filter(est_publie=True)
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         page = self.paginate_queryset(examens)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -81,6 +104,7 @@ class ExamenViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(examens, many=True)
         return Response(serializer.data)
 
+<<<<<<< HEAD
     @action(detail=True, methods=['post'])
     def publier(self, request, pk=None):
         examen = self.get_object()
@@ -263,6 +287,8 @@ def auto_spell_check(text):
                 fautes.append({'mot': mot, 'position': text.find(mot), 'suggestion': mot + '?'})
     return fautes
 
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 class QuestionExamenViewSet(viewsets.ModelViewSet):
     """API pour gérer les questions d'examen"""
@@ -274,6 +300,7 @@ class QuestionExamenViewSet(viewsets.ModelViewSet):
     ordering_fields = ['ordre']
     ordering = ['ordre']
 
+<<<<<<< HEAD
     def get_queryset(self):
         qs = QuestionExamen.objects.all()
         examen = self.request.query_params.get('examen')
@@ -281,6 +308,8 @@ class QuestionExamenViewSet(viewsets.ModelViewSet):
             qs = qs.filter(examen_id=examen)
         return qs
 
+=======
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 class CopieExamenViewSet(viewsets.ModelViewSet):
     """API pour gérer les copies d'examen"""
@@ -291,6 +320,7 @@ class CopieExamenViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_debut', 'note_obtenue']
     ordering = ['-date_debut']
 
+<<<<<<< HEAD
     def get_queryset(self):
         qs = CopieExamen.objects.all()
         user = self.request.user
@@ -311,6 +341,18 @@ class CopieExamenViewSet(viewsets.ModelViewSet):
             )
         copie.est_termine = True
         copie.date_soumission = timezone.now()
+=======
+    @action(detail=True, methods=['post'])
+    def soumettre(self, request, pk=None):
+        """Soumettre une copie d'examen"""
+        copie = self.get_object()
+        if copie.est_termine:
+            return Response(
+                {'detail': 'Cette copie a déjà été soumise'},
+                status=400
+            )
+        copie.est_termine = True
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         copie.save()
         serializer = self.get_serializer(copie)
         return Response(serializer.data)
@@ -322,6 +364,7 @@ class ReponseExamenViewSet(viewsets.ModelViewSet):
     serializer_class = ReponseExamenSerializer
     pagination_class = StandardPagination
 
+<<<<<<< HEAD
     def perform_update(self, serializer):
         instance = self.get_object()
         est_correct = serializer.validated_data.get('est_correct')
@@ -639,3 +682,12 @@ class MesNotesView(APIView):
                 'a_ef': ef_moy is not None,
             })
         return Response(data)
+=======
+
+class LogSurveillanceViewSet(viewsets.ModelViewSet):
+    """API pour gérer les logs de surveillance"""
+    queryset = LogSurveillace.objects.all()
+    serializer_class = LogSurveillanceSerializer
+    pagination_class = StandardPagination
+    ordering = ['-date_evenement']
+>>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
