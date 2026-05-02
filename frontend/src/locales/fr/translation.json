@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "courses": "Cours",
+    "exams": "Examens",
+    "shop": "Boutique",
+    "visio": "Sessions Live",
+    "logout": "Déconnexion",
+    "profile": "Profil"
+  },
+  "dashboard": {
+    "welcome": "Bon retour",
+    "my_courses": "Mes Cours",
+    "continue": "Continuer",
+    "progress": "Progression",
+    "stories_title": "Annonces",
+    "load_more": "Charger plus",
+    "no_courses": "Aucun cours disponible",
+    "filter_all": "Tous",
+    "filter_progress": "En cours",
+    "filter_done": "Terminés"
+  },
+  "exam": {
+    "title": "Mode Examen",
+    "start": "Démarrer l'examen",
+    "submit": "Soumettre",
+    "time_left": "Temps restant",
+    "time_warning": "Moins de 5 minutes !",
+    "attention": "Attention requise",
+    "leave_warning": "Quitter cette page sera enregistré.",
+    "finish_confirm": "Voulez-vous vraiment soumettre ?",
+    "question": "Question"
+  },
+  "visio": {
+    "title": "Session en direct",
+    "raise_hand": "Lever la main",
+    "mute": "Couper le micro",
+    "unmute": "Activer le micro",
+    "camera_off": "Désactiver la caméra",
+    "camera_on": "Activer la caméra",
+    "leave": "Quitter la session",
+    "participants": "Participants"
+  },
+  "gidro": {
+    "greeting": "Bonjour ! Je suis Gidro, votre assistant IA.",
+    "hint": "Posez-moi une question...",
+    "listen": "J'écoute...",
+    "speak": "Parlez-moi"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgot": "Mot de passe oublié ?",
+    "no_account": "Pas de compte ?",
+    "register": "S'inscrire"
+  },
+  "lang": {
+    "mg": "Malagasy",
+    "fr": "Français",
+    "en": "English"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue.",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "search": "Rechercher...",
+    "minutes": "minutes"
+  }
+}

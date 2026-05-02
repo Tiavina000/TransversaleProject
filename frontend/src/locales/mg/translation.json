@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "dashboard": "Fandraisana",
+    "courses": "Fianarana",
+    "exams": "Fanadinana",
+    "shop": "Fivarotana",
+    "visio": "Fampiofanana Avy Mivantana",
+    "logout": "Hivoaka",
+    "profile": "Mombamomba Anao"
+  },
+  "dashboard": {
+    "welcome": "Tonga soa indray",
+    "my_courses": "Ny Fianarana Ahy",
+    "continue": "Tohizo",
+    "progress": "Fandrosoan'ny",
+    "stories_title": "Vaovao",
+    "load_more": "Impintsika bebe koa",
+    "no_courses": "Tsy misy fianarana misy",
+    "filter_all": "Rehetra",
+    "filter_progress": "Mandroso",
+    "filter_done": "Vita"
+  },
+  "exam": {
+    "title": "Fanadinana",
+    "start": "Atombohy ny Fanadinana",
+    "submit": "Alefa",
+    "time_left": "Fotoana sisa",
+    "time_warning": "Latsaky ny 5 minitra !",
+    "attention": "Ilaina ny saina",
+    "leave_warning": "Ny fialàna amin'ity pejy ity dia horekitr'eo.",
+    "finish_confirm": "Tianao ve ny alafo ?",
+    "question": "Fanontaniana"
+  },
+  "visio": {
+    "title": "Fampiofanana Avy Mivantana",
+    "raise_hand": "Anangàna tanana",
+    "mute": "Andevony ny mikro",
+    "unmute": "Ampiasao ny mikro",
+    "camera_off": "Andevony ny kamera",
+    "camera_on": "Ampiasao ny kamera",
+    "leave": "Hivoaka amin'ny fampiofanana",
+    "participants": "Mpandray anjara"
+  },
+  "gidro": {
+    "greeting": "Manao ahoana ! Gidro aho, mpanampy AI anao.",
+    "hint": "Manontàna ahy...",
+    "listen": "Mihaino...",
+    "speak": "Miresaha amiko"
+  },
+  "auth": {
+    "login": "Hiditra",
+    "logout": "Hivoaka",
+    "email": "Email",
+    "password": "Tenimiafina",
+    "forgot": "Fadino tenimiafina ?",
+    "no_account": "Tsy manana kaonty ?",
+    "register": "Misoratra"
+  },
+  "lang": {
+    "mg": "Malagasy",
+    "fr": "Français",
+    "en": "English"
+  },
+  "common": {
+    "loading": "Miandry...",
+    "error": "Nisy olana.",
+    "retry": "Andramo indray",
+    "close": "Akatona",
+    "save": "Tehirizina",
+    "cancel": "Foana",
+    "search": "Tadiavo...",
+    "minutes": "minitra"
+  }
+}

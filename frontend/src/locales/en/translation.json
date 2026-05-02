@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "exams": "Exams",
+    "shop": "Shop",
+    "visio": "Live Sessions",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "my_courses": "My Courses",
+    "continue": "Continue",
+    "progress": "Progress",
+    "stories_title": "Announcements",
+    "load_more": "Load more",
+    "no_courses": "No courses available",
+    "filter_all": "All",
+    "filter_progress": "In Progress",
+    "filter_done": "Completed"
+  },
+  "exam": {
+    "title": "Exam Mode",
+    "start": "Start Exam",
+    "submit": "Submit",
+    "time_left": "Time remaining",
+    "time_warning": "Less than 5 minutes!",
+    "attention": "Attention required",
+    "leave_warning": "Leaving this page will be logged.",
+    "finish_confirm": "Are you sure you want to submit?",
+    "question": "Question"
+  },
+  "visio": {
+    "title": "Live Session",
+    "raise_hand": "Raise Hand",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "camera_off": "Turn off camera",
+    "camera_on": "Turn on camera",
+    "leave": "Leave Session",
+    "participants": "Participants"
+  },
+  "gidro": {
+    "greeting": "Hello! I'm Gidro, your AI assistant.",
+    "hint": "Ask me anything...",
+    "listen": "Listening...",
+    "speak": "Speak to me"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgot": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "register": "Register"
+  },
+  "lang": {
+    "mg": "Malagasy",
+    "fr": "Français",
+    "en": "English"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "retry": "Retry",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search...",
+    "minutes": "minutes"
+  }
+}
