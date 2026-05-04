@@ -70,7 +70,6 @@ export const examAPI = {
   submit:       (id, d)  => api.post(`/api/examens/${id}/submit/`, d),
   syncTimer:    (id)     => api.get(`/api/examens/${id}/timer/`),
 };
-
 // ─── Surveillance (Logs silencieux) ──────────────────────────────────────────
 export const surveillanceAPI = {
   /**
@@ -82,7 +81,7 @@ export const surveillanceAPI = {
       evenement:      eventType,
       details:        details,
       date_evenement: new Date().toISOString(),
-    }),
+    })
 };
 
 // ─── Visio ───────────────────────────────────────────────────────────────────
