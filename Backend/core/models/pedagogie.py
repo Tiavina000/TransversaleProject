@@ -91,9 +91,47 @@ class FichierMultimedia(models.Model):
     taille_no = models.FloatField(validators=[MinValueValidator(0)])
     lecon = models.ForeignKey(Lecon , on_delete=models.CASCADE , related_name='fichiers')
     format = models.CharField(max_length=10)
+    est_telechargeable = models.BooleanField(default=True, help_text="Si faux, le fichier est uniquement lisible sur la plateforme.")
     metadata = models.JSONField(default=dict , blank=True)
     
     class Meta :
         verbose_name = "Fichier Multimédia"
         verbose_name_plural = "Fichiers Multimédia"
-        
+
+class ProgressionChapitre(models.Model):
+    etudiant = models.ForeignKey('core.Etudiant', on_delete=models.CASCADE, related_name='progressions')
+    chapitre = models.ForeignKey(Chapitre, on_delete=models.CASCADE, related_name='progressions')
+    temps_passe_secondes = models.PositiveIntegerField(default=0)
+    est_valide = models.BooleanField(default=False)
+    date_derniere_session = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = 'core'
+        unique_together = ['etudiant', 'chapitre']
+        verbose_name = "Progression Chapitre"
+        verbose_name_plural = "Progressions Chapitres"
+
+
+class SessionEtude(models.Model):
+    STATUS_CHOICES = [
+        ('EN_COURS', 'En cours'),
+        ('PAUSE', 'En pause'),
+        ('TERMINE', 'Terminé'),
+        ('ABANDONNE', 'Abandonné'),
+    ]
+    etudiant = models.ForeignKey('core.Etudiant', on_delete=models.CASCADE, related_name='sessions_etude')
+    chapitre = models.ForeignKey(Chapitre, on_delete=models.CASCADE, related_name='sessions_etude')
+    date_debut = models.DateTimeField(auto_now_add=True)
+    date_fin = models.DateTimeField(null=True, blank=True)
+    derniere_activite = models.DateTimeField(auto_now=True)
+    temps_cumule_secondes = models.PositiveIntegerField(default=0)
+    statut = models.CharField(max_length=20, choices=STATUS_CHOICES, default='EN_COURS')
+
+    class Meta:
+        app_label = 'core'
+        verbose_name = "Session d'Étude"
+        verbose_name_plural = "Sessions d'Étude"
+        ordering = ['-derniere_activite']
+
+    def __str__(self):
+        return f"Session {self.etudiant} - {self.chapitre} ({self.statut})"

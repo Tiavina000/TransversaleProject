@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from core.models import RequestIA, Recommandation, Etudiant, Matiere
 from core.serializers.ia_serializers import RequestIASerializer, RecommandationSerializer
 from core.services import NavigationTrie, ScoringService, CurriculumGraph, VoiceCommandProcessor
+from django.utils.translation import gettext as _
 
 class StandardPagination(PageNumberPagination):
     page_size = 10
@@ -27,7 +28,7 @@ class RequestIAViewSet(viewsets.ModelViewSet):
         """Assistant de Navigation : Recherche par algorithme Trie"""
         query = request.query_params.get('q', '')
         if not query:
-            return Response({"detail": "Paramètre 'q' requis."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Paramètre 'q' requis.")}, status=status.HTTP_400_BAD_REQUEST)
             
         trie = NavigationTrie()
         trie.initialize_from_db() # Charge en mémoire si pas déjà fait
@@ -39,7 +40,7 @@ class RequestIAViewSet(viewsets.ModelViewSet):
             RequestIA.objects.create(
                 etudiant=request.user.etudiant_profile,
                 request=query,
-                reponse=f"{len(results)} résultats trouvés",
+                reponse=f"{len(results)} " + _("résultats trouvés"),
                 type_requete='NAVIGATION'
             )
             
@@ -52,7 +53,7 @@ class RequestIAViewSet(viewsets.ModelViewSet):
         lecon_id = request.query_params.get('lecon_id')
         
         if not matiere_id or not lecon_id:
-            return Response({"detail": "Paramètres 'matiere_id' et 'lecon_id' requis."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Paramètres 'matiere_id' et 'lecon_id' requis.")}, status=status.HTTP_400_BAD_REQUEST)
             
         graph = CurriculumGraph(int(matiere_id))
         next_step = graph.find_next_step(int(lecon_id))
@@ -70,7 +71,7 @@ class RequestIAViewSet(viewsets.ModelViewSet):
         texte_dicte = request.data.get('texte_dicte', '')
         
         if not texte_dicte:
-            return Response({"detail": "Le champ 'texte_dicte' est requis."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Le champ 'texte_dicte' est requis.")}, status=status.HTTP_400_BAD_REQUEST)
             
         # Traitement par le service NLP
         resultat = VoiceCommandProcessor.process(texte_dicte)
@@ -100,22 +101,22 @@ class RecommandationViewSet(viewsets.ModelViewSet):
     def generer(self, request):
         """Moteur de Recommandation : Algorithme de Scoring"""
         if not request.user.is_authenticated or not hasattr(request.user, 'etudiant_profile'):
-            return Response({"detail": "Action réservée aux étudiants."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": _("Action réservée aux étudiants.")}, status=status.HTTP_403_FORBIDDEN)
             
         matiere_id = request.data.get('matiere_id')
         if not matiere_id:
-            return Response({"detail": "Paramètre 'matiere_id' requis dans le body."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Paramètre 'matiere_id' requis dans le body.")}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
             matiere = Matiere.objects.get(id=matiere_id)
         except Matiere.DoesNotExist:
-            return Response({"detail": "Matière non trouvée."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": _("Matière non trouvée.")}, status=status.HTTP_404_NOT_FOUND)
             
         etudiant = request.user.etudiant_profile
         reco = ScoringService.analyser_et_recommander(etudiant, matiere)
         
         if reco:
             serializer = self.get_serializer(reco)
-            return Response({"status": "Recommandation générée", "data": serializer.data})
+            return Response({"status": _("Recommandation générée"), "data": serializer.data})
         else:
-            return Response({"status": "Aucune recommandation nécessaire, bons résultats !"})
+            return Response({"status": _("Aucune recommandation nécessaire, bons résultats !")})

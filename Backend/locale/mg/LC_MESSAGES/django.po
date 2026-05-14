@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-02 12:07+0000\n"
+"POT-Creation-Date: 2026-05-06 10:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,54 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ENENI/settings.py:132
-msgid "Malagasy"
-msgstr ""
-
-#: ENENI/settings.py:133
-msgid "French"
-msgstr ""
-
 #: ENENI/settings.py:134
+msgid "Malagasy"
+msgstr "Malagasy"
+
+#: ENENI/settings.py:135
+msgid "French"
+msgstr "Frantsay"
+
+#: ENENI/settings.py:136
 msgid "English"
-msgstr ""
+msgstr "Anglisy"
+
+#: core/views/examens_views.py:71
+msgid "Cette copie a déjà été soumise"
+msgstr "Efa nalefa ity kopia ity"
+
+#: core/views/ia_views.py:31
+msgid "Paramètre 'q' requis."
+msgstr "Tsy maintsy fenoina ny 'q'."
+
+#: core/views/ia_views.py:43
+msgid "résultats trouvés"
+msgstr "valiny hita"
+
+#: core/views/ia_views.py:56
+msgid "Paramètres 'matiere_id' et 'lecon_id' requis."
+msgstr "Tsy maintsy fenoina ny 'matiere_id' sy 'lecon_id'."
+
+#: core/views/ia_views.py:74
+msgid "Le champ 'texte_dicte' est requis."
+msgstr "Tsy maintsy fenoina ny 'texte_dicte'."
+
+#: core/views/ia_views.py:104
+msgid "Action réservée aux étudiants."
+msgstr "Natokana ho an'ny mpianatra ihany."
+
+#: core/views/ia_views.py:108
+msgid "Paramètre 'matiere_id' requis dans le body."
+msgstr "Tsy maintsy fenoina ny 'matiere_id'."
+
+#: core/views/ia_views.py:113
+msgid "Matière non trouvée."
+msgstr "Tsy hita ny taranja."
+
+#: core/views/ia_views.py:120
+msgid "Recommandation générée"
+msgstr "Soso-kevitra voaforona"
+
+#: core/views/ia_views.py:122
+msgid "Aucune recommandation nécessaire, bons résultats !"
+msgstr "Tsy misy soso-kevitra ilaina, vokatra tsara!"

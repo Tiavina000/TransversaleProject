@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-02 12:07+0000\n"
+"POT-Creation-Date: 2026-05-06 10:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,55 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-#: ENENI/settings.py:132
-msgid "Malagasy"
-msgstr ""
-
-#: ENENI/settings.py:133
-msgid "French"
-msgstr ""
 
 #: ENENI/settings.py:134
+msgid "Malagasy"
+msgstr "Malagasy"
+
+#: ENENI/settings.py:135
+msgid "French"
+msgstr "French"
+
+#: ENENI/settings.py:136
 msgid "English"
-msgstr ""
+msgstr "English"
+
+#: core/views/examens_views.py:71
+msgid "Cette copie a déjà été soumise"
+msgstr "This copy has already been submitted"
+
+#: core/views/ia_views.py:31
+msgid "Paramètre 'q' requis."
+msgstr "Parameter 'q' is required."
+
+#: core/views/ia_views.py:43
+msgid "résultats trouvés"
+msgstr "results found"
+
+#: core/views/ia_views.py:56
+msgid "Paramètres 'matiere_id' et 'lecon_id' requis."
+msgstr "Parameters 'matiere_id' and 'lecon_id' are required."
+
+#: core/views/ia_views.py:74
+msgid "Le champ 'texte_dicte' est requis."
+msgstr "Field 'texte_dicte' is required."
+
+#: core/views/ia_views.py:104
+msgid "Action réservée aux étudiants."
+msgstr "Action reserved for students."
+
+#: core/views/ia_views.py:108
+msgid "Paramètre 'matiere_id' requis dans le body."
+msgstr "Parameter 'matiere_id' is required in the body."
+
+#: core/views/ia_views.py:113
+msgid "Matière non trouvée."
+msgstr "Subject not found."
+
+#: core/views/ia_views.py:120
+msgid "Recommandation générée"
+msgstr "Recommendation generated"
+
+#: core/views/ia_views.py:122
+msgid "Aucune recommandation nécessaire, bons résultats !"
+msgstr "No recommendation needed, good results!"

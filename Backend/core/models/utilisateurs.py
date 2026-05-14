@@ -34,6 +34,9 @@ class Utilisateur(AbstractUser , TimeStampedModel , SoftDeleteModel):
 
 class Etudiant(models.Model):
     utilisateur = models.OneToOneField(Utilisateur , on_delete=models.CASCADE , related_name='etudiant_profile')
+    etablissement = models.ForeignKey('core.Etablissement', on_delete=models.CASCADE, related_name='etudiants', null=True)
+    numero_etudiant = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    niveau = models.ForeignKey('core.NiveauScolaire', on_delete=models.SET_NULL, null=True, blank=True, related_name='etudiants')
     points_global = models.IntegerField(default=0 , validators=[MinValueValidator(0)])
     date_inscription = models.DateTimeField(auto_now_add=True)
     
@@ -46,6 +49,7 @@ class Etudiant(models.Model):
 
 class Enseignant(models.Model):
     utilisateur = models.OneToOneField(Utilisateur , on_delete=models.CASCADE , related_name='enseignant_profile')
+    etablissement = models.ForeignKey('core.Etablissement', on_delete=models.CASCADE, related_name='enseignants', null=True)
     specialite = models.CharField(max_length=100 , blank=True)
     date_embauche = models.DateField()
     

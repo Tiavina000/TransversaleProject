@@ -36,3 +36,14 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             request.user.is_authenticated and 
             request.user.type_utilisateur == 'ADMINISTRATEUR'
         )
+
+class IsEtudiant(permissions.BasePermission):
+    """
+    Permission permettant l'accès uniquement aux utilisateurs de type ETUDIANT.
+    """
+    def has_permission(self, request, view):
+        return bool(
+            request.user and 
+            request.user.is_authenticated and 
+            request.user.type_utilisateur == 'ETUDIANT'
+        )

@@ -4,9 +4,9 @@
     "courses": "Cours",
     "exams": "Examens",
     "shop": "Boutique",
-    "visio": "Sessions Live",
     "logout": "Déconnexion",
-    "profile": "Profil"
+    "profile": "Profil",
+    "student": "Élève"
   },
   "dashboard": {
     "welcome": "Bon retour",
@@ -41,20 +41,14 @@
     "leave": "Quitter la session",
     "participants": "Participants"
   },
-  "gidro": {
-    "greeting": "Bonjour ! Je suis Gidro, votre assistant IA.",
-    "hint": "Posez-moi une question...",
-    "listen": "J'écoute...",
-    "speak": "Parlez-moi"
-  },
   "auth": {
-    "login": "Connexion",
+    "login": "Se connecter",
     "logout": "Déconnexion",
-    "email": "Email",
+    "username": "Identifiant",
+    "username_placeholder": "Votre identifiant ENENI",
     "password": "Mot de passe",
     "forgot": "Mot de passe oublié ?",
-    "no_account": "Pas de compte ?",
-    "register": "S'inscrire"
+    "platform_desc": "Plateforme Nationale d'Éducation — Madagascar"
   },
   "lang": {
     "mg": "Malagasy",

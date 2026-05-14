@@ -1,0 +1,113 @@
+================================================================================
+FICHIER DE DOCUMENTATION TECHNIQUE : REFONTE GLOBALE ET NOUVELLES FONCTIONNALITÉS ENENI
+================================================================================
+
+DATE : 08/05/2026
+AUTEUR : Tiavina & Antigravity
+VERSION : 2.0.0
+SUJET : Restructuration du site, suppression de l'IA, refonte accès et espace élève (cours, live, stats)
+
+--------------------------------------------------------------------------------
+1. DESCRIPTION DU FONCTIONNEMENT (LOGIQUE MÉTIER)
+--------------------------------------------------------------------------------
+L'objectif de cette mise à jour majeure est de recentrer la plateforme sur l'apprentissage
+interactif, de sécuriser l'accès au contenu et d'améliorer l'expérience utilisateur et l'architecture.
+
+Fonctionnement global et modifications :
+- Nettoyage : Suppression complète du chatbot et des fonctionnalités liées à l'IA pour alléger et clarifier le code.
+- Accès Public : Le site est accessible sans connexion (vitrine). Le contenu public est limité aux informations basiques (étudiants, site, recherche).
+- Authentification : Suppression de l'inscription libre. Création de comptes payante ou gérée par les établissements. Les utilisateurs (élèves, enseignants) reçoivent un email automatique avec un mot de passe par défaut à modifier.
+- Espace Élève (Tableau de bord) : 
+  * Accès aux actualités et nouveautés de l'établissement (filtrables).
+  * Section "Informations" avec statistiques réelles (connectées à la DB), partenaires (carrousel), thématique Ministère (avec changement de couleurs), et rénovations éducatives.
+- Espace Cours :
+  * Filtrage des cours par établissement, niveau et classe.
+  * Statistiques d'apprentissage (temps passé par matière, exercices faits).
+  * Système de notifications (tâches non faites, examens, annulations, cours vidéo programmés 24h à l'avance).
+- Interaction dans un Cours :
+  * Affichage de l'enseignant et bouton "Commencer à étudier" qui déclenche un chronomètre de session.
+  * Mode Split-Screen (vidéo explicative + texte de leçon).
+  * Sécurité : Téléchargements protégés par authentification, mode plein écran obligatoire (le chronomètre s'arrête en arrière-plan).
+- Cours en Direct (Live Video) :
+  * Diffusion vidéo du professeur.
+  * Interaction élèves : "Lever la main", poser des questions en commentaire (marquables comme "répondues").
+  * Modération : Bannissement ou pénalité de temps pour un élève perturbateur (impactant uniquement le live).
+
+--------------------------------------------------------------------------------
+2. FICHIERS MODIFIÉS OU CRÉÉS (PRÉVISIONNEL)
+--------------------------------------------------------------------------------
+BACKEND (Django) :
+- [MOD] backend/api/models.py : Ajout de champs (chronomètre, pénalités live, stats, etc.).
+- [MOD] backend/api/views.py : Restriction des téléchargements, nouvelles API de statistiques.
+- [DEL] backend/voice_app/ : Suppression ou désactivation des modules IA/Chatbot.
+- [NEW] backend/services/live_video.py : Gestion des salles WebRTC/Sockets pour les cours en direct.
+- [MOD] backend/authentication/ : Refonte du processus de création de compte et d'emailing.
+
+FRONTEND (React) :
+- [MOD] frontend/src/App.jsx : Refonte du routage public vs privé.
+- [DEL] frontend/src/components/ChatBot/ : Suppression de l'interface IA.
+- [MOD] frontend/src/pages/Dashboard.jsx : Intégration des actualités et notifications.
+- [MOD] frontend/src/pages/CourseDetail.jsx : Implémentation du split-screen, du plein écran et du chronomètre.
+- [NEW] frontend/src/pages/LiveClass.jsx : Interface vidéo en direct avec chat et "lever la main".
+- [MOD] frontend/src/components/MinistryInfo.jsx : Ajout des infos, stats et carrousel partenaires.
+
+BASE DE DONNÉES :
+- Migrations PostgreSQL : Nouvelles tables pour le tracking de temps, pénalités, et notifications.
+
+--------------------------------------------------------------------------------
+3. IMPLÉMENTATION DU CODE (EXTRAITS CLÉS)
+--------------------------------------------------------------------------------
+
+A. Suppression IA et Refonte Architecture :
+-------------------------------------------------
+# Nettoyage des appels IA dans les contrôleurs et retrait des composants inutiles.
+# Organisation modulaire du code pour améliorer la lisibilité.
+
+B. Logique Plein Écran et Chronomètre (Frontend) :
+----------------------------------------
+// Dans frontend/src/hooks/useCourseTimer.js
+useEffect(() => {
+    const handleVisibilityChange = () => {
+        if (document.hidden || !document.fullscreenElement) {
+            pauseTimer();
+            showWarning("Le compte à rebours s'est arrêté. Veuillez revenir en plein écran pour continuer.");
+        } else {
+            resumeTimer();
+        }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleVisibilityChange);
+    return () => {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        document.removeEventListener("fullscreenchange", handleVisibilityChange);
+    };
+}, []);
+
+C. Logique Live Video et Modération (Backend/Sockets) :
+-------------------------------------------------
+// Logique côté serveur WebSocket
+socket.on('raise_hand', (data) => {
+    broadcastToTeacher(data.roomId, { studentId: data.studentId, action: 'hand_raised' });
+});
+socket.on('ban_student', (data) => {
+    applyPenalty(data.studentId, data.duration);
+    disconnectStudentFromRoom(data.roomId, data.studentId);
+});
+
+--------------------------------------------------------------------------------
+4. ENDROITS D'UTILISATION (POINTS D'ENTRÉE)
+--------------------------------------------------------------------------------
+- Landing Page (Public) : Refonte pour accès sans login avec infos générales.
+- Processus de Connexion : Désactivation de la création de compte publique. Login obligatoire pour fonctionnalités avancées.
+- Lecteur de Cours (Course Player) : Nouveau composant centralisé pour le mode split-screen, les ressources et le chronomètre de présence.
+- Salle de Classe Virtuelle (Live Room) : Point d'accès unique pour les cours synchrones avec tableau de bord professeur pour modération.
+
+--------------------------------------------------------------------------------
+5. TESTS ET VALIDATION
+--------------------------------------------------------------------------------
+- Vérifier la suppression totale des dépendances IA pour s'assurer de l'allègement de la plateforme.
+- Tester la sécurité des téléchargements : vérifier qu'un lien copié n'est pas téléchargeable en mode incognito sans session.
+- Valider la robustesse du chronomètre : il doit impérativement s'arrêter si on réduit la fenêtre ou quitte le plein écran.
+- Simuler la création de compte par un établissement et vérifier la réception du mot de passe par défaut.
+- Simuler une session live : vérifier l'interaction (lever la main, commentaires) et l'efficacité des pénalités/bannissements sur l'accès au flux.
+================================================================================

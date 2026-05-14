@@ -1,12 +1,29 @@
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, status, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
 from core.models import Utilisateur, Etudiant, Enseignant, AdminPlateforme
 from core.serializers.base_serializers import UtilisateurSerializer, UtilisateurDetailSerializer
 from core.serializers.utilisateurs_serializers import (
-    EtudiantSerializer, EnseignantSerializer, AdminPlateformeSerializer
+    EtudiantSerializer, EnseignantSerializer, AdminPlateformeSerializer,
+    CustomTokenObtainPairSerializer
 )
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+class LogoutView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # In JWT, logout is mostly client-side. 
+        # If blacklisting is enabled, we could invalidate the refresh token here.
+        return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
 
 
 class StandardPagination(PageNumberPagination):

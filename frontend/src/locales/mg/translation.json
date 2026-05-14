@@ -4,9 +4,9 @@
     "courses": "Fianarana",
     "exams": "Fanadinana",
     "shop": "Fivarotana",
-    "visio": "Fampiofanana Avy Mivantana",
     "logout": "Hivoaka",
-    "profile": "Mombamomba Anao"
+    "profile": "Mombamomba Anao",
+    "student": "Mpianatra"
   },
   "dashboard": {
     "welcome": "Tonga soa indray",
@@ -41,20 +41,14 @@
     "leave": "Hivoaka amin'ny fampiofanana",
     "participants": "Mpandray anjara"
   },
-  "gidro": {
-    "greeting": "Manao ahoana ! Gidro aho, mpanampy AI anao.",
-    "hint": "Manontàna ahy...",
-    "listen": "Mihaino...",
-    "speak": "Miresaha amiko"
-  },
   "auth": {
     "login": "Hiditra",
     "logout": "Hivoaka",
-    "email": "Email",
+    "username": "Anarana mpampiasa",
+    "username_placeholder": "Ny anarana ENENI anao",
     "password": "Tenimiafina",
     "forgot": "Fadino tenimiafina ?",
-    "no_account": "Tsy manana kaonty ?",
-    "register": "Misoratra"
+    "platform_desc": "Sehatra Nasionaly ny Fanabeazana — Madagasikara"
   },
   "lang": {
     "mg": "Malagasy",

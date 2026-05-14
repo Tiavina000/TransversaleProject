@@ -10,6 +10,7 @@ from core.serializers.examens_serializers import (
     ReponseExamenSerializer, LogSurveillanceSerializer
 )
 from core.permissions import IsEnseignantOrReadOnly
+from django.utils.translation import gettext as _
 
 
 class StandardPagination(PageNumberPagination):
@@ -67,7 +68,7 @@ class CopieExamenViewSet(viewsets.ModelViewSet):
         copie = self.get_object()
         if copie.est_termine:
             return Response(
-                {'detail': 'Cette copie a déjà été soumise'},
+                {'detail': _('Cette copie a déjà été soumise')},
                 status=400
             )
         copie.est_termine = True

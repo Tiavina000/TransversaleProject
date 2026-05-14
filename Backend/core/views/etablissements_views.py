@@ -12,6 +12,8 @@ class StandardPagination(PageNumberPagination):
     max_page_size = 100
 
 
+from rest_framework.permissions import AllowAny
+
 class EtablissementViewSet(viewsets.ModelViewSet):
     """API pour gérer les établissements"""
     queryset = Etablissement.objects.all()
@@ -20,6 +22,11 @@ class EtablissementViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['nom', 'code_etablissement', 'email']
     ordering_fields = ['nom', 'date_creation']
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny()]
+        return super().get_permissions()
 
 
 class AdminEtablissementViewSet(viewsets.ModelViewSet):

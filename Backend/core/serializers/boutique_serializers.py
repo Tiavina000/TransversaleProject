@@ -3,14 +3,23 @@ from core.models import RessourceBoutique, Panier, PanierItem, Commande
 
 
 class RessourceBoutiqueSerializer(serializers.ModelSerializer):
+    title = serializers.ReadOnlyField(source='titre')
+    desc = serializers.ReadOnlyField(source='description')
+    type = serializers.ReadOnlyField(source='type_contenu')
+    points = serializers.ReadOnlyField(source='prix')
+    isPurchased = serializers.SerializerMethodField()
+
     class Meta:
         model = RessourceBoutique
         fields = [
-            'id', 'titre', 'description', 'prix', 'type_contenu',
+            'id', 'titre', 'title', 'description', 'desc', 'prix', 'points', 'type_contenu', 'type',
             'fichier', 'niveau', 'matiere', 'est_disponible', 'stock',
-            'date_creation', 'date_modification'
+            'date_creation', 'date_modification', 'isPurchased'
         ]
         read_only_fields = ['id', 'date_creation', 'date_modification']
+
+    def get_isPurchased(self, obj):
+        return False
 
 
 class PanierItemSerializer(serializers.ModelSerializer):

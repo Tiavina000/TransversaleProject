@@ -1,12 +1,13 @@
 # Views package for API endpoints
 from .utilisateurs_views import (
     UtilisateurViewSet, EtudiantViewSet, EnseignantViewSet,
-    AdminPlateformeViewSet
+    AdminPlateformeViewSet, CustomTokenObtainPairView, LogoutView
 )
 from .etablissements_views import EtablissementViewSet, AdminEtablissementViewSet
 from .pedagogie_views import (
     NiveauScolaireViewSet, MatiereViewSet, ChapitreViewSet,
-    LeconViewSet, FichierMultimediaViewSet
+    LeconViewSet, FichierMultimediaViewSet, PublicSearchView,
+    SessionEtudeViewSet, StudentStatsView
 )
 from .examens_views import (
     ExamenViewSet, QuestionExamenViewSet, CopieExamenViewSet,
@@ -17,18 +18,18 @@ from .boutique_views import (
     RessourceBoutiqueViewSet, PanierViewSet, PanierItemViewSet,
     CommandeViewSet
 )
-from .communications_views import ActualiteViewSet, NotificationViewSet
+from .communications_views import ActualiteViewSet, NotificationViewSet, PartenaireViewSet, RenovationViewSet
 from .ia_views import RequestIAViewSet, RecommandationViewSet
 
 __all__ = [
     # Utilisateurs
     'UtilisateurViewSet', 'EtudiantViewSet', 'EnseignantViewSet',
-    'AdminPlateformeViewSet',
+    'AdminPlateformeViewSet', 'CustomTokenObtainPairView', 'LogoutView',
     # Établissements
     'EtablissementViewSet', 'AdminEtablissementViewSet',
     # Pédagogie
     'NiveauScolaireViewSet', 'MatiereViewSet', 'ChapitreViewSet',
-    'LeconViewSet', 'FichierMultimediaViewSet',
+    'LeconViewSet', 'FichierMultimediaViewSet', 'PublicSearchView',
     # Examens
     'ExamenViewSet', 'QuestionExamenViewSet', 'CopieExamenViewSet',
     'ReponseExamenViewSet', 'LogSurveillanceViewSet',
@@ -38,7 +39,7 @@ __all__ = [
     'RessourceBoutiqueViewSet', 'PanierViewSet', 'PanierItemViewSet',
     'CommandeViewSet',
     # Communications
-    'ActualiteViewSet', 'NotificationViewSet',
+    'ActualiteViewSet', 'NotificationViewSet', 'PartenaireViewSet', 'RenovationViewSet',
     # IA
     'RequestIAViewSet', 'RecommandationViewSet',
 ]

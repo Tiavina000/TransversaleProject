@@ -1,7 +1,13 @@
 from rest_framework import serializers
 from core.models import (
-    NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia
+    NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia, SessionEtude
 )
+
+
+class SessionEtudeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionEtude
+        fields = '__all__'
 
 
 class NiveauScolaireSerializer(serializers.ModelSerializer):
@@ -26,25 +32,53 @@ class MatiereSerializer(serializers.ModelSerializer):
 
 
 class FichierMultimediaSerializer(serializers.ModelSerializer):
+    nom = serializers.ReadOnlyField(source='titre')
+    taille = serializers.SerializerMethodField()
+    type = serializers.ReadOnlyField(source='format')
+    isDownloadable = serializers.ReadOnlyField(source='est_telechargeable')
+    url = serializers.ReadOnlyField(source='url_fichier')
+
     class Meta:
         model = FichierMultimedia
         fields = [
             'id', 'type_fichier', 'titre', 'url_fichier', 'taille_no',
-            'lecon', 'format', 'metadata'
+            'lecon', 'format', 'metadata', 'nom', 'taille', 'type', 'isDownloadable', 'url'
         ]
         read_only_fields = ['id']
+
+    def get_taille(self, obj):
+        return f"{obj.taille_no} MB"
 
 
 class LeconSerializer(serializers.ModelSerializer):
     fichiers = FichierMultimediaSerializer(many=True, read_only=True)
+    matiere = serializers.ReadOnlyField(source='chapitre.matiere.nom')
+    niveau = serializers.ReadOnlyField(source='chapitre.niveau.nom')
+    content_html = serializers.ReadOnlyField(source='contenue_texte')
+    description = serializers.ReadOnlyField(source='objectifs')
+    enseignant = serializers.SerializerMethodField()
+    video_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Lecon
         fields = [
-            'id', 'titre', 'order', 'chapitre', 'contenue_texte',
-            'duree_estimee', 'objectifs', 'fichiers'
+            'id', 'titre', 'order', 'chapitre', 'matiere', 'niveau',
+            'description', 'enseignant', 'video_url',
+            'contenue_texte', 'content_html', 'duree_estimee', 'objectifs', 'fichiers'
         ]
         read_only_fields = ['id']
+
+    def get_enseignant(self, obj):
+        # Mock teacher for demo
+        return {
+            'nom': 'Prof. Rakoto',
+            'photo': None,
+            'specialite': obj.chapitre.matiere.nom
+        }
+
+    def get_video_url(self, obj):
+        video = obj.fichiers.filter(type_fichier='VIDEO').first()
+        return video.url_fichier if video else None
 
 
 class ChapitreSerializer(serializers.ModelSerializer):

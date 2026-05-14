@@ -1,0 +1,53 @@
+================================================================================
+          COMPTES UTILISATEURS DE DÉMONSTRATION - SMART LEARNING MADAGASCAR
+================================================================================
+
+Voici une liste de comptes de test pour explorer les différentes interfaces
+de la plateforme ENENI (Smart Learning Platform Madagascar 2035).
+
+--------------------------------------------------------------------------------
+1. RÔLE : ÉTUDIANT (Student)
+--------------------------------------------------------------------------------
+Nom : Fitiavana Rakoto
+Username : fitia_student
+Email : student@eneni.mg
+Mot de passe : Password123!
+Niveau : Terminale S
+Description : Accès au dashboard étudiant, cours, examens et boutique.
+
+--------------------------------------------------------------------------------
+2. RÔLE : ENSEIGNANT (Teacher)
+--------------------------------------------------------------------------------
+Nom : Prof. Randrianasolo
+Username : prof_maths
+Email : teacher@eneni.mg
+Mot de passe : Password123!
+Matière : Mathématiques
+Description : Accès au dashboard enseignant, gestion des cours, visio et suivi.
+
+--------------------------------------------------------------------------------
+3. RÔLE : ADMIN ÉTABLISSEMENT (School Admin)
+--------------------------------------------------------------------------------
+Nom : Proviseur Lycée Gallieni
+Username : admin_lycee
+Email : admin.lycee@eneni.mg
+Mot de passe : AdminPass123!
+Établissement : Lycée Gallieni, Antananarivo
+Description : Gestion des élèves et des classes de l'établissement spécifique.
+
+--------------------------------------------------------------------------------
+4. RÔLE : ADMIN PLATEFORME (Platform Admin)
+--------------------------------------------------------------------------------
+Nom : Super Administrateur MEN
+Username : super_admin
+Email : superadmin@eneni.mg
+Mot de passe : MenSuperSecurity2035!
+Description : Accès total au dashboard analytics national, gestion des serveurs,
+              utilisateurs globaux et ressources nationales.
+
+--------------------------------------------------------------------------------
+REMARQUES :
+- Ces comptes sont destinés à la phase de développement et de démonstration.
+- Dans le frontend React actuel, l'authentification est simulée (Login) mais
+  le système est prêt à recevoir ces identifiants via l'API Axios.
+================================================================================
