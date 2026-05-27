@@ -7,11 +7,11 @@ from .etablissements_views import EtablissementViewSet, AdminEtablissementViewSe
 from .pedagogie_views import (
     NiveauScolaireViewSet, MatiereViewSet, ChapitreViewSet,
     LeconViewSet, FichierMultimediaViewSet, PublicSearchView,
-    SessionEtudeViewSet, StudentStatsView
+    SessionEtudeViewSet
 )
 from .examens_views import (
     ExamenViewSet, QuestionExamenViewSet, CopieExamenViewSet,
-    ReponseExamenViewSet, LogSurveillanceViewSet
+    ReponseExamenViewSet, LogSurveillanceViewSet, CorrectionViewSet
 )
 from .visioconference_views import SessionVisioViewSet, ParticipationVisioViewSet
 from .boutique_views import (
@@ -32,7 +32,7 @@ __all__ = [
     'LeconViewSet', 'FichierMultimediaViewSet', 'PublicSearchView',
     # Examens
     'ExamenViewSet', 'QuestionExamenViewSet', 'CopieExamenViewSet',
-    'ReponseExamenViewSet', 'LogSurveillanceViewSet',
+    'ReponseExamenViewSet', 'LogSurveillanceViewSet', 'CorrectionViewSet',
     # Visioconférence
     'SessionVisioViewSet', 'ParticipationVisioViewSet',
     # Boutique

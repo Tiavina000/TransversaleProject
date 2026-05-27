@@ -1,10 +1,7 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { TrendingUp, Award, Calendar } from 'lucide-react';
 
 export function ProgressChart() {
-  const { t } = useTranslation();
 
   const stats = [
     { label: "Cours complétés", value: "12", color: "text-emerald-400", bg: "bg-emerald-500/20" },

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from core.models import (
-    Examen, QuestionExamen, CopieExamen, ReponseExamen, LogSurveillace
+    Examen, QuestionExamen, CopieExamen, ReponseExamen, LogSurveillance
 )
 
 
@@ -9,7 +9,8 @@ class QuestionExamenSerializer(serializers.ModelSerializer):
         model = QuestionExamen
         fields = [
             'id', 'examen', 'texte', 'type_question', 'points',
-            'ordre', 'options', 'reponse_correcte'
+            'ordre', 'options', 'reponse_correcte',
+            'mot_min', 'mot_max', 'criteres_correction', 'obligatoire'
         ]
         read_only_fields = ['id']
 
@@ -22,14 +23,15 @@ class ExamenSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'titre', 'enseignant', 'matiere', 'niveau',
             'duree_minutes', 'date_debut', 'date_fin', 'est_publie',
-            'coefficient', 'questions', 'date_creation', 'date_modification'
+            'coefficient', 'type_examen', 'lecture_automatique',
+            'questions', 'date_creation', 'date_modification'
         ]
         read_only_fields = ['id', 'date_creation', 'date_modification']
 
 
 class LogSurveillanceSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LogSurveillace
+        model = LogSurveillance
         fields = ['id', 'copie', 'evenement', 'details', 'date_evenement']
         read_only_fields = ['id', 'date_evenement']
 
@@ -39,7 +41,8 @@ class ReponseExamenSerializer(serializers.ModelSerializer):
         model = ReponseExamen
         fields = [
             'id', 'copie', 'question', 'reponse_etudiant',
-            'est_correct', 'points_obtenus'
+            'est_correct', 'points_obtenus',
+            'nb_mots', 'fautes_orthographe', 'correction_commentaire'
         ]
         read_only_fields = ['id']
 

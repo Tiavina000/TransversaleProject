@@ -23,7 +23,7 @@ class RequestIAViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_creation']
     ordering = ['-date_creation']
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='recherche-rapide')
     def recherche_rapide(self, request):
         """Assistant de Navigation : Recherche par algorithme Trie"""
         query = request.query_params.get('q', '')
@@ -65,7 +65,7 @@ class RequestIAViewSet(viewsets.ModelViewSet):
             "full_remaining_path": full_path
         })
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='commande-vocale')
     def commande_vocale(self, request):
         """Moteur NLP : Traite une commande vocale (texte) et renvoie une action"""
         texte_dicte = request.data.get('texte_dicte', '')

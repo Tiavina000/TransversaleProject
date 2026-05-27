@@ -138,9 +138,12 @@ export const statsAPI = {
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 export const notifAPI = {
-  list:   () => api.get('/api/notifications/'),
-  markRead: (id) => api.patch(`/api/notifications/${id}/read/`),
-  markAllRead: () => api.post('/api/notifications/read-all/'),
+  list:        () => api.get('/api/notifications/'),
+  markRead:    (id) => api.patch(`/api/notifications/lire/${id}/`),
+  markAllRead: () => api.post('/api/notifications/tout-lire/'),
+  count:       () => api.get('/api/notifications/compte/'),
+  creerVisio:  (data) => api.post('/api/notifications/creer-visio/', data),
+  notifierBan: (data) => api.post('/api/notifications/notifier-ban/', data),
 };
 
 // ─── News / Actualités établissement ─────────────────────────────────────────
@@ -159,6 +162,11 @@ export const newsAPI = {
   remove: (id)            => api.delete(`/api/actualites/${id}/`),
 };
 
+// ─── Notes / Bulletin (R21) ──────────────────────────────────────────────────
+export const notesAPI = {
+  mesNotes: () => api.get('/api/mes-notes/'),
+};
+
 // ─── Live Class (cours en direct) ────────────────────────────────────────────
 export const liveAPI = {
   sessions:     ()     => api.get('/api/live-sessions/'),
@@ -170,6 +178,33 @@ export const liveAPI = {
   sendQuestion: (id, q) => api.post(`/api/live-sessions/${id}/questions/`, { content: q }),
   markAnswered: (id, qId) => api.patch(`/api/live-sessions/${id}/questions/${qId}/answered/`),
   banStudent:   (id, userId, duration) => api.post(`/api/live-sessions/${id}/ban/`, { user_id: userId, duration_hours: duration }),
+};
+
+// ─── Teacher Course Management (R7) ──────────────────────────────────────────
+export const teacherCourseAPI = {
+  chapitres:   (params) => api.get('/api/teacher/chapitres/', { params }),
+  createChapitre: (d)   => api.post('/api/teacher/chapitres/', d),
+  updateChapitre: (id, d) => api.patch(`/api/teacher/chapitres/${id}/`, d),
+  deleteChapitre: (id)  => api.delete(`/api/teacher/chapitres/${id}/`),
+  lecons:      (params) => api.get('/api/teacher/lecons/', { params }),
+  createLecon: (d)      => api.post('/api/teacher/lecons/', d),
+  updateLecon: (id, d)  => api.patch(`/api/teacher/lecons/${id}/`, d),
+  deleteLecon: (id)     => api.delete(`/api/teacher/lecons/${id}/`),
+  uploadFile:  (formData) => api.post('/api/chapitres/upload_file/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  createQCM:   (chapitreId, data) => api.post(`/api/chapitres/${chapitreId}/qcm-validation/`, data),
+};
+
+// ─── Corrections (R12) ───────────────────────────────────────────────────────
+export const correctionAPI = {
+  list:        (params) => api.get('/api/corrections/', { params }),
+  classes:     ()       => api.get('/api/corrections/classes/'),
+  matieres:    ()       => api.get('/api/corrections/matieres/'),
+  noter:       (id, note) => api.post(`/api/corrections/${id}/noter/`, { note }),
+  spellcheck:  (id)     => api.get(`/api/corrections/${id}/spellcheck/`),
+  corrigeables: ()      => api.get('/api/examens/corrigeables/'),
+  corriger:    (examId, copieId, data) => api.post(`/api/examens/${examId}/corriger/${copieId}/`, data),
 };
 
 // ─── Course Session (chrono de présence) ─────────────────────────────────────

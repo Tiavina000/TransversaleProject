@@ -4,6 +4,7 @@
     "courses": "Fianarana",
     "exams": "Fanadinana",
     "shop": "Fivarotana",
+    "bulletin": "Naoty",
     "logout": "Hivoaka",
     "profile": "Mombamomba Anao",
     "student": "Mpianatra"
@@ -64,5 +65,9 @@
     "cancel": "Foana",
     "search": "Tadiavo...",
     "minutes": "minitra"
+  },
+  "gidro": {
+    "listen": "Ajanona ny fihainoana",
+    "speak": "Alefaso ny fahafantarana feo"
   }
 }

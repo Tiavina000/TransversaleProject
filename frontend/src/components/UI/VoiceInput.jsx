@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSpeech } from '../../hooks/useSpeech';

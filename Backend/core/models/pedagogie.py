@@ -97,6 +97,7 @@ class FichierMultimedia(models.Model):
     class Meta :
         verbose_name = "Fichier Multimédia"
         verbose_name_plural = "Fichiers Multimédia"
+        ordering = ['-id']
 
 class ProgressionChapitre(models.Model):
     etudiant = models.ForeignKey('core.Etudiant', on_delete=models.CASCADE, related_name='progressions')
@@ -110,6 +111,7 @@ class ProgressionChapitre(models.Model):
         unique_together = ['etudiant', 'chapitre']
         verbose_name = "Progression Chapitre"
         verbose_name_plural = "Progressions Chapitres"
+        ordering = ['-id']
 
 
 class SessionEtude(models.Model):

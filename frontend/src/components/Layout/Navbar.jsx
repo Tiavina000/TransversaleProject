@@ -4,15 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, BookOpen, FileText, ShoppingBag,
-  LogOut, Menu, X, User, Bell
+  LogOut, Menu, X, User, Bell, Award
 } from 'lucide-react';
 import { LanguageSwitcher } from '../UI/LanguageSwitcher';
+import { ThemeSwitcher } from '../UI/ThemeSwitcher';
 import { useNotifications } from '../../hooks/useNotifications';
 
 const NAV_ITEMS = [
   { key: 'dashboard', path: '/dashboard', icon: LayoutDashboard },
   { key: 'courses',   path: '/courses',   icon: BookOpen        },
   { key: 'exams',     path: '/exams',     icon: FileText        },
+  { key: 'bulletin',  path: '/bulletin',  icon: Award           },
   { key: 'shop',      path: '/shop',      icon: ShoppingBag     },
 ];
 
@@ -31,6 +33,13 @@ export function Navbar({ user, onLogout }) {
   const [notifOpen, setNotifOpen]     = useState(false);
   const { notifications, unreadCount, markRead, markAllRead, getStyle } = useNotifications();
 
+  const filteredNavItems = NAV_ITEMS.filter(({ key }) => {
+    if (key === 'bulletin') {
+      return user?.type_utilisateur === 'ETUDIANT';
+    }
+    return true;
+  });
+
   const handleLogout = () => {
     sessionStorage.removeItem('eneni_token');
     sessionStorage.removeItem('eneni_refresh');
@@ -42,11 +51,10 @@ export function Navbar({ user, onLogout }) {
     <>
       {/* ── Barre principale ──────────────────────────────────────────── */}
       <nav
-        className="fixed top-0 left-0 right-0 z-40 border-b border-white/10"
+        className="fixed top-0 left-0 right-0 z-40"
         style={{
-          background: 'rgba(10,10,20,0.75)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          background: 'var(--bg-app)',
+          borderTop: '3px solid var(--color-primary)',
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
@@ -60,42 +68,33 @@ export function Navbar({ user, onLogout }) {
               whileHover={{ rotate: 5, scale: 1.1 }}
               onError={e => { e.target.style.display='none'; }}
             />
-            <span className="text-white font-bold text-xl tracking-tight hidden sm:block">
+            <span className="font-bold text-xl tracking-tight hidden sm:block" style={{ color: 'var(--color-green-dark)' }}>
               EN<span className="text-gradient">ENI</span>
             </span>
           </NavLink>
 
-          {/* Liens desktop */}
           <div className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map(({ key, path, icon: Icon }) => (
+            {filteredNavItems.map(({ key, path, icon: Icon }) => (
               <NavLink
                 key={key}
                 to={path}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                    isActive ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? 'text-white bg-[var(--color-primary)]'
+                      : 'text-[var(--text-primary)] hover:bg-[var(--color-primary)] hover:text-white'
                   }`
                 }
               >
-                {({ isActive }) => (
-                  <>
-                    <Icon size={16} />
-                    <span>{t(`nav.${key}`)}</span>
-                    {isActive && (
-                      <motion.div
-                        className="absolute inset-0 rounded-xl bg-primary/15 border border-primary/30"
-                        layoutId="nav-active"
-                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                      />
-                    )}
-                  </>
-                )}
+                <Icon size={16} />
+                <span>{t(`nav.${key}`)}</span>
               </NavLink>
             ))}
           </div>
 
           {/* Droite */}
           <div className="flex items-center gap-2">
+            <ThemeSwitcher />
             <LanguageSwitcher />
 
             {/* ── Cloche notifications ─────────────────────────── */}
@@ -106,7 +105,7 @@ export function Navbar({ user, onLogout }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Bell size={18} className="text-slate-300" />
+                <Bell size={18} className="text-[var(--text-primary)]" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -169,17 +168,17 @@ export function Navbar({ user, onLogout }) {
             >
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)' }}
+                style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-green-dark))' }}
               >
                 {user?.prenom?.[0]?.toUpperCase() || <User size={14} />}
               </div>
-              <span className="text-sm text-slate-300">{user?.prenom || user?.username || t('nav.student')}</span>
+              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{user?.prenom || user?.username || t('nav.student')}</span>
             </motion.div>
 
             {/* Déconnexion */}
             <motion.button
               onClick={handleLogout}
-              className="btn-ghost hidden sm:flex items-center gap-1.5 text-xs py-2 px-3 text-slate-400"
+              className="btn-ghost hidden sm:flex items-center gap-1.5 text-xs py-2 px-3" style={{ color: 'var(--text-primary)' }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               title={t('nav.logout')}
@@ -203,13 +202,13 @@ export function Navbar({ user, onLogout }) {
         {mobileOpen && (
           <motion.div
             className="fixed inset-0 z-30 pt-16 md:hidden"
-            style={{ background: 'rgba(10,10,20,0.97)', backdropFilter: 'blur(20px)' }}
+            style={{ background: 'color-mix(in srgb, var(--bg-app) 97%, transparent)', backdropFilter: 'blur(20px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <div className="p-4 space-y-2">
-              {NAV_ITEMS.map(({ key, path, icon: Icon }, i) => (
+              {filteredNavItems.map(({ key, path, icon: Icon }, i) => (
                 <motion.div
                   key={key}
                   initial={{ opacity: 0, x: -20 }}
@@ -221,7 +220,7 @@ export function Navbar({ user, onLogout }) {
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        isActive ? 'bg-primary/15 border border-primary/30 text-white' : 'text-slate-400'
+                        isActive ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--text-primary)] hover:bg-[var(--color-primary)] hover:text-white'
                       }`
                     }
                   >
@@ -233,7 +232,7 @@ export function Navbar({ user, onLogout }) {
               <motion.button
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-400 hover:text-white transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[var(--text-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-all"
               >
                 <LogOut size={18} /> {t('nav.logout')}
               </motion.button>

@@ -19,13 +19,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         username = attrs.get('username')
         role = attrs.get('role')
-        establishment_id = self.context['request'].data.get('establishment_id')
+        establishment_id = self.context['request'].data.get('establishment_id') if 'request' in self.context else None
         
         # 1. Résolution de l'utilisateur
         user = None
-        if Utilisateur.objects.filter(username=username).exists():
+        if username and Utilisateur.objects.filter(username=username).exists():
             user = Utilisateur.objects.get(username=username)
-        else:
+        elif username:
             etudiant = Etudiant.objects.filter(numero_etudiant=username).select_related('utilisateur').first()
             if etudiant:
                 user = etudiant.utilisateur
@@ -34,23 +34,23 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not user:
             raise serializers.ValidationError({"detail": "Identifiants incorrects."})
 
-        # 2. Vérification du rôle
-        if user.type_utilisateur != role:
+        # 2. Vérification du rôle (si fourni)
+        if role and user.type_utilisateur != role:
              raise serializers.ValidationError({"detail": f"Ce compte n'est pas enregistré comme {role}."})
 
-        # 3. Vérification de l'établissement
-        if role == 'ETUDIANT':
-            if not hasattr(user, 'etudiant_profile') or str(user.etudiant_profile.etablissement_id) != str(establishment_id):
-                raise serializers.ValidationError({"detail": "Cet étudiant n'est pas inscrit dans cet établissement."})
-        elif role == 'ENSEIGNANT':
-            if not hasattr(user, 'enseignant_profile') or str(user.enseignant_profile.etablissement_id) != str(establishment_id):
-                raise serializers.ValidationError({"detail": "Cet enseignant n'appartient pas à cet établissement."})
-        elif role == 'ADMINISTRATEUR':
-            # Si c'est un admin d'établissement, on vérifie. Si c'est un super admin, on laisse passer.
-            from core.models import AdminEtablissement
-            admin_etab = AdminEtablissement.objects.filter(utilisateur=user).first()
-            if admin_etab and str(admin_etab.etablissement_id) != str(establishment_id):
-                raise serializers.ValidationError({"detail": "Vous n'êtes pas administrateur de cet établissement."})
+        # 3. Vérification de l'établissement (si fourni)
+        if establishment_id:
+            if role == 'ETUDIANT':
+                if not hasattr(user, 'etudiant_profile') or str(user.etudiant_profile.etablissement_id) != str(establishment_id):
+                    raise serializers.ValidationError({"detail": "Cet étudiant n'est pas inscrit dans cet établissement."})
+            elif role == 'ENSEIGNANT':
+                if not hasattr(user, 'enseignant_profile') or str(user.enseignant_profile.etablissement_id) != str(establishment_id):
+                    raise serializers.ValidationError({"detail": "Cet enseignant n'appartient pas à cet établissement."})
+            elif role == 'ADMINISTRATEUR':
+                from core.models import AdminEtablissement
+                admin_etab = AdminEtablissement.objects.filter(utilisateur=user).first()
+                if admin_etab and str(admin_etab.etablissement_id) != str(establishment_id):
+                    raise serializers.ValidationError({"detail": "Vous n'êtes pas administrateur de cet établissement."})
 
         # 4. Authentification standard
         data = super().validate(attrs)
@@ -76,11 +76,12 @@ class EtudiantSerializer(serializers.ModelSerializer):
     utilisateur = UtilisateurSerializer(read_only=True)
     utilisateur_id = serializers.IntegerField(write_only=True)
     niveau_nom = serializers.ReadOnlyField(source='niveau.nom')
+    etablissement_nom = serializers.ReadOnlyField(source='etablissement.nom')
 
     class Meta:
         model = Etudiant
-        fields = ['id', 'utilisateur', 'utilisateur_id', 'points_global', 'date_inscription', 'niveau', 'niveau_nom']
-        read_only_fields = ['id', 'date_inscription', 'niveau_nom']
+        fields = ['id', 'utilisateur', 'utilisateur_id', 'numero_etudiant', 'points_global', 'date_inscription', 'niveau', 'niveau_nom', 'etablissement', 'etablissement_nom']
+        read_only_fields = ['id', 'date_inscription', 'niveau_nom', 'etablissement_nom']
 
 
 class EnseignantSerializer(serializers.ModelSerializer):

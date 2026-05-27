@@ -57,5 +57,5 @@ export function useSurveillance(examId, onAlert) {
     };
   }, [examId, onAlert, t]);
 
-  return { leaveCount: leaveCount.current };
+  return {};
 }

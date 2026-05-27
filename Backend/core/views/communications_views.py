@@ -4,6 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from core.models import Actualite, Notification, Partenaire, Renovation
 from core.serializers.communications_serializers import (
     ActualiteSerializer, NotificationSerializer, PartenaireSerializer, RenovationSerializer
@@ -79,6 +80,81 @@ class NotificationViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['date_creation']
     ordering = ['-date_creation']
+
+    def get_queryset(self):
+        qs = Notification.objects.all()
+        user = self.request.user
+        if user.is_authenticated:
+            qs = qs.filter(utilisateur=user)
+        non_lues = self.request.query_params.get('non_lues')
+        if non_lues and non_lues.lower() == 'true':
+            qs = qs.filter(est_lue=False)
+        return qs
+
+    @action(detail=False, methods=['post'])
+    def creer_visio(self, request):
+        titre = request.data.get('titre', 'Visioconférence')
+        message = request.data.get('message', '')
+        date_debut = request.data.get('date_debut')
+        from core.models.utilisateurs import Etudiant
+        from django.utils import timezone
+        from datetime import timedelta
+
+        etablissement_id = request.data.get('etablissement_id')
+        etudiants = Etudiant.objects.all()
+        if etablissement_id:
+            etudiants = etudiants.filter(etablissement_id=etablissement_id)
+
+        for etudiant in etudiants:
+            Notification.objects.create(
+                utilisateur=etudiant.utilisateur,
+                titre=f"Visioconférence: {titre}",
+                message=message or f"Une séance de visioconférence est prévue le {date_debut}",
+                url_lien=f"/live/{request.data.get('session_id', '')}"
+            )
+        return Response({"status": "notifications_created", "count": etudiants.count()})
+
+    @action(detail=False, methods=['post'])
+    def notifier_ban(self, request):
+        utilisateur_id = request.data.get('utilisateur_id')
+        raison = request.data.get('raison', 'Comportement inapproprié')
+        duree = request.data.get('duree', 'Indéterminée')
+        from core.models.utilisateurs import Utilisateur
+
+        user = get_object_or_404(Utilisateur, id=utilisateur_id) if utilisateur_id else request.user
+        Notification.objects.create(
+            utilisateur=user,
+            titre="Avertissement - Sanction",
+            message=f"Vous avez été banni(e) du cours pour: {raison}. Durée: {duree}.",
+            url_lien=""
+        )
+        return Response({"status": "ban_notified"})
+
+    @action(detail=True, methods=['patch'])
+    def lire(self, request, pk=None):
+        notif = self.get_object()
+        notif.est_lue = True
+        notif.date_lecture = __import__('django').utils.timezone.now()
+        notif.save()
+        return Response(NotificationSerializer(notif).data)
+
+    @action(detail=False, methods=['post'])
+    def tout_lire(self, request):
+        user = request.user
+        if user.is_authenticated:
+            Notification.objects.filter(utilisateur=user, est_lue=False).update(
+                est_lue=True,
+                date_lecture=__import__('django').utils.timezone.now()
+            )
+        return Response({"status": "all_read"})
+
+    @action(detail=False, methods=['get'])
+    def compte(self, request):
+        user = request.user
+        count = 0
+        if user.is_authenticated:
+            count = Notification.objects.filter(utilisateur=user, est_lue=False).count()
+        return Response({"non_lues": count})
 
 
 class PartenaireViewSet(viewsets.ReadOnlyModelViewSet):

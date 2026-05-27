@@ -1,18 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   Mic, MicOff, Video, VideoOff, Phone,
-  Hand, Users, MessageCircle, Settings
+  Hand, Users, MessageCircle
 } from 'lucide-react';
 
 /** Particule d'animation pour le bouton "Lever la main" */
 function HandParticle({ x, y }) {
+  const dx = (x % 80) - 40;
+  const dy = y - 80 - (y % 60);
   return (
     <motion.div
       className="absolute text-lg pointer-events-none"
       initial={{ x, y, opacity: 1, scale: 1 }}
-      animate={{ x: x + (Math.random() - 0.5) * 80, y: y - 80 - Math.random() * 60, opacity: 0, scale: 1.5 }}
+      animate={{ x: x + dx, y: dy, opacity: 0, scale: 1.5 }}
       transition={{ duration: 1.2, ease: 'easeOut' }}
     >
       ✋

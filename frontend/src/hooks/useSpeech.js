@@ -11,17 +11,17 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  * - `isListening`        : Booléen d'état d'écoute
  * - `isSpeaking`         : Booléen d'état TTS
  */
+const LANG_MAP = {
+  fr: 'fr-FR',
+  en: 'en-US',
+  mg: 'mg',  // Malagasy (disponible sur certains navigateurs)
+};
+
 export function useSpeech(defaultLang = 'fr-FR') {
   const [transcript, setTranscript]   = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking]   = useState(false);
   const recognitionRef = useRef(null);
-
-  const LANG_MAP = {
-    fr: 'fr-FR',
-    en: 'en-US',
-    mg: 'mg',  // Malagasy (disponible sur certains navigateurs)
-  };
 
   // ── TTS : Synthèse vocale ─────────────────────────────────────────────────
   const speak = useCallback((text, lang = defaultLang) => {

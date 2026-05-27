@@ -32,3 +32,16 @@ class ParticipationVisio(models.Model):
         verbose_name = "Participation visioconférence"
         verbose_name_plural = "Participations visioconférence"
         unique_together = ['etudiant' , 'session']
+        ordering = ['-id']
+
+class QuestionVisio(models.Model):
+    session = models.ForeignKey(SessionVisio, on_delete=models.CASCADE, related_name='questions')
+    etudiant = models.ForeignKey(Etudiant, on_delete=models.CASCADE)
+    contenu = models.TextField()
+    date_creation = models.DateTimeField(auto_now_add=True)
+    est_answered = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Question visioconférence"
+        verbose_name_plural = "Questions visioconférence"
+        ordering = ['date_creation']

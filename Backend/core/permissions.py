@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from rest_framework import permissions
 
 class IsEnseignantOrReadOnly(permissions.BasePermission):

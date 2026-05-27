@@ -72,6 +72,7 @@ export function ExamMode({ exam, onFinish }) {
   const [submitted, setSubmitted]   = useState(false);
   const timerRef                    = useRef(null);
   const syncRef                     = useRef(null);
+  const handleSubmitRef             = useRef(handleSubmit);
 
   // ── Sécurité ──────────────────────────────────────────────────────────────
   useExamSecurity(started, () => {
@@ -91,7 +92,7 @@ export function ExamMode({ exam, onFinish }) {
     if (!started || submitted) return;
     timerRef.current = setInterval(() => {
       setRemaining((r) => {
-        if (r <= 1) { clearInterval(timerRef.current); handleSubmit(); return 0; }
+        if (r <= 1) { clearInterval(timerRef.current); handleSubmitRef.current(); return 0; }
         return r - 1;
       });
     }, 1000);
@@ -105,19 +106,21 @@ export function ExamMode({ exam, onFinish }) {
       try {
         const res = await examAPI.syncTimer(examId);
         if (res.data?.remaining_seconds) setRemaining(res.data.remaining_seconds);
-      } catch {}
+      } catch { /* silencieux */ }
     }, 30000);
     return () => clearInterval(syncRef.current);
   }, [started, examId]);
 
   const handleAnswer = (qId, value) => setAnswers((a) => ({ ...a, [qId]: value }));
 
+  useEffect(() => { handleSubmitRef.current = handleSubmit; }, [handleSubmit]);
+
   const handleSubmit = useCallback(async () => {
     clearInterval(timerRef.current);
     clearInterval(syncRef.current);
     try {
       await examAPI.submit(examId, { reponses: answers });
-    } catch {}
+    } catch { /* silencieux */ }
     setSubmitted(true);
     onFinish?.();
   }, [examId, answers, onFinish]);
@@ -135,16 +138,16 @@ export function ExamMode({ exam, onFinish }) {
           animate={{ opacity: 1, scale: 1 }}
         >
           <div className="text-5xl">📝</div>
-          <h2 className="text-2xl font-bold text-white">{exam?.titre}</h2>
+          <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{exam?.titre}</h2>
           <p className="text-slate-400 text-sm">{t('exam.leave_warning')}</p>
           <div className="grid grid-cols-2 gap-3 text-sm text-slate-300">
             <div className="glass-sm p-3 rounded-xl">
               <p className="text-xs text-slate-500 mb-1">Durée</p>
-              <p className="font-semibold text-white">{exam?.duree_minutes} {t('common.minutes')}</p>
+              <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{exam?.duree_minutes} {t('common.minutes')}</p>
             </div>
             <div className="glass-sm p-3 rounded-xl">
               <p className="text-xs text-slate-500 mb-1">Questions</p>
-              <p className="font-semibold text-white">{questions.length}</p>
+              <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{questions.length}</p>
             </div>
           </div>
           <button className="btn-metal w-full py-3" onClick={() => setStarted(true)}>
@@ -164,7 +167,7 @@ export function ExamMode({ exam, onFinish }) {
           initial={{ scale: 0 }} animate={{ scale: 1 }}
         >
           <CheckCircle size={64} className="text-green-400 mx-auto" />
-          <h2 className="text-xl font-bold text-white">Examen soumis !</h2>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Examen soumis !</h2>
           <p className="text-slate-400 text-sm">Vos réponses ont été enregistrées.</p>
         </motion.div>
       </div>
@@ -178,7 +181,7 @@ export function ExamMode({ exam, onFinish }) {
       <div className="glass border-b border-white/10 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <AttentionIndicator isFocused={isFocused} />
-          <h2 className="text-white font-semibold text-sm hidden sm:block">{exam?.titre}</h2>
+          <h2 className="font-semibold text-sm hidden sm:block" style={{ color: 'var(--text-primary)' }}>{exam?.titre}</h2>
         </div>
         <DynamicTimer totalSeconds={exam?.duree_minutes * 60 || 3600} remainingSeconds={remaining} />
         <button className="btn-ghost text-xs" onClick={() => {
@@ -232,7 +235,7 @@ export function ExamMode({ exam, onFinish }) {
                 <span className="text-xs text-slate-400">{t('exam.question')} {currentQ + 1}/{questions.length}</span>
                 <span className="text-xs text-primary">{question.points} pts</span>
               </div>
-              <p className="text-white font-medium leading-relaxed">{question.texte}</p>
+              <p className="font-medium leading-relaxed" style={{ color: 'var(--text-primary)' }}>{question.texte}</p>
 
               {/* QCM */}
               {question.type_question === 'QCM' && (

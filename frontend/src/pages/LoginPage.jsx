@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { authAPI, publicAPI } from '../services/api';
 import { Eye, EyeOff, Sparkles, School, UserCircle, Hash, Lock, Search, ChevronDown, Check } from 'lucide-react';
 
@@ -11,12 +9,7 @@ const ROLES = [
   { id: 'ADMINISTRATEUR',   label: 'Administrateur' },
 ];
 
-const DEMO_SCHOOLS = [
-  { id: 1, nom: 'Lycée Privé Analakely' },
-  { id: 2, nom: 'Lycée Public Nanisana' },
-  { id: 3, nom: 'Université d\'Antananarivo' },
-  { id: 4, nom: 'École Primaire Ankadifotsy' },
-];
+
 
 // ── Composant Dropdown Personnalisé ──────────────────────────────────────────
 function EstablishmentSelector({ value, onChange, options, loading }) {
@@ -44,13 +37,14 @@ function EstablishmentSelector({ value, onChange, options, loading }) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full glass-sm px-4 py-3 text-sm text-white rounded-xl border transition-all flex items-center justify-between focus:outline-none ring-offset-0 ${
+        className={`w-full glass-sm px-4 py-3 text-sm rounded-xl border transition-all flex items-center justify-between focus:outline-none ring-offset-0 ${
           isOpen ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-white/20 bg-white/5 hover:bg-white/10'
         }`}
+        style={{ color: 'var(--text-primary)' }}
       >
         <div className="flex items-center gap-3 truncate">
           <School size={18} className={selectedOption ? "text-primary" : "text-slate-400"} />
-          <span className={`font-medium ${selectedOption ? "text-white" : "text-slate-400"}`}>
+          <span className={`font-medium ${selectedOption ? "" : "text-slate-400"}`} style={selectedOption ? { color: 'var(--text-primary)' } : {}}>
             {selectedOption ? selectedOption.nom : "Choisir votre établissement"}
           </span>
         </div>
@@ -63,7 +57,8 @@ function EstablishmentSelector({ value, onChange, options, loading }) {
             initial={{ opacity: 0, y: 5, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.98 }}
-            className="absolute z-50 w-full mt-2 bg-[#0F0F1A] border border-primary/30 rounded-2xl shadow-[0_10px_40px_-10px_rgba(124,58,237,0.3)] overflow-hidden"
+            className="absolute z-50 w-full mt-2 border border-primary/30 rounded-2xl shadow-[0_10px_40px_-10px_rgba(124,58,237,0.3)] overflow-hidden"
+            style={{ background: 'var(--bg-card)' }}
           >
             {/* Recherche */}
             <div className="p-3 border-b border-white/10 bg-white/5">
@@ -75,7 +70,7 @@ function EstablishmentSelector({ value, onChange, options, loading }) {
                   placeholder="Rechercher un établissement..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-[#0A0A14] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-primary transition-colors"
+                  className="w-full bg-app border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-primary transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>
@@ -126,36 +121,28 @@ function EstablishmentSelector({ value, onChange, options, loading }) {
 
 // ── Page Principale ──────────────────────────────────────────────────────────
 export function LoginPage({ onLogin }) {
-  const { t } = useTranslation();
   const [form, setForm] = useState({
     establishment: '',
     role: 'ETUDIANT',
     identifier: '',
     password: ''
   });
-  const [schools, setSchools] = useState(DEMO_SCHOOLS);
+  const [schools, setSchools] = useState([]);
   const [schoolsLoading, setSchoolsLoading] = useState(true);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchSchools = async () => {
-      try {
-        const res = await publicAPI.getEstablishments();
-        // Le backend peut retourner un objet paginé ou une liste directe
-        const data = res.data.results || res.data || [];
-        if (data.length > 0) setSchools(data);
-      } catch (err) {
-        console.error("Erreur chargement établissements:", err);
-      } finally {
-        setSchoolsLoading(false);
-      }
-    };
-    fetchSchools();
+    publicAPI.getEstablishments()
+      .then(res => {
+        const list = res.data?.results || res.data || [];
+        setSchools(list);
+        if (list.length === 0) setError('Aucun établissement disponible');
+      })
+      .catch(() => setError('Impossible de charger les établissements'))
+      .finally(() => setSchoolsLoading(false));
   }, []);
-
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -185,7 +172,7 @@ export function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A14] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-app flex items-center justify-center p-4">
       {/* Background orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
@@ -209,7 +196,7 @@ export function LoginPage({ onLogin }) {
             transition={{ duration: 3, repeat: Infinity }}
             onError={(e) => { e.target.style.display='none'; }}
           />
-          <h1 className="text-2xl font-bold text-white">EN<span className="text-gradient">ENI</span></h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>EN<span className="text-gradient">ENI</span></h1>
           <p className="text-slate-400 text-sm">Portail de Connexion Sécurisé</p>
         </div>
 
@@ -260,7 +247,8 @@ export function LoginPage({ onLogin }) {
               required
               value={form.identifier}
               onChange={(e) => setForm({ ...form, identifier: e.target.value })}
-              className="w-full glass-sm bg-transparent px-4 py-3 text-sm text-white rounded-xl focus:outline-none border border-white/10 focus:border-primary/50 transition"
+              className="w-full glass-sm bg-transparent px-4 py-3 text-sm rounded-xl focus:outline-none border border-white/10 focus:border-primary/50 transition"
+              style={{ color: 'var(--text-primary)' }}
               placeholder={form.role === 'ETUDIANT' ? 'Ex: 2026001' : 'nom.prenom@eneni.mg'}
             />
           </div>
@@ -276,7 +264,8 @@ export function LoginPage({ onLogin }) {
                 required
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full glass-sm bg-transparent px-4 py-3 pr-12 text-sm text-white rounded-xl focus:outline-none border border-white/10 focus:border-primary/50 transition"
+                className="w-full glass-sm bg-transparent px-4 py-3 pr-12 text-sm rounded-xl focus:outline-none border border-white/10 focus:border-primary/50 transition"
+                style={{ color: 'var(--text-primary)' }}
                 placeholder="••••••••"
               />
               <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"

@@ -30,7 +30,7 @@ export function useFullscreen() {
   const exit = useCallback(async () => {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
-    } catch {}
+    } catch { /* silencieux */ }
   }, []);
 
   const toggle = useCallback(() => {

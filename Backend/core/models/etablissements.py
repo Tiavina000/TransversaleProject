@@ -13,6 +13,7 @@ class Etablissement(models.Model):
         app_label = 'core'
         verbose_name = "Etablissement"
         verbose_name_plural = "Etablissements"
+        ordering = ['-id']
     
     def __str__(self):
         return self.nom 
@@ -26,6 +27,7 @@ class AdminEtablissement(models.Model):
         app_label = 'core'
         verbose_name = "Administrateur  d'Etablissement"
         verbose_name_plural = "Adminstrateurs d' Etablissement "
+        ordering = ['-id']
     
     def __str__(self):
         return f"{self.utilisateur.username} - {self.etablissement.nom}"

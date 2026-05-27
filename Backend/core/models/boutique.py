@@ -25,6 +25,7 @@ class RessourceBoutique(TimeStampedModel):
     class Meta:
         verbose_name = "Ressources boutique "
         verbose_name_plural = "Ressorces boutique"
+        ordering = ['-id']
         
         
 class Panier(models.Model):
@@ -35,6 +36,7 @@ class Panier(models.Model):
     class Meta:
         verbose_name = "Panier"
         verbose_name_plural = "Paniers"
+        ordering = ['-id']
     
     
 class PanierItem(models.Model):
@@ -47,6 +49,7 @@ class PanierItem(models.Model):
         verbose_name = "Element du panier "
         verbose_name_plural = "Elements du panier "
         unique_together = ['panier' , 'ressources']
+        ordering = ['-id']
         
 
 class Commande(TimeStampedModel):

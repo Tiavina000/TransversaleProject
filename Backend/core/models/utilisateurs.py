@@ -43,6 +43,7 @@ class Etudiant(models.Model):
     class Meta:
         verbose_name = "Etudiant"
         verbose_name_plural = "Etudiants"
+        ordering = ['-id']
     
     def __str__(self):
         return f"Etudiant: {self.utilisateur.username}"
@@ -56,6 +57,7 @@ class Enseignant(models.Model):
     class Meta:
         verbose_name = "Enseignant"
         verbose_name_plural = "Enseignants"
+        ordering = ['-id']
         
     def __str__(self):
         return f"Enseignant: {self.utilisateur.username}"
@@ -67,6 +69,7 @@ class AdminPlateforme(models.Model):
     class Meta:
         verbose_name = "Administrateur"
         verbose_name_plural = "Administrateurs"
+        ordering = ['-id']
         
     def __str__(self):
         return f"Administrateur : {self.utilisateur.username}"

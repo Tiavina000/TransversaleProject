@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  User, LayoutTemplate, AlignLeft, PanelLeftClose,
+  LayoutTemplate, AlignLeft,
   StickyNote, Save, X, PanelRightOpen, CheckCircle,
   AlertTriangle, ChevronLeft, Video, Minimize, Maximize,
   BookOpen, Clock, Play, Pause, FileText, Download, PenTool, Eye
@@ -52,7 +52,7 @@ function FileItem({ file, courseId, onView }) {
         <FileText size={16} className="text-rose-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-white truncate">{file.nom}</p>
+        <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{file.nom}</p>
         <p className="text-xs text-slate-500">
           {file.taille} {file.isDownloadable === false ? '· Lecture seule' : ''}
         </p>
@@ -85,19 +85,18 @@ export function CoursePlayer() {
   const navigate    = useNavigate();
   const [course, setCourse]   = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
   const [mode, setMode]       = useState('select_chapter');
   const [courseStarted, setCourseStarted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [startTab, setStartTab]           = useState('presentation'); // 'presentation' | 'resources'
-  const [noteText, setNoteText]           = useState('');
+  const [startTab, setStartTab]           = useState('chapitres'); // 'chapitres' | 'fichiers'
+  const [noteText, setNoteText]           = useState(() => localStorage.getItem(`eneni_notes_${id || 1}`) || '');
   const [isSaving, setIsSaving]           = useState(false);
   const [currentFile, setCurrentFile]     = useState(null);
   const [validationQuestion, setValidationQuestion] = useState(null);
   const [activeChapter, setActiveChapter] = useState(null);
 
   const timer     = useCourseTimer(id || 1);
-  const fullscreen = useFullscreen();
+  const { ref: fullscreenRef, isFullscreen, enter: enterFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const isStartingRef = useRef(false);
 
   useEffect(() => {
@@ -112,15 +111,11 @@ export function CoursePlayer() {
       } catch (err) {
         console.error("Failed to fetch course", err);
         setCourse(null);
-        setError("Impossible de charger le cours.");
       } finally {
         setLoading(false);
       }
     };
     fetchCourse();
-
-    const savedNotes = localStorage.getItem(`eneni_notes_${id || 1}`);
-    if (savedNotes) setNoteText(savedNotes);
 
     const handleKeyDown = (e) => {
       if (e.key === 'PrintScreen' || (e.ctrlKey && e.key === 'p') || (e.metaKey && e.key === 'p')) {
@@ -140,18 +135,18 @@ export function CoursePlayer() {
       timer.stop(); 
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Contrainte de plein écran strict
   useEffect(() => {
-    if (courseStarted && !fullscreen.isFullscreen && mode !== 'exercise_done' && !isStartingRef.current) {
+    if (courseStarted && !isFullscreen && mode !== 'exercise_done' && !isStartingRef.current) {
       alert("Attention : Vous avez quitté le mode plein écran ! Votre session d'étude est invalidée. Vous devez recommencer pour valider ce chapitre.");
       setCourseStarted(false);
       setMode('lesson');
       timer.stop();
       // On pourrait ici appeler l'API pour logger l'abandon
     }
-  }, [fullscreen.isFullscreen, courseStarted, mode]);
+  }, [isFullscreen, courseStarted, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (activeChapter) {
@@ -182,7 +177,9 @@ export function CoursePlayer() {
 
   const handleViewFile = (file) => {
     setCurrentFile(file);
-    if (!courseStarted) handleStart();
+    if (!courseStarted && course.chapitres?.[0]) {
+      handleStartChapter(course.chapitres[0]);
+    }
     setMode('viewer');
     setIsSidebarOpen(false);
   };
@@ -199,7 +196,7 @@ export function CoursePlayer() {
     await timer.start(chap.id);
     setCourseStarted(true);
     setMode('lesson');
-    await fullscreen.enter();
+    await enterFullscreen();
     setTimeout(() => { isStartingRef.current = false; }, 1000);
   };
 
@@ -216,7 +213,7 @@ export function CoursePlayer() {
   if (!course) return null;
 
   return (
-    <div ref={fullscreen.ref} className="min-h-screen bg-[#0A0A14] text-white flex flex-col">
+    <div ref={fullscreenRef} className="min-h-screen bg-app flex flex-col" style={{ color: 'var(--text-primary)' }}>
 
       {/* ── Avertissement plein écran ───────────────────────────────── */}
       <AnimatePresence>
@@ -241,7 +238,7 @@ export function CoursePlayer() {
           <ChevronLeft size={18} className="text-slate-400" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-bold text-white truncate">{course.nom}</h1>
+          <h1 className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{course.nom}</h1>
           <p className="text-xs text-slate-500">{course.nom} · {course.niveaux && course.niveaux.length > 0 ? course.niveaux[0].nom : ''}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -267,8 +264,8 @@ export function CoursePlayer() {
               );
             })}
           </div>
-          <button onClick={fullscreen.toggle} className="p-2 rounded-xl hover:bg-white/5 transition">
-            {fullscreen.isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+          <button onClick={toggleFullscreen} className="p-2 rounded-xl hover:bg-white/5 transition">
+            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
           </button>
           
           {courseStarted && (
@@ -298,7 +295,7 @@ export function CoursePlayer() {
               </div>
               <div className="text-left">
                 <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Matière</p>
-                <h2 className="text-2xl font-black text-white">{course.nom}</h2>
+                <h2 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{course.nom}</h2>
                 <p className="text-sm text-slate-400">
                   {course.niveaux && course.niveaux.length > 0 ? course.niveaux[0].nom : 'Tous niveaux'}
                 </p>
@@ -307,7 +304,27 @@ export function CoursePlayer() {
             {course.description && (
               <p className="text-slate-400 text-sm leading-relaxed text-left">{course.description}</p>
             )}
-            {/* Liste des chapitres */}
+            {/* Tabs: Chapitres | Fichiers */}
+            <div className="flex gap-1 glass-sm p-1 rounded-xl mb-4">
+              <button
+                onClick={() => setStartTab('chapitres')}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  startTab === 'chapitres' ? 'bg-primary text-white' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <AlignLeft size={14} /> Chapitres
+              </button>
+              <button
+                onClick={() => setStartTab('fichiers')}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  startTab === 'fichiers' ? 'bg-primary text-white' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Download size={14} /> Fichiers
+              </button>
+            </div>
+
+            {startTab === 'chapitres' ? (
             <div className="text-left">
               <h3 className="text-base font-bold mb-3 flex items-center gap-2">
                 <AlignLeft size={16} className="text-primary" />
@@ -328,7 +345,7 @@ export function CoursePlayer() {
                           {idx + 1}
                         </span>
                         <div className="min-w-0">
-                          <p className="font-bold text-sm text-white truncate">{chap.titre}</p>
+                          <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{chap.titre}</p>
                           {chap.description && (
                             <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{chap.description}</p>
                           )}
@@ -352,6 +369,29 @@ export function CoursePlayer() {
                 )}
               </div>
             </div>
+            ) : (
+            <div className="text-left">
+              <h3 className="text-base font-bold mb-3 flex items-center gap-2">
+                <Download size={16} className="text-primary" />
+                Fichiers téléchargeables
+              </h3>
+              <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                {(() => {
+                  const allFiles = (course.chapitres || []).flatMap(chap =>
+                    (chap.lecons || []).flatMap(l => (l.fichiers || []).map(f => ({ ...f, chapTitre: chap.titre })))
+                  );
+                  return allFiles.length > 0 ? allFiles.map((file) => (
+                    <FileItem key={file.id} file={file} courseId={course.id} onView={handleViewFile} />
+                  )) : (
+                    <div className="text-center py-10 text-slate-500">
+                      <Download size={32} className="mx-auto mb-3 opacity-30" />
+                      <p className="text-sm italic">Aucun fichier disponible pour ce cours.</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            )}
             <p className="text-xs text-slate-600 text-center">
               Le chronomètre et le plein écran s'activent automatiquement à la sélection.
             </p>
@@ -413,7 +453,7 @@ export function CoursePlayer() {
 
           {/* ── Volet Lecteur PDF ───────────────────────────────── */}
           {mode === 'viewer' && currentFile && (
-            <div className="flex-1 bg-[#1A1A24] flex flex-col relative" onContextMenu={e => e.preventDefault()}>
+            <div className="flex-1 flex flex-col relative" onContextMenu={e => e.preventDefault()} style={{ background: 'var(--bg-app)' }}>
               <div className="p-3 bg-black/40 border-b border-white/10 flex justify-between items-center z-10">
                 <span className="text-sm font-bold flex items-center gap-2">
                   <FileText size={16} className="text-primary"/> {currentFile.nom}
@@ -437,7 +477,7 @@ export function CoursePlayer() {
 
           {/* ── Volet Exercice de validation ─────────────────────── */}
           {mode === 'exercise' && (
-            <div className="flex-1 flex items-center justify-center p-6 bg-[#0A0A14]">
+            <div className="flex-1 flex items-center justify-center p-6" style={{ background: 'var(--bg-app)' }}>
               <div className="glass p-8 rounded-3xl max-w-2xl w-full text-center space-y-6">
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <PenTool size={32} className="text-primary" />
@@ -464,7 +504,7 @@ export function CoursePlayer() {
 
           {/* ── Volet Validation Réussie ─────────────────────────── */}
           {mode === 'exercise_done' && (
-            <div className="flex-1 flex items-center justify-center p-6 bg-[#0A0A14]">
+            <div className="flex-1 flex items-center justify-center p-6" style={{ background: 'var(--bg-app)' }}>
               <div className="glass p-8 rounded-3xl max-w-xl w-full text-center space-y-6 border border-emerald-500/30">
                 <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-400">
                   <CheckCircle size={40} />

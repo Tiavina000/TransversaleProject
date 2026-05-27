@@ -42,20 +42,30 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-    // Polling toutes les 2 minutes
+    const init = async () => {
+      try {
+        const res = await notifAPI.list();
+        const data = res.data?.results || res.data || [];
+        setNotifications(data.length > 0 ? data : DEMO_NOTIFS);
+      } catch {
+        setNotifications(DEMO_NOTIFS);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
     const id = setInterval(fetchNotifications, 120_000);
     return () => clearInterval(id);
-  }, [fetchNotifications]);
+  }, [fetchNotifications])
 
   const markRead = useCallback(async (id) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    try { await notifAPI.markRead(id); } catch {}
+    try { await notifAPI.markRead(id); } catch { /* silencieux */ }
   }, []);
 
   const markAllRead = useCallback(async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    try { await notifAPI.markAllRead(); } catch {}
+    try { await notifAPI.markAllRead(); } catch { /* silencieux */ }
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;

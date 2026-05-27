@@ -12,6 +12,7 @@ from core.views import (
     # Examens
     ExamenViewSet, QuestionExamenViewSet, CopieExamenViewSet,
     ReponseExamenViewSet, LogSurveillanceViewSet,
+    CorrectionViewSet,
     # Visioconférence
     SessionVisioViewSet, ParticipationVisioViewSet,
     # Boutique
@@ -24,6 +25,7 @@ from core.views import (
     CustomTokenObtainPairView, LogoutView, PublicSearchView
 )
 from core.views.stats_views import GlobalStatsView, StudentStatsView
+from core.views.examens_views import FileDownloadView, MesNotesView
 
 # Initialiser le routeur
 router = DefaultRouter()
@@ -96,31 +98,41 @@ class UserMeView(APIView):
             'email': user.email,
             'prenom': user.prenom or user.username,
             'role': user.type_utilisateur,
+            'type_utilisateur': user.type_utilisateur,
         }
         if user.type_utilisateur == 'ETUDIANT' and hasattr(user, 'etudiant_profile'):
-            if user.etudiant_profile.niveau:
-                data['niveau'] = user.etudiant_profile.niveau.nom
+            profile = user.etudiant_profile
+            if profile.niveau:
+                data['niveau'] = profile.niveau.nom
+            if profile.etablissement:
+                data['etablissement'] = profile.etablissement.nom
+                data['etablissement_id'] = profile.etablissement.id
+            data['numero_etudiant'] = profile.numero_etudiant
+        elif user.type_utilisateur == 'ENSEIGNANT' and hasattr(user, 'enseignant_profile'):
+            profile = user.enseignant_profile
+            data['specialite'] = profile.specialite
+            if profile.etablissement:
+                data['etablissement'] = profile.etablissement.nom
+                data['etablissement_id'] = profile.etablissement.id
+            examens = user.enseignant_profile.examens.all()
+            matieres = set()
+            niveaux = set()
+            for ex in examens:
+                if ex.matiere:
+                    matieres.add(ex.matiere.nom)
+                if ex.niveau:
+                    niveaux.add(ex.niveau.nom)
+            data['matieres_enseignees'] = list(matieres)
+            data['niveaux_enseignes'] = list(niveaux)
         return Response(data)
 
-class MockArrayView(APIView):
-    permission_classes = [AllowAny]
-    def get(self, request, *args, **kwargs):
-        return Response([])
-    def post(self, request, *args, **kwargs):
-        return Response({})
-    def patch(self, request, *args, **kwargs):
-        return Response({})
-
-class MockObjectView(APIView):
-    permission_classes = [AllowAny]
-    def get(self, request, *args, **kwargs):
-        return Response({})
-    def post(self, request, *args, **kwargs):
-        return Response({})
-    def patch(self, request, *args, **kwargs):
-        return Response({})
-
 urlpatterns = [
+    # Specific notification routes BEFORE router include to avoid {pk} catch-all
+    path('api/notifications/creer-visio/', NotificationViewSet.as_view({'post': 'creer_visio'}), name='notif-creer-visio'),
+    path('api/notifications/notifier-ban/', NotificationViewSet.as_view({'post': 'notifier_ban'}), name='notif-ban'),
+    path('api/notifications/lire/<int:pk>/', NotificationViewSet.as_view({'patch': 'lire'}), name='notif-lire'),
+    path('api/notifications/tout-lire/', NotificationViewSet.as_view({'post': 'tout_lire'}), name='notif-tout-lire'),
+    path('api/notifications/compte/', NotificationViewSet.as_view({'get': 'compte'}), name='notif-compte'),
     path('api/', include(router.urls)),
     path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/logout/', LogoutView.as_view(), name='auth_logout'),
@@ -135,28 +147,59 @@ urlpatterns = [
     # Missing API endpoints mapped to Real Views
     path('api/live-sessions/', SessionVisioViewSet.as_view({'get': 'list', 'post': 'create'}), name='live_sessions'),
     path('api/live-sessions/<int:pk>/', SessionVisioViewSet.as_view({'get': 'retrieve'}), name='live_sessions_detail'),
-    path('api/live-sessions/<int:pk>/join/', MockObjectView.as_view()),
-    path('api/live-sessions/<int:pk>/leave/', MockObjectView.as_view()),
-    path('api/live-sessions/<int:pk>/raise-hand/', MockObjectView.as_view()),
-    path('api/live-sessions/<int:pk>/lower-hand/', MockObjectView.as_view()),
-    path('api/live-sessions/<int:pk>/questions/', MockObjectView.as_view()),
-    path('api/live-sessions/<int:pk>/questions/<int:qid>/answered/', MockObjectView.as_view()),
-    path('api/live-sessions/<int:pk>/ban/', MockObjectView.as_view()),
+    path('api/live-sessions/<int:pk>/join/', SessionVisioViewSet.as_view({'post': 'join'}), name='live-join'),
+    path('api/live-sessions/<int:pk>/leave/', SessionVisioViewSet.as_view({'post': 'leave'}), name='live-leave'),
+    path('api/live-sessions/<int:pk>/raise-hand/', SessionVisioViewSet.as_view({'post': 'raise_hand'}), name='live-raise-hand'),
+    path('api/live-sessions/<int:pk>/lower-hand/', SessionVisioViewSet.as_view({'post': 'lower_hand'}), name='live-lower-hand'),
+    path('api/live-sessions/<int:pk>/questions/', SessionVisioViewSet.as_view({'get': 'questions', 'post': 'questions'}), name='live-questions'),
+    path('api/live-sessions/<int:pk>/questions/<int:qid>/answered/', SessionVisioViewSet.as_view({'patch': 'mark_answered'}), name='live-questions-answered'),
+    path('api/live-sessions/<int:pk>/ban/', SessionVisioViewSet.as_view({'post': 'ban'}), name='live-ban'),
     
     path('api/sessions/<int:pk>/pause/', SessionEtudeViewSet.as_view({'post': 'pause_session'})),
     path('api/sessions/<int:pk>/resume/', SessionEtudeViewSet.as_view({'post': 'resume_session'})),
     path('api/sessions/<int:pk>/end/', SessionEtudeViewSet.as_view({'post': 'end_session'})),
     path('api/sessions/<int:pk>/heartbeat/', SessionEtudeViewSet.as_view({'post': 'heartbeat'})),
     
-    path('api/examens/<int:pk>/start/', MockObjectView.as_view()),
-    path('api/examens/<int:pk>/submit/', MockObjectView.as_view()),
-    path('api/examens/<int:pk>/timer/', MockObjectView.as_view()),
-    path('api/examens/<int:pk>/logs/', MockObjectView.as_view()),
+    path('api/examens/<int:pk>/start/', ExamenViewSet.as_view({'post': 'start'}), name='examen-start'),
+    path('api/examens/<int:pk>/submit/', ExamenViewSet.as_view({'post': 'soumettre'}), name='examen-submit'),
+    path('api/examens/<int:pk>/timer/', ExamenViewSet.as_view({'get': 'timer'}), name='examen-timer'),
+    path('api/examens/<int:pk>/logs/', ExamenViewSet.as_view({'post': 'log_event'}), name='examen-logs'),
     
     path('api/public/search/', PublicSearchView.as_view()),
     path('api/public/partners/', PartenaireViewSet.as_view({'get': 'list'})),
     path('api/public/renovations/', RenovationViewSet.as_view({'get': 'list'})),
     path('api/public/stats/', GlobalStatsView.as_view()),
+    
     path('api/stats/', GlobalStatsView.as_view(), name='global_stats'),
     path('api/stats/student/', StudentStatsView.as_view(), name='student_stats'),
+    
+    # Correction endpoints (R12)
+    path('api/corrections/', CorrectionViewSet.as_view({'get': 'list'}), name='corrections-list'),
+    path('api/corrections/classes/', CorrectionViewSet.as_view({'get': 'classes'}), name='corrections-classes'),
+    path('api/corrections/matieres/', CorrectionViewSet.as_view({'get': 'matieres'}), name='corrections-matieres'),
+    path('api/corrections/<int:pk>/noter/', CorrectionViewSet.as_view({'post': 'noter'}), name='corrections-noter'),
+    path('api/corrections/<int:pk>/spellcheck/', CorrectionViewSet.as_view({'get': 'spellcheck'}), name='corrections-spellcheck'),
+    
+    # Examens submission & correction
+    path('api/examens/<int:pk>/soumettre/', ExamenViewSet.as_view({'post': 'soumettre'}), name='examen-soumettre'),
+    path('api/examens/<int:pk>/publier/', ExamenViewSet.as_view({'post': 'publier'}), name='examen-publier'),
+    path('api/examens/<int:pk>/ajouter-question/', ExamenViewSet.as_view({'post': 'ajouter_question'}), name='examen-ajouter-question'),
+    path('api/examens/<int:pk>/questions/', ExamenViewSet.as_view({'get': 'questions'}), name='examen-questions'),
+    path('api/examens/corrigeables/', ExamenViewSet.as_view({'get': 'corrigeables'}), name='examens-corrigeables'),
+    path('api/examens/<int:pk>/corriger/<int:copie_id>/', ExamenViewSet.as_view({'post': 'corriger_copie'}), name='examen-corriger'),
+    
+    # File download (R16)
+    path('api/courses/<int:course_id>/files/<int:file_id>/download/', FileDownloadView.as_view(), name='file-download'),
+    
+    # Panier (frontend uses singular /api/panier/)
+    path('api/panier/', PanierViewSet.as_view({'get': 'list'}), name='panier-list'),
+    path('api/panier/add/', PanierViewSet.as_view({'post': 'add'}), name='panier-add'),
+    # Student bulletin / notes (R21)
+    path('api/mes-notes/', MesNotesView.as_view(), name='mes-notes'),
+
+    # Teacher course management (R7)
+    path('api/teacher/chapitres/', ChapitreViewSet.as_view({'get': 'list', 'post': 'create'}), name='teacher-chapitres'),
+    path('api/teacher/chapitres/<int:pk>/', ChapitreViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='teacher-chapitre-detail'),
+    path('api/teacher/lecons/', LeconViewSet.as_view({'get': 'list', 'post': 'create'}), name='teacher-lecons'),
+    path('api/teacher/lecons/<int:pk>/', LeconViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='teacher-lecon-detail'),
 ]

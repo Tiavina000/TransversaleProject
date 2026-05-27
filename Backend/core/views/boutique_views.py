@@ -1,7 +1,8 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from core.models import RessourceBoutique, Panier, PanierItem, Commande
 from core.serializers.boutique_serializers import (
     RessourceBoutiqueSerializer, PanierSerializer, PanierItemSerializer,
@@ -42,6 +43,37 @@ class PanierViewSet(viewsets.ModelViewSet):
     queryset = Panier.objects.all()
     serializer_class = PanierSerializer
     pagination_class = StandardPagination
+
+    @action(detail=False, methods=['post'])
+    def add(self, request):
+        """Ajouter un article au panier de l'étudiant connecté"""
+        user = request.user
+        if not user.is_authenticated or user.type_utilisateur != 'ETUDIANT' or not hasattr(user, 'etudiant_profile'):
+            return Response({'detail': 'Accès étudiant requis'}, status=status.HTTP_403_FORBIDDEN)
+
+        ressource_id = request.data.get('ressource_id')
+        if not ressource_id:
+            return Response({'detail': 'ressource_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ressource = RessourceBoutique.objects.get(id=ressource_id)
+        except RessourceBoutique.DoesNotExist:
+            return Response({'detail': 'Ressource non trouvée'}, status=status.HTTP_404_NOT_FOUND)
+
+        etudiant = user.etudiant_profile
+        panier, _ = Panier.objects.get_or_create(etudiant=etudiant)
+
+        item, created = PanierItem.objects.get_or_create(
+            panier=panier,
+            ressources=ressource,
+            defaults={'quantite': 1}
+        )
+        if not created:
+            item.quantite += 1
+            item.save()
+
+        serializer = PanierSerializer(panier)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class PanierItemViewSet(viewsets.ModelViewSet):

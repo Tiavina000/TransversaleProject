@@ -94,7 +94,7 @@ export function useCourseTimer(courseId) {
     setRunning(false);
     setStarted(false);
     if (sessionId) {
-      try { await sessionAPI.end(sessionId); } catch {}
+      try { await sessionAPI.end(sessionId); } catch { /* silencieux */ }
     }
   }, [sessionId]);
 

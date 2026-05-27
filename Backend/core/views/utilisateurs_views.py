@@ -67,7 +67,7 @@ class EtudiantViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_inscription', 'points_global']
     ordering = ['-date_inscription']
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='top-points')
     def top_points(self, request):
         """Retourner les étudiants avec le plus de points"""
         limit = request.query_params.get('limit', 10)

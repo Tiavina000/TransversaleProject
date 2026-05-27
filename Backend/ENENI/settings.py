@@ -94,12 +94,8 @@ WSGI_APPLICATION = 'ENENI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ma_nouvelle_base',
-        'USER': 'postgres',
-        'PASSWORD': '213810',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

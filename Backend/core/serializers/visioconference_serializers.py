@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import SessionVisio, ParticipationVisio
+from core.models import SessionVisio, ParticipationVisio, QuestionVisio
 
 
 class ParticipationVisioSerializer(serializers.ModelSerializer):
@@ -10,6 +10,18 @@ class ParticipationVisioSerializer(serializers.ModelSerializer):
             'duree_participation', 'evenements_inactive'
         ]
         read_only_fields = ['id', 'date_joindre']
+
+
+class QuestionVisioSerializer(serializers.ModelSerializer):
+    etudiant_nom = serializers.SerializerMethodField()
+
+    class Meta:
+        model = QuestionVisio
+        fields = ['id', 'session', 'etudiant', 'etudiant_nom', 'contenu', 'date_creation', 'est_answered']
+        read_only_fields = ['id', 'date_creation', 'etudiant_nom']
+
+    def get_etudiant_nom(self, obj):
+        return obj.etudiant.utilisateur.prenom or obj.etudiant.utilisateur.username
 
 
 class SessionVisioSerializer(serializers.ModelSerializer):

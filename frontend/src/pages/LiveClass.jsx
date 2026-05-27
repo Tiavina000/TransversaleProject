@@ -3,12 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Hand, MessageSquare, Users, Video, VideoOff, Mic, MicOff,
-  Check, X, ChevronLeft, AlertTriangle, Clock, Send,
-  ShieldOff, Ban, Timer, Volume2
+  Check, X, ChevronLeft, AlertTriangle, Send,
+  Ban, Timer, UserCheck
 } from 'lucide-react';
-import { liveAPI } from '../services/api';
+import { liveAPI, notifAPI } from '../services/api';
 
-// ── Données de démo ──────────────────────────────────────────────────────────
 const DEMO_SESSION = {
   id: 1,
   titre: 'Cours en direct — Physique-Chimie : La Lumière',
@@ -17,14 +16,7 @@ const DEMO_SESSION = {
   participants: 42,
 };
 
-const DEMO_QUESTIONS = [
-  { id: 1, content: 'Comment calculer l\'indice de réfraction ?', author: 'Aina', answered: false, raised_hand: false },
-  { id: 2, content: 'Est-ce que la vitesse de la lumière change dans l\'eau ?', author: 'Mamy', answered: true, raised_hand: false },
-  { id: 3, content: 'Pouvez-vous répéter la formule de Snell-Descartes ?', author: 'Rija', answered: false, raised_hand: true },
-];
-
-// ── Badge participant ────────────────────────────────────────────────────────
-function ParticipantBadge({ name, hasHand, isBanned, onBan, onPenalty, isTeacher }) {
+function ParticipantBadge({ name, hasHand, isBanned, isMuted, onBan, onPenalty, onToggleMute, isTeacher }) {
   const [showMenu, setShowMenu] = useState(false);
   const initial = name[0]?.toUpperCase() || '?';
 
@@ -38,16 +30,17 @@ function ParticipantBadge({ name, hasHand, isBanned, onBan, onPenalty, isTeacher
         whileHover={{ x: 2 }}
       >
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-          hasHand ? 'bg-amber-500/30 text-amber-400 ring-2 ring-amber-500/50' : 'bg-white/10 text-white'
-        }`}>
+          hasHand ? 'bg-amber-500/30 text-amber-400 ring-2 ring-amber-500/50' : 'bg-white/10'
+        }`} style={!hasHand ? { color: 'var(--text-primary)' } : {}}>
           {initial}
         </div>
         <span className="text-sm text-slate-300 truncate flex-1">{name}</span>
         {hasHand && <Hand size={12} className="text-amber-400 animate-bounce flex-shrink-0" />}
         {isBanned && <Ban size={12} className="text-red-400 flex-shrink-0" />}
+        {isMuted && !hasHand && <MicOff size={12} className="text-slate-500 flex-shrink-0" />}
+        {!isMuted && isTeacher && <Mic size={12} className="text-emerald-400 flex-shrink-0" />}
       </motion.div>
 
-      {/* Menu modération (enseignant seulement) */}
       <AnimatePresence>
         {showMenu && isTeacher && (
           <motion.div
@@ -56,6 +49,10 @@ function ParticipantBadge({ name, hasHand, isBanned, onBan, onPenalty, isTeacher
             exit={{ opacity: 0, scale: 0.95 }}
             className="absolute left-0 top-full mt-1 z-50 glass border border-white/10 rounded-xl shadow-2xl p-2 w-52"
           >
+            <button onClick={() => { onToggleMute(); setShowMenu(false); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sky-500/10 text-sky-400 text-sm transition-all">
+              {isMuted ? <Mic size={14} /> : <MicOff size={14} />} {isMuted ? 'Activer micro' : 'Couper micro'}
+            </button>
             <button onClick={() => { onPenalty(1); setShowMenu(false); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-amber-500/10 text-amber-400 text-sm transition-all">
               <Timer size={14} /> Pénalité 1 heure
@@ -76,7 +73,6 @@ function ParticipantBadge({ name, hasHand, isBanned, onBan, onPenalty, isTeacher
   );
 }
 
-// ── Carte question ────────────────────────────────────────────────────────────
 function QuestionCard({ q, onMarkAnswered, isTeacher }) {
   return (
     <motion.div
@@ -93,7 +89,7 @@ function QuestionCard({ q, onMarkAnswered, isTeacher }) {
       <div className="flex items-start gap-2">
         {q.raised_hand && <Hand size={13} className="text-amber-400 mt-0.5 flex-shrink-0 animate-bounce" />}
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-white leading-relaxed">{q.content}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{q.content}</p>
           <p className="text-xs text-slate-500 mt-1">— {q.author}</p>
         </div>
         {!q.answered && isTeacher && (
@@ -109,78 +105,170 @@ function QuestionCard({ q, onMarkAnswered, isTeacher }) {
   );
 }
 
-// ── Page principale ──────────────────────────────────────────────────────────
 export function LiveClass() {
   const { id }   = useParams();
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const localStreamRef = useRef(null);
 
   const [session, setSession]         = useState(null);
   const [loading, setLoading]         = useState(true);
   const [joined, setJoined]           = useState(false);
-  const [questions, setQuestions]     = useState(DEMO_QUESTIONS);
-  const [participants, setParticipants] = useState([
-    { id: 'u1', name: 'Aina Rakoto',   hasHand: false, isBanned: false },
-    { id: 'u2', name: 'Mamy Razafy',   hasHand: true,  isBanned: false },
-    { id: 'u3', name: 'Rija Andriam',  hasHand: true,  isBanned: false },
-    { id: 'u4', name: 'Lova Ramena',   hasHand: false, isBanned: false },
-    { id: 'u5', name: 'Haja Rasoa',    hasHand: false, isBanned: false },
-    { id: 'u6', name: 'Tojo Rakotov',  hasHand: false, isBanned: true  },
-  ]);
+  const [questions, setQuestions]     = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [handRaised, setHandRaised]   = useState(false);
   const [question, setQuestion]       = useState('');
-  const [activeTab, setActiveTab]     = useState('questions'); // 'questions' | 'participants'
+  const [activeTab, setActiveTab]     = useState('questions');
   const [isMuted, setIsMuted]         = useState(true);
-  const [isTeacher]                   = useState(false); // À brancher sur user.role === 'teacher'
+  const isTeacher = sessionStorage.getItem('eneni_role') === 'ENSEIGNANT';
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [streamActive, setStreamActive] = useState(false);
+  const [notificationSent, setNotificationSent] = useState(false);
 
-  // Chargement session
   useEffect(() => {
     liveAPI.detail(id)
-      .then(res => setSession(res.data))
+      .then(res => {
+        setSession(res.data);
+        setQuestions((res.data.questions || []).map(q => ({
+          id: q.id,
+          content: q.content || q.texte,
+          author: q.author || 'Élève',
+          answered: q.answered || false,
+          raised_hand: q.raised_hand || false
+        })));
+        setParticipants((res.data.participants || []).map(p => ({
+          id: p.id || p.etudiant?.id,
+          name: p.name || p.etudiant?.utilisateur?.prenom || 'Élève',
+          hasHand: p.hasHand || p.main_levee || false,
+          isBanned: p.isBanned || false,
+          isMuted: p.isMuted !== undefined ? p.isMuted : true
+        })));
+      })
       .catch(() => setSession(DEMO_SESSION))
       .finally(() => setLoading(false));
   }, [id]);
 
+  const sendNotification = useCallback(async () => {
+    if (notificationSent) return;
+    try {
+      await notifAPI.list();
+      setNotificationSent(true);
+    } catch { /* silencieux */ }
+  }, [notificationSent]);
+
+  const initWebRTC = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: isTeacher,
+        audio: true
+      });
+      localStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setStreamActive(true);
+
+      const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+      const pc = new RTCPeerConnection(config);
+      peerConnectionRef.current = pc;
+
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+      if (!isTeacher) {
+        setIsMuted(true);
+        stream.getAudioTracks().forEach(t => t.enabled = false);
+      }
+
+      sendNotification();
+    } catch (err) {
+      console.warn('WebRTC non disponible, mode démo:', err.message);
+    }
+  }, [isTeacher, sendNotification]);
+
+  useEffect(() => {
+    if (!joined) return;
+    const start = async () => {
+      await initWebRTC();
+    };
+    start();
+    return () => {
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+      }
+    };
+  }, [joined]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleJoin = useCallback(async () => {
-    try { await liveAPI.join(id); } catch {}
+    try { await liveAPI.join(id); } catch { /* silencieux */ }
     setJoined(true);
-    // Démarrer le flux caméra professeur (WebRTC demo — media fictif)
   }, [id]);
 
   const handleLeave = useCallback(async () => {
-    try { await liveAPI.leave(id); } catch {}
+    try { await liveAPI.leave(id); } catch { /* silencieux */ }
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => t.stop());
+    }
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+    }
     navigate('/courses');
   }, [id, navigate]);
 
   const toggleHand = useCallback(async () => {
     try {
       handRaised ? await liveAPI.lowerHand(id) : await liveAPI.raiseHand(id);
-    } catch {}
+    } catch { /* silencieux */ }
     setHandRaised(h => !h);
   }, [id, handRaised]);
 
+  const toggleMute = useCallback(async () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(t => t.enabled = isMuted);
+    }
+    setIsMuted(m => !m);
+  }, [isMuted]);
+
+  const toggleVideo = useCallback(() => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getVideoTracks().forEach(t => t.enabled = !videoEnabled);
+    }
+    setVideoEnabled(v => !v);
+  }, [videoEnabled]);
+
   const sendQuestion = useCallback(async () => {
     if (!question.trim()) return;
-    const newQ = { id: Date.now(), content: question, author: 'Moi', answered: false, raised_hand: false };
+    const newQ = { id: Date.now(), content: question, author: isTeacher ? 'Moi (Prof)' : 'Moi', answered: false, raised_hand: false };
     setQuestions(prev => [newQ, ...prev]);
     setQuestion('');
-    try { await liveAPI.sendQuestion(id, question); } catch {}
-  }, [id, question]);
+    try { await liveAPI.sendQuestion(id, question); } catch { /* silencieux */ }
+  }, [id, question, isTeacher]);
 
   const markAnswered = useCallback(async (qId) => {
     setQuestions(prev => prev.map(q => q.id === qId ? { ...q, answered: true } : q));
-    try { await liveAPI.markAnswered(id, qId); } catch {}
+    try { await liveAPI.markAnswered(id, qId); } catch { /* silencieux */ }
   }, [id]);
 
   const banParticipant = useCallback(async (userId) => {
     setParticipants(prev => prev.map(p => p.id === userId ? { ...p, isBanned: true } : p));
-    try { await liveAPI.banStudent(id, userId, 0); } catch {}
+    try {
+      await liveAPI.banStudent(id, userId, 0);
+      await notifAPI.list();
+    } catch { /* silencieux */ }
   }, [id]);
 
   const penalizeParticipant = useCallback(async (userId, hours) => {
-    try { await liveAPI.banStudent(id, userId, hours); } catch {}
-    // Notifier visuellement
+    try { await liveAPI.banStudent(id, userId, hours); } catch { /* silencieux */ }
   }, [id]);
+
+  const toggleMuteParticipant = useCallback((userId) => {
+    setParticipants(prev => prev.map(p =>
+      p.id === userId ? { ...p, isMuted: !p.isMuted } : p
+    ));
+  }, []);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -189,11 +277,10 @@ export function LiveClass() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A14] text-white flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col" style={{ color: 'var(--text-primary)' }}>
 
-      {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 flex items-center gap-3"
-        style={{ background: 'rgba(10,10,20,0.9)', backdropFilter: 'blur(20px)' }}>
+        style={{ background: 'var(--bg-app)', backdropFilter: 'blur(20px)' }}>
         <button onClick={handleLeave}
           className="p-2 rounded-xl hover:bg-white/5 transition flex-shrink-0">
           <ChevronLeft size={18} className="text-slate-400" />
@@ -202,8 +289,9 @@ export function LiveClass() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
             <span className="text-xs text-red-400 font-bold uppercase tracking-wider">EN DIRECT</span>
+            {isTeacher && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 ml-2">PROF</span>}
           </div>
-          <h1 className="text-sm font-bold text-white truncate">{session?.titre}</h1>
+          <h1 className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{session?.titre}</h1>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -220,7 +308,6 @@ export function LiveClass() {
       </div>
 
       {!joined ? (
-        /* ── Écran d'attente avant de rejoindre ────────────────── */
         <div className="flex-1 flex items-center justify-center p-6">
           <motion.div
             className="glass rounded-3xl p-10 max-w-md w-full text-center space-y-6"
@@ -236,65 +323,87 @@ export function LiveClass() {
               <span className="text-xs text-red-400 font-bold uppercase tracking-widest">Cours en Direct</span>
               <h2 className="text-2xl font-black mt-2">{session?.titre}</h2>
               <p className="text-slate-400 text-sm mt-2">
-                Enseignant : <strong className="text-white">{session?.enseignant?.nom}</strong>
+                {isTeacher ? 'Vous êtes l\'enseignant' : `Enseignant : ${session?.enseignant?.nom}`}
               </p>
               <div className="flex items-center justify-center gap-2 mt-3 text-slate-500 text-sm">
                 <Users size={14} />
-                <span>{session?.participants || participants.length} participants connectés</span>
+                <span>{session?.participants || participants.length} participants</span>
               </div>
             </div>
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-sm text-amber-300 text-left space-y-1">
-              <p className="font-semibold flex items-center gap-2"><AlertTriangle size={14} /> Rappel de conduite :</p>
-              <p className="text-xs text-amber-400/80">Utilisez "Lever la main" pour intervenir. Les questions non respectueuses entraînent une pénalité.</p>
-            </div>
+            {!isTeacher && (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-sm text-amber-300 text-left space-y-1">
+                <p className="font-semibold flex items-center gap-2"><AlertTriangle size={14} /> Rappel :</p>
+                <p className="text-xs text-amber-400/80">Votre micro est coupé par défaut. Levez la main pour intervenir.</p>
+              </div>
+            )}
             <motion.button
               onClick={handleJoin}
               className="btn-metal w-full py-4 flex items-center justify-center gap-3 text-base"
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Video size={20} /> Rejoindre le cours
+              <Video size={20} /> {isTeacher ? 'Commencer le cours' : 'Rejoindre le cours'}
             </motion.button>
           </motion.div>
         </div>
       ) : (
-        /* ── Interface principale ────────────────────────────────── */
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
-          {/* ── Flux vidéo ─────────────────────────────────────────── */}
           <div className="flex-1 bg-black relative flex items-center justify-center min-h-[300px] lg:min-h-0">
-            {/* Placeholder vidéo (à remplacer par WebRTC) */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 space-y-4 p-8">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-white/10">
-                <Video size={48} className="text-primary/50" />
+            {streamActive ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted={isTeacher}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 space-y-4 p-8">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-white/10">
+                  {videoEnabled ? <Video size={48} className="text-primary/50" /> : <VideoOff size={48} className="text-red-400/50" />}
+                </div>
+                <p className="text-sm text-center">
+                  {isTeacher ? 'Votre flux vidéo' : `Flux en direct — ${session?.enseignant?.nom || 'Professeur'}`}
+                </p>
               </div>
-              <p className="text-sm text-center">Flux en direct — Prof. {session?.enseignant?.nom}</p>
-              <p className="text-xs text-slate-700">WebRTC actif — flux vidéo connecté</p>
-            </div>
+            )}
 
-            {/* Contrôles flottants */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3">
-              <button onClick={() => setIsMuted(m => !m)}
+              {isTeacher && (
+                <button onClick={toggleVideo}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                    videoEnabled ? 'bg-white/10 text-white border border-white/20' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  }`}>
+                  {videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}
+                </button>
+              )}
+              <button onClick={toggleMute}
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                   isMuted ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/10 text-white border border-white/20'
                 }`}>
                 {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
-              <motion.button
-                onClick={toggleHand}
-                className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all ${
-                  handRaised
-                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/40'
-                    : 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
-                }`}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Hand size={16} className={handRaised ? 'animate-bounce' : ''} />
-                {handRaised ? 'Main levée' : 'Lever la main'}
-              </motion.button>
-              <button className="w-12 h-12 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center hover:bg-white/15 transition-all">
-                <Volume2 size={18} />
-              </button>
+              {!isTeacher && (
+                <motion.button
+                  onClick={toggleHand}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all ${
+                    handRaised
+                      ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/40'
+                      : 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
+                  }`}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Hand size={16} className={handRaised ? 'animate-bounce' : ''} />
+                  {handRaised ? 'Main levée' : 'Lever la main'}
+                </motion.button>
+              )}
+              {isTeacher && (
+                <motion.button
+                  className="flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <UserCheck size={16} /> Animateur
+                </motion.button>
+              )}
             </div>
 
-            {/* Badge main levée */}
             <AnimatePresence>
               {handRaised && (
                 <motion.div
@@ -306,11 +415,9 @@ export function LiveClass() {
             </AnimatePresence>
           </div>
 
-          {/* ── Panneau latéral ─────────────────────────────────────── */}
           <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col"
-            style={{ background: 'rgba(10,10,20,0.8)' }}>
+            style={{ background: 'var(--bg-app)' }}>
 
-            {/* Onglets */}
             <div className="flex border-b border-white/10 flex-shrink-0">
               {[
                 { key: 'questions',    label: 'Questions',    icon: MessageSquare },
@@ -330,7 +437,6 @@ export function LiveClass() {
               ))}
             </div>
 
-            {/* Contenu onglets */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
               {activeTab === 'questions' ? (
                 <AnimatePresence>
@@ -342,21 +448,26 @@ export function LiveClass() {
                   }
                 </AnimatePresence>
               ) : (
-                participants.map(p => (
-                  <ParticipantBadge
-                    key={p.id}
-                    name={p.name}
-                    hasHand={p.hasHand}
-                    isBanned={p.isBanned}
-                    isTeacher={isTeacher}
-                    onBan={() => banParticipant(p.id)}
-                    onPenalty={(h) => penalizeParticipant(p.id, h)}
-                  />
-                ))
+                participants.length === 0 ? (
+                  <p className="text-center text-slate-600 text-sm py-8">Aucun participant.</p>
+                ) : (
+                  participants.map(p => (
+                    <ParticipantBadge
+                      key={p.id}
+                      name={p.name}
+                      hasHand={p.hasHand}
+                      isBanned={p.isBanned}
+                      isMuted={p.isMuted}
+                      isTeacher={isTeacher}
+                      onBan={() => banParticipant(p.id)}
+                      onPenalty={(h) => penalizeParticipant(p.id, h)}
+                      onToggleMute={() => toggleMuteParticipant(p.id)}
+                    />
+                  ))
+                )
               )}
             </div>
 
-            {/* Zone de saisie question */}
             {activeTab === 'questions' && (
               <div className="flex-shrink-0 border-t border-white/10 p-3">
                 <div className="flex gap-2">
@@ -365,8 +476,9 @@ export function LiveClass() {
                     value={question}
                     onChange={e => setQuestion(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && sendQuestion()}
-                    placeholder="Poser une question..."
-                    className="flex-1 glass-sm bg-transparent px-3 py-2 text-sm text-white rounded-xl focus:outline-none border border-white/10 focus:border-primary/50 transition"
+                    placeholder={isTeacher ? "Répondre à la classe..." : "Poser une question..."}
+                    className="flex-1 glass-sm bg-transparent px-3 py-2 text-sm rounded-xl focus:outline-none border border-white/10 focus:border-primary/50 transition"
+                    style={{ color: 'var(--text-primary)' }}
                   />
                   <motion.button
                     onClick={sendQuestion}

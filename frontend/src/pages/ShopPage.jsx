@@ -1,17 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ShoppingBag, Search, ShoppingCart, Check, X, Star } from 'lucide-react';
 import { shopAPI } from '../services/api';
-
-const MOCK_PRODUCTS = [
-  { id: 1, nom: 'Annales Bac Mathématiques 2023', type: 'book', prix: 15000, description: 'Sujets corrigés complets pour la préparation au bac.', rating: 4.8 },
-  { id: 2, nom: 'Pack Premium Terminale', type: 'subscription', prix: 45000, description: 'Accès illimité à toutes les vidéos et PDF de Terminale pendant 1 mois.', rating: 5.0 },
-  { id: 3, nom: 'Physique: Les fondamentaux', type: 'book', prix: 12000, description: 'Livre numérique complet sur les bases de la physique.', rating: 4.5 },
-  { id: 4, nom: 'Exercices d\'Anglais B2', type: 'digital', prix: 5000, description: 'Format PDF interactif pour préparer les certifications.', rating: 4.2 },
-  { id: 5, nom: 'Session de Tutorat 1h', type: 'service', prix: 20000, description: 'Une heure de cours particulier en ligne avec un professeur.', rating: 4.9 },
-  { id: 6, nom: 'Annales CEPE 2023', type: 'book', prix: 8000, description: 'Sujets et corrections pour les élèves de CM2.', rating: 4.6 }
-];
 
 export function ShopPage() {
   const { t } = useTranslation();
@@ -22,24 +13,22 @@ export function ShopPage() {
   // Cart state
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [checkoutStatus, setCheckoutStatus] = useState(null); // 'success', 'loading', null
+  const [checkoutStatus, setCheckoutStatus] = useState(null);
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await shopAPI.resources();
+        setProducts(res.data.results || res.data || []);
+    } catch {
+        console.error("Failed to fetch shop products");
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProducts();
   }, []);
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const res = await shopAPI.resources();
-      setProducts(res.data.results || res.data || []);
-    } catch (err) {
-      console.error("Failed to fetch shop products", err);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -67,7 +56,7 @@ export function ShopPage() {
       setCheckoutStatus('success');
       setCart([]);
       setTimeout(() => setCheckoutStatus(null), 3000);
-    } catch (error) {
+    } catch {
       // Fake success for demo if backend is down
       setTimeout(() => {
         setCheckoutStatus('success');
@@ -78,7 +67,7 @@ export function ShopPage() {
   };
 
   const filteredProducts = products.filter(p => 
-    p.nom.toLowerCase().includes(search.toLowerCase())
+    (p.titre || p.nom || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -148,7 +137,7 @@ export function ShopPage() {
               
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">{product.type}</span>
-                <h4 className="font-bold text-sm mb-2 line-clamp-2 text-white/90">{product.nom}</h4>
+                <h4 className="font-bold text-sm mb-2 line-clamp-2" style={{ color: 'var(--text-primary)' }}>{product.titre || product.nom}</h4>
                 <p className="text-xs text-slate-400 line-clamp-2 mb-4">{product.description}</p>
                 
                 <div className="mt-auto flex items-center justify-between">
@@ -183,7 +172,7 @@ export function ShopPage() {
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed top-0 right-0 h-full w-full max-w-sm glass-panel z-50 flex flex-col border-l border-white/10 shadow-2xl"
-              style={{ background: 'rgba(10,10,15,0.95)' }}
+              style={{ background: 'var(--bg-app)' }}
             >
               <div className="p-5 flex items-center justify-between border-b border-white/10">
                 <h2 className="text-xl font-bold flex items-center gap-2">
@@ -207,7 +196,7 @@ export function ShopPage() {
                         <ShoppingBag size={20} className="text-slate-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h5 className="text-sm font-bold truncate">{item.nom}</h5>
+                        <h5 className="text-sm font-bold truncate">{item.titre || item.nom}</h5>
                         <p className="text-xs text-slate-400">{item.prix.toLocaleString('fr-MG')} MGA x {item.qty}</p>
                       </div>
                       <button 
@@ -221,7 +210,7 @@ export function ShopPage() {
                 )}
               </div>
 
-              <div className="p-5 border-t border-white/10 bg-black/20">
+              <div className="p-5 border-t border-white/10" style={{ background: 'var(--overlay-heavy)' }}>
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-slate-400">Total</span>
                   <span className="text-xl font-bold">{cartTotal.toLocaleString('fr-MG')} MGA</span>

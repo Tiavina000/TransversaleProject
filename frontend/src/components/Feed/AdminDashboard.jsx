@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { newsAPI } from '../../services/api';
 import {
-  Plus, Trash2, Edit3, Eye, EyeOff, ImageIcon, Video,
+  Plus, Trash2, Edit3, Eye, EyeOff, Video,
   Link2, AlertTriangle, CheckCircle, Newspaper, X, Upload,
-  Calendar, Users, Send, Loader2, Heart, MessageCircle, 
+  Send, Loader2, Heart, MessageCircle, 
   Share2, Bookmark, MoreHorizontal, Sparkles
 } from 'lucide-react';
 
@@ -276,19 +276,16 @@ export function AdminDashboard({ user }) {
   const [news, setNews] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  const fetchNews = () => {
-    setLoading(true);
+  useEffect(() => {
     newsAPI.list({ page_size: 50 })
       .then(res => setNews(res.data?.results || res.data || []))
       .catch(() => setNews([]))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { fetchNews(); }, []);
+  }, []);
 
   const notify = (type, msg) => {
     setFeedback({ type, msg });
@@ -307,8 +304,12 @@ export function AdminDashboard({ user }) {
       }
       setShowForm(false);
       setEditItem(null);
-      fetchNews();
-    } catch (e) {
+      setLoading(true);
+      newsAPI.list({ page_size: 50 })
+        .then(res => setNews(res.data?.results || res.data || []))
+        .catch(() => setNews([]))
+        .finally(() => setLoading(false));
+    } catch {
       notify('err', 'Une erreur est survenue.');
     } finally {
       setSaving(false);
@@ -320,7 +321,11 @@ export function AdminDashboard({ user }) {
     try {
       await newsAPI.remove(id);
       notify('ok', 'Actualité supprimée.');
-      fetchNews();
+      setLoading(true);
+      newsAPI.list({ page_size: 50 })
+        .then(res => setNews(res.data?.results || res.data || []))
+        .catch(() => setNews([]))
+        .finally(() => setLoading(false));
     } catch { notify('err', 'Erreur lors de la suppression.'); }
   };
 

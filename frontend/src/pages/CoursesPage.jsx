@@ -1,15 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Search, Play, FileText, ChevronRight, Filter, Clock, Video, BarChart2 } from 'lucide-react';
-import { courseAPI, statsAPI } from '../services/api';
-
-const LEVELS = [
-  "Maternelle", "CP", "CE1", "CE2", "CM1", "CM2",
-  "6ème", "5ème", "4ème", "3ème",
-  "2nde", "1ère", "Terminale"
-];
+import { BookOpen, Search, Play, FileText, Filter, Clock, Video, BarChart2 } from 'lucide-react';
+import { courseAPI } from '../services/api';
 
 const SUBJECTS = [
   "Mathématiques", "Français", "Malagasy", "Physique-Chimie",
@@ -23,33 +17,16 @@ export function CoursesPage({ user }) {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
-  const [studentStats, setStudentStats] = useState(null);
-
-  const [selectedLevel,   setSelectedLevel]   = useState(user?.niveau || 'Terminale');
+  const [studentStats] = useState(null);
+  const [error, setError] = useState(null);
+  const selectedLevel = user?.niveau || 'Terminale';
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [search, setSearch]                   = useState('');
 
-  useEffect(() => {
-    fetchCourses();
-  }, [selectedLevel, selectedSubject]);
-
-  useEffect(() => {
-    statsAPI.getStudent()
-      .then(res => setStudentStats(res.data))
-      .catch(() => {
-        setStudentStats(null);
-      });
-  }, []);
-
   const fetchCourses = async () => {
-    setLoading(true);
-    setError(null);
     try {
-      // In Backend, we mapped /api/courses/ to MatiereViewSet.
-      // But MatiereViewSet doesn't have niveau filtering by default in get_queryset.
-      // So we will just fetch all Matieres and filter on the frontend if needed, or pass params.
       const res = await courseAPI.list();
+      setError(null);
       let results = (res.data.results || res.data || []).map(c => ({
         id: c.id,
         titre:   c.nom || 'Sans titre',
@@ -61,18 +38,43 @@ export function CoursesPage({ user }) {
         has_live: false,
       }));
       if (selectedLevel !== 'All') {
-        // filter by level locally if needed
         results = results.filter(r => r.niveau === selectedLevel || r.niveau === 'Tout niveau');
       }
       setCourses(results);
     } catch (err) {
       console.error('Failed to fetch courses', err);
-      setError(t('common.error'));
+      setError('Impossible de charger les cours.');
       setCourses([]);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    courseAPI.list()
+      .then(res => {
+        let results = (res.data.results || res.data || []).map(c => ({
+          id: c.id,
+          titre:   c.nom || 'Sans titre',
+          matiere: c.nom || 'Général',
+          niveau:  c.niveaux && c.niveaux.length > 0 ? c.niveaux[0].nom : 'Tout niveau',
+          duree:   'Programme complet',
+          emoji:   '📚',
+          color:   'rgba(156,163,175,0.3)',
+          has_live: false,
+        }));
+        if (selectedLevel !== 'All') {
+          results = results.filter(r => r.niveau === selectedLevel || r.niveau === 'Tout niveau');
+        }
+        setCourses(results);
+      })
+      .catch(err => {
+        console.error('Failed to fetch courses', err);
+        setError('Impossible de charger les cours.');
+        setCourses([]);
+      })
+      .finally(() => setLoading(false));
+  }, [selectedLevel]);
 
   const filteredCourses = courses.filter(c =>
     c.titre.toLowerCase().includes(search.toLowerCase())
@@ -136,7 +138,7 @@ export function CoursesPage({ user }) {
               </div>
               <div>
                 <p className="text-xs text-slate-500">Temps total</p>
-                <p className="text-base font-bold text-white">{studentStats.total_time_hours}h</p>
+                <p className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{studentStats.total_time_hours}h</p>
               </div>
             </div>
             <div className="glass-sm rounded-2xl p-4 flex items-center gap-3">
@@ -145,7 +147,7 @@ export function CoursesPage({ user }) {
               </div>
               <div>
                 <p className="text-xs text-slate-500">Exercices faits</p>
-                <p className="text-base font-bold text-white">{studentStats.exercises_done}</p>
+                <p className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{studentStats.exercises_done}</p>
               </div>
             </div>
             {studentStats.subjects && (

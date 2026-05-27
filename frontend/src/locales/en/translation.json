@@ -4,6 +4,7 @@
     "courses": "Courses",
     "exams": "Exams",
     "shop": "Shop",
+    "bulletin": "Grades",
     "logout": "Logout",
     "profile": "Profile",
     "student": "Student"
@@ -64,5 +65,9 @@
     "cancel": "Cancel",
     "search": "Search...",
     "minutes": "minutes"
+  },
+  "gidro": {
+    "listen": "Stop listening",
+    "speak": "Activate voice recognition"
   }
 }

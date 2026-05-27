@@ -4,6 +4,7 @@
     "courses": "Cours",
     "exams": "Examens",
     "shop": "Boutique",
+    "bulletin": "Bulletin",
     "logout": "Déconnexion",
     "profile": "Profil",
     "student": "Élève"
@@ -64,5 +65,9 @@
     "cancel": "Annuler",
     "search": "Rechercher...",
     "minutes": "minutes"
+  },
+  "gidro": {
+    "listen": "Arrêter l'écoute",
+    "speak": "Activer la reconnaissance vocale"
   }
 }

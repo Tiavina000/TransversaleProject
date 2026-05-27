@@ -3,8 +3,12 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from core.models import (
-    NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia, SessionEtude, ProgressionChapitre
+    NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia,
+    SessionEtude, ProgressionChapitre, Etablissement
 )
 from core.serializers.pedagogie_serializers import (
     NiveauScolaireSerializer, MatiereSerializer, ChapitreSerializer,
@@ -55,14 +59,25 @@ class ChapitreViewSet(viewsets.ModelViewSet):
     queryset = Chapitre.objects.all()
     permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['order']
     ordering = ['order']
+    search_fields = ['titre', 'description']
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return ChapitreDetailSerializer
         return ChapitreSerializer
+
+    def get_queryset(self):
+        qs = Chapitre.objects.all()
+        matiere = self.request.query_params.get('matiere')
+        niveau = self.request.query_params.get('niveau')
+        if matiere:
+            qs = qs.filter(matiere_id=matiere)
+        if niveau:
+            qs = qs.filter(niveau_id=niveau)
+        return qs
 
     @action(detail=True, methods=['get'])
     def lecons(self, request, pk=None):
@@ -107,11 +122,83 @@ class ChapitreViewSet(viewsets.ModelViewSet):
                 "type_question": question.type_question
             })
         
-        # Si aucune question n'est trouvée, on retourne une erreur explicite
         return Response({
             "error": "Aucune question de validation n'est configurée pour ce chapitre.",
             "detail": "Veuillez contacter un enseignant."
         }, status=404)
+
+    @action(detail=True, methods=['post'], url_path='qcm-validation')
+    def creer_qcm_validation(self, request, pk=None):
+        chapitre = self.get_object()
+        from core.models.examens import Examen, QuestionExamen
+        from core.models.utilisateurs import Enseignant
+
+        user = request.user
+        if not (user.is_authenticated and user.type_utilisateur == 'ENSEIGNANT' and hasattr(user, 'enseignant_profile')):
+            return Response({"error": "Seuls les enseignants peuvent créer un QCM de validation"}, status=403)
+
+        questions_data = request.data.get('questions', [])
+        if not questions_data:
+            return Response({"error": "Aucune question fournie"}, status=400)
+
+        examen = Examen.objects.create(
+            titre=f"Validation - {chapitre.titre}",
+            enseignant=user.enseignant_profile,
+            matiere=chapitre.matiere,
+            niveau=chapitre.niveau,
+            duree_minutes=request.data.get('duree', 15),
+            date_debut=__import__('django').utils.timezone.now(),
+            date_fin=__import__('django').utils.timezone.now() + __import__('datetime').timedelta(hours=1),
+            est_publie=True,
+            type_examen='QCM'
+        )
+
+        for i, qdata in enumerate(questions_data):
+            QuestionExamen.objects.create(
+                examen=examen,
+                texte=qdata['texte'],
+                type_question='QCM',
+                points=qdata.get('points', 1),
+                ordre=i + 1,
+                options=qdata.get('options', []),
+                reponse_correcte=qdata['reponse_correcte'],
+                obligatoire=True
+            )
+
+        return Response({
+            "status": "qcm_created",
+            "examen_id": examen.id,
+            "nb_questions": len(questions_data)
+        })
+
+    @action(detail=False, methods=['post'])
+    def upload_file(self, request):
+        chapitre_id = request.data.get('chapitre_id')
+        lecon_id = request.data.get('lecon_id')
+        if not lecon_id:
+            return Response({"error": "lecon_id requis"}, status=400)
+
+        lecon = get_object_or_404(Lecon, id=lecon_id)
+        fichier = request.FILES.get('fichier')
+        if not fichier:
+            return Response({"error": "Fichier requis"}, status=400)
+
+        ext = fichier.name.split('.')[-1].lower()
+        type_map = {'pdf': 'PDF', 'mp4': 'VIDEO', 'webm': 'VIDEO', 'mp3': 'AUDIO', 'wav': 'AUDIO'}
+        type_fichier = type_map.get(ext, 'PDF')
+
+        fm = FichierMultimedia.objects.create(
+            type_fichier=type_fichier,
+            titre=request.data.get('titre', fichier.name),
+            url_fichier=fichier.name,
+            taille_no=fichier.size / (1024 * 1024),
+            lecon=lecon,
+            format=ext,
+            est_telechargeable=request.data.get('est_telechargeable', 'true').lower() == 'true',
+            metadata={'original_name': fichier.name}
+        )
+        serializer = FichierMultimediaSerializer(fm)
+        return Response(serializer.data, status=201)
 
 
 class LeconViewSet(viewsets.ModelViewSet):
@@ -120,27 +207,28 @@ class LeconViewSet(viewsets.ModelViewSet):
     serializer_class = LeconSerializer
     permission_classes = [IsEnseignantOrReadOnly]
     pagination_class = StandardPagination
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
     ordering_fields = ['order']
     ordering = ['order']
+    search_fields = ['titre', 'contenue_texte']
 
     def get_queryset(self):
         queryset = Lecon.objects.all()
         user = self.request.user
         
-        # Get filters from query params
         niveau_param = self.request.query_params.get('niveau')
         matiere = self.request.query_params.get('matiere')
+        chapitre = self.request.query_params.get('chapitre')
         
-        # Determine the level to filter by
         niveau = niveau_param
         
-        # If user is a student and no specific level was asked, use their own level
         if not niveau or niveau == 'All':
             if user.is_authenticated and user.type_utilisateur == 'ETUDIANT' and hasattr(user, 'etudiant_profile'):
                 if user.etudiant_profile.niveau:
                     niveau = user.etudiant_profile.niveau.nom
         
+        if chapitre:
+            queryset = queryset.filter(chapitre_id=chapitre)
         if niveau and niveau != 'All':
             queryset = queryset.filter(chapitre__niveau__nom__iexact=niveau)
         if matiere and matiere != 'All':
@@ -168,6 +256,19 @@ class LeconViewSet(viewsets.ModelViewSet):
                 
         return Response({"progress": 0, "completed": False})
 
+    @action(detail=False, methods=['get'])
+    def enseignants(self, request):
+        user = request.user
+        if user.is_authenticated and user.type_utilisateur == 'ENSEIGNANT' and hasattr(user, 'enseignant_profile'):
+            lecons = Lecon.objects.filter(
+                chapitre__in=Chapitre.objects.filter(
+                    matiere__nom__iexact=user.enseignant_profile.specialite
+                )
+            )
+            serializer = self.get_serializer(lecons, many=True)
+            return Response(serializer.data)
+        return Response([])
+
 class SessionEtudeViewSet(viewsets.ModelViewSet):
     """API pour gérer les sessions d'étude et le chronomètre"""
     queryset = SessionEtude.objects.all()
@@ -178,8 +279,8 @@ class SessionEtudeViewSet(viewsets.ModelViewSet):
         return SessionEtude.objects.filter(etudiant=self.request.user.etudiant_profile)
 
     @action(detail=False, methods=['post'], url_path='start')
-    def start_session(self, request):
-        chapitre_id = request.data.get('chapitre_id')
+    def start_session(self, request, pk=None):
+        chapitre_id = request.data.get('chapitre_id') or pk
         chapitre = Chapitre.objects.get(id=chapitre_id)
         etudiant = request.user.etudiant_profile
         
@@ -234,34 +335,6 @@ class SessionEtudeViewSet(viewsets.ModelViewSet):
         return Response({"status": "ended", "total_time": session.temps_cumule_secondes})
 
 
-class StudentStatsView(APIView):
-    """Statistiques de progression pour l'étudiant"""
-    permission_classes = [IsEtudiant]
-    
-    def get(self, request):
-        from django.db.models import Sum, Count
-        etudiant = request.user.etudiant_profile
-        
-        # Temps par matière
-        stats_matieres = ProgressionChapitre.objects.filter(etudiant=etudiant) \
-            .values('chapitre__matiere__nom') \
-            .annotate(
-                total_secondes=Sum('temps_passe_secondes'),
-                chapitres_valides=Count('id', filter=Q(est_valide=True)),
-                total_chapitres=Count('id')
-            )
-            
-        total_time = ProgressionChapitre.objects.filter(etudiant=etudiant).aggregate(Sum('temps_passe_secondes'))['temps_passe_secondes__sum'] or 0
-        total_valides = ProgressionChapitre.objects.filter(etudiant=etudiant, est_valide=True).count()
-        
-        return Response({
-            "total_study_time": total_time,
-            "total_validated_chapters": total_valides,
-            "matieres": list(stats_matieres)
-        })
-
-
-
 
 class FichierMultimediaViewSet(viewsets.ModelViewSet):
     """API pour gérer les fichiers multimédia"""
@@ -271,12 +344,6 @@ class FichierMultimediaViewSet(viewsets.ModelViewSet):
     pagination_class = StandardPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['titre', 'type_fichier']
-
-
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from django.db.models import Q
-from core.models import Etablissement
 
 class PublicSearchView(APIView):
     """API de recherche publique pour la landing page"""
