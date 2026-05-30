@@ -59,7 +59,7 @@ ENENI-main/
 │   └── test_apis.py                # Script de test des APIs
 │
 ├── manage.py
-└── db.sqlite3
+└── (PostgreSQL)
 ```
 
 ---
@@ -113,7 +113,7 @@ ENENI-main/
                                     │
                                     ↓
 ┌──────────────────────────────────────────────────────────────────────┐
-│                    Base de données (db.sqlite3)                      │
+│                    Base de données (PostgreSQL)                       │
 │  ┌────────────────────────────────────────────────────────────────┐  │
 │  │  Tables SQL:                                                  │  │
 │  │  - auth_user / core_utilisateur                              │  │
@@ -391,8 +391,7 @@ ENENI-main/
 │                DATABASE LAYER                         │
 ├────────────────────────────────────────────────────────┤
 │  ORM              │ Django ORM    │ ✅ Utilisé        │
-│  Database         │ SQLite 3      │ ✅ Par défaut     │
-│  (Production)     │ PostgreSQL    │ ⏳ Recommandé     │
+│  Database         │ PostgreSQL    │ ✅ Utilisé        │
 └────────────────────────────────────────────────────────┘
 ```
 

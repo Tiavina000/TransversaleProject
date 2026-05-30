@@ -23,8 +23,8 @@ class RessourceBoutique(TimeStampedModel):
     stock = models.PositiveIntegerField(default=0)
     
     class Meta:
-        verbose_name = "Ressources boutique "
-        verbose_name_plural = "Ressorces boutique"
+        verbose_name = "Ressource boutique"
+        verbose_name_plural = "Ressources boutique"
         ordering = ['-id']
         
         
@@ -68,5 +68,5 @@ class Commande(TimeStampedModel):
     
     class Meta :
         verbose_name = "Commande"
-        verbose_name_plural = "Commades"
+        verbose_name_plural = "Commandes"
         ordering = ['-date_creation']

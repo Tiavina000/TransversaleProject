@@ -60,12 +60,11 @@ export function useExamSecurity(active, onEscapeAttempt) {
       }
     };
 
-    // ── Détecter sortie du plein écran ────────────────────────────────────
+    // ── Détecter sortie du plein écran avec re‑entrée automatique ────────
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
+        requestFullscreen();
         onEscapeAttempt?.();
-        // Réactiver immédiatement le plein écran
-        setTimeout(requestFullscreen, 300);
       }
     };
 

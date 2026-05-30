@@ -48,13 +48,36 @@ class ActualiteSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    # Alias pour compatibilité frontend
+    title = serializers.ReadOnlyField(source='titre')
+    read = serializers.ReadOnlyField(source='est_lue')
+    created_at = serializers.DateTimeField(source='date_creation', read_only=True)
+    type = serializers.SerializerMethodField()
+
     class Meta:
         model = Notification
         fields = [
-            'id', 'utilisateur', 'titre', 'message', 'est_lue',
-            'date_lecture', 'url_lien', 'date_creation'
+            'id', 'utilisateur', 'titre', 'title', 'message',
+            'est_lue', 'read', 'date_lecture', 'url_lien',
+            'date_creation', 'created_at', 'type'
         ]
         read_only_fields = ['id', 'date_creation', 'date_modification']
+
+    def get_type(self, obj):
+        titre = obj.titre.lower()
+        if 'examen' in titre or 'évaluation' in titre or 'devoir' in titre:
+            return 'exam'
+        if 'direct' in titre or 'visio' in titre or 'live' in titre or 'cours en' in titre:
+            return 'live'
+        if 'annulation' in titre or 'report' in titre or 'annul' in titre:
+            return 'cancel'
+        if 'rappel' in titre or 'rappel' in titre or 'n\'oublie' in titre:
+            return 'reminder'
+        if 'note' in titre or 'résultat' in titre or 'correction' in titre:
+            return 'grade'
+        if 'nouveau' in titre or 'disponible' in titre or 'ajout' in titre:
+            return 'news'
+        return 'info'
 
 
 class PartenaireSerializer(serializers.ModelSerializer):

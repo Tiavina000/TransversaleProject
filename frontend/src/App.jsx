@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import './i18n';
 
 import { ThemeProvider }   from './context/ThemeContext';
@@ -14,9 +15,11 @@ import { LandingPage }     from './pages/LandingPage';
 import { CoursesPage }     from './pages/CoursesPage';
 import { CoursePlayer }    from './pages/CoursePlayer';
 import { ExamsPage }       from './pages/ExamsPage';
+import { ExamView }        from './components/Exam/ExamMode';
 import { BulletinPage }    from './pages/BulletinPage';
 import { LiveClass }       from './pages/LiveClass';
 import { ShopPage }        from './pages/ShopPage';
+import { CorrectionsPage }  from './pages/CorrectionsPage';
 
 const PageTransition = ({ children }) => (
   <motion.div
@@ -61,6 +64,7 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -82,9 +86,13 @@ function AppContent() {
     checkAuth();
   }, []);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    navigate('/dashboard', { replace: true });
+  const handleLogin = async (userData) => {
+    try {
+      const res = await authAPI.me();
+      setUser(res.data);
+    } catch {
+      setUser(userData);
+    }
   };
 
   const handleLogout = () => {
@@ -99,7 +107,7 @@ function AppContent() {
       <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-500 text-sm">Chargement de la plateforme...</p>
+          <p className="text-slate-500 text-sm">{t('app.loading_platform')}</p>
         </div>
       </div>
     );
@@ -114,23 +122,29 @@ function AppContent() {
         } />
         <Route path="/*" element={
           <ProtectedRoute user={user}>
-            <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
-              <Navbar user={user} onLogout={handleLogout} />
-              <main className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 py-8">
-                <Routes>
-                  <Route path="/dashboard"   element={<RoleDashboard user={user} />} />
-                  <Route path="/admin/news"  element={<PageTransition><AdminDashboard user={user} /></PageTransition>} />
-                  <Route path="/courses"     element={<PageTransition><CoursesPage user={user} /></PageTransition>} />
-                  <Route path="/courses/:id" element={<CoursePlayer />} />
-                  <Route path="/live/:id"    element={<LiveClass />} />
-                  <Route path="/exams"       element={<PageTransition><ExamsPage user={user} /></PageTransition>} />
-                  <Route path="/bulletin"    element={<PageTransition><BulletinPage user={user} /></PageTransition>} />
-                  <Route path="/corrections" element={<PageTransition><div className="text-center py-20 text-slate-400"><p className="text-lg font-bold">Page de correction</p><p className="text-sm mt-2">Utilisez l'API /api/corrections/</p></div></PageTransition>} />
-                  <Route path="/shop"        element={<PageTransition><ShopPage /></PageTransition>} />
-                  <Route path="*"            element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </main>
-            </div>
+            <Routes>
+              <Route path="/exams/:id" element={<ExamView />} />
+              <Route path="*" element={
+                <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+                  <Navbar user={user} onLogout={handleLogout} />
+                  <main className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 py-8">
+                    <Routes>
+                      <Route path="/dashboard"   element={<RoleDashboard user={user} />} />
+                      <Route path="/admin/news"  element={<PageTransition><AdminDashboard user={user} /></PageTransition>} />
+                      <Route path="/courses"     element={<PageTransition><CoursesPage user={user} /></PageTransition>} />
+                      <Route path="/courses/:id" element={<CoursePlayer />} />
+                      <Route path="/live"        element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/live/:id"    element={<LiveClass />} />
+                      <Route path="/exams"       element={<PageTransition><ExamsPage user={user} /></PageTransition>} />
+                      <Route path="/bulletin"    element={<PageTransition><BulletinPage user={user} /></PageTransition>} />
+                      <Route path="/corrections" element={<PageTransition><CorrectionsPage /></PageTransition>} />
+                      <Route path="/shop"        element={<PageTransition><ShopPage user={user} /></PageTransition>} />
+                      <Route path="*"            element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </main>
+                </div>
+              } />
+            </Routes>
           </ProtectedRoute>
         } />
       </Routes>

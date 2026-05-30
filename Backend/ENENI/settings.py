@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,6 +30,17 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+
+TRANSLATABLE_MODEL_MODULES = [
+    'core.models.pedagogie',
+    'core.models.etablissements',
+    'core.models.examens',
+    'core.models.boutique',
+    'core.models.communications',
+    'core.models.visioconference',
+    'core.models.utilisateurs',
+    'core.models.intelligence_artificielle',
+]
 
 INSTALLED_APPS = [
     'modeltranslation',
@@ -175,6 +187,10 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
+
+LIVEKIT_API_KEY = os.environ.get('LIVEKIT_API_KEY', '')
+LIVEKIT_API_SECRET = os.environ.get('LIVEKIT_API_SECRET', '')
+LIVEKIT_URL = os.environ.get('LIVEKIT_URL', 'ws://localhost:7880')
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),

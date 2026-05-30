@@ -4,10 +4,12 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from core.models import SessionVisio, ParticipationVisio, QuestionVisio
 from core.serializers.visioconference_serializers import (
     SessionVisioSerializer, ParticipationVisioSerializer, QuestionVisioSerializer
 )
+from core.services.livekit_service import generate_livekit_token, get_livekit_url
 
 
 class StandardPagination(PageNumberPagination):
@@ -50,7 +52,7 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
         if not etudiant:
             return Response({'detail': 'Accès étudiant requis'}, status=403)
         part = get_object_or_404(ParticipationVisio, etudiant=etudiant, session=session)
-        part.date_quitter = __import__('django').utils.timezone.now()
+        part.date_quitter = timezone.now()
         if part.date_joindre:
             delta = (part.date_quitter - part.date_joindre).total_seconds()
             part.duree_participation = int(delta)
@@ -66,7 +68,7 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
         part, _ = ParticipationVisio.objects.get_or_create(etudiant=etudiant, session=session)
         events = part.evenements_inactive
         if not any(e.get('type') == 'hand_raised' for e in events):
-            events.append({'type': 'hand_raised', 'time': __import__('django').utils.timezone.now().isoformat()})
+            events.append({'type': 'hand_raised', 'time': timezone.now().isoformat()})
             part.evenements_inactive = events
             part.save()
         return Response({'status': 'hand_raised'})
@@ -110,6 +112,21 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
         question.save()
         return Response(QuestionVisioSerializer(question).data)
 
+    @action(detail=True, methods=['get'])
+    def livekit_token(self, request, pk=None):
+        session = self.get_object()
+        user = request.user
+        is_publisher = user == session.enseignant.utilisateur if session.enseignant else False
+        identity = f"{user.id}-{user.username}"
+        room = f"session-{session.id}"
+        token = generate_livekit_token(identity, room, is_publisher)
+        return Response({
+            'token': token,
+            'url': get_livekit_url(),
+            'room': room,
+            'identity': identity,
+        })
+
     @action(detail=True, methods=['post'])
     def ban(self, request, pk=None):
         session = self.get_object()
@@ -128,7 +145,7 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
             events = part.evenements_inactive
             events.append({
                 'type': 'banned', 'duration_hours': duration,
-                'time': __import__('django').utils.timezone.now().isoformat()
+                'time': timezone.now().isoformat()
             })
             part.evenements_inactive = events
             part.save()

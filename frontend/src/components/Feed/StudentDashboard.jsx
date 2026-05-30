@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { statsAPI, newsAPI, examAPI } from '../../services/api';
@@ -7,7 +8,7 @@ import {
   Newspaper, AlertTriangle, Play,
   Link2, ChevronRight, RefreshCw,
   Heart, MessageCircle, Share2, MoreHorizontal, Bookmark,
-  Clock, CheckCircle, BarChart3, Calendar
+  Clock, CheckCircle, BarChart3, Calendar, Hourglass
 } from 'lucide-react';
 
 // ── Données statiques ────────────────────────────────────────────────────────
@@ -101,6 +102,7 @@ function useCircularFeed(source, batchSize = 6) {
 
 // ── Carte d'actualité style Instagram/Facebook ────────────────────────────────
 function NewsCard({ item }) {
+  const { t } = useTranslation();
   const cat = item.categorie || item.category || 'Annonces';
   const title = item.titre || item.title || '';
   const content = item.contenu || item.content || '';
@@ -136,11 +138,11 @@ function NewsCard({ item }) {
           </div>
           <div>
             <h5 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-              {item.auteur_nom || 'ENENI Info'}
+              {item.auteur_nom || t('studentDashboard.eneni_info')}
               {important && <Sparkles size={12} className="text-amber-400" />}
             </h5>
             <p className="text-[10px] text-[var(--text-muted)]">
-              {dateStr ? new Date(dateStr).toLocaleDateString('fr-FR') : 'Actualité'} • {cat}
+              {dateStr ? new Date(dateStr).toLocaleDateString('fr-FR') : t('studentDashboard.actuality')} • {cat}
             </p>
           </div>
         </div>
@@ -190,7 +192,7 @@ function NewsCard({ item }) {
 
         <div className="space-y-2">
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-            <span className="font-bold text-[var(--text-primary)] mr-2">{item.auteur_nom || 'ENENI'}</span>
+            <span className="font-bold text-[var(--text-primary)] mr-2">{item.auteur_nom || t('studentDashboard.eneni')}</span>
             {content}
           </p>
           
@@ -216,6 +218,7 @@ function NewsCard({ item }) {
 
 // ── Fil d'actualité avec son propre scroll ────────────────────────────────────
 function SocialFeedTab({ newsSource, activeCategory }) {
+  const { t } = useTranslation();
   const filtered = activeCategory === 'Tout'
     ? newsSource
     : newsSource.filter(n => (n.categorie || n.category) === activeCategory);
@@ -248,15 +251,15 @@ function SocialFeedTab({ newsSource, activeCategory }) {
       ) : (
         <div className="flex flex-col items-center justify-center py-24 text-[var(--text-muted)] glass rounded-[2.5rem]">
           <Newspaper size={64} className="mb-4 opacity-10" />
-          <p className="text-sm font-bold uppercase tracking-widest opacity-40">Chargement du flux...</p>
+          <p className="text-sm font-bold uppercase tracking-widest opacity-40">{t('studentDashboard.loading_feed')}</p>
         </div>
       )}
       
       <div ref={sentinelRef} className="py-16 flex flex-col items-center justify-center gap-4 text-[var(--text-muted)]">
         <RefreshCw size={24} className="animate-spin opacity-20" />
-        <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-20 text-center">
-          Séquence circulaire active<br/>Répétition du contenu
-        </span>
+        <span className="text-[10px] uppercase tracking-[0.4em] font-black opacity-20 text-center"
+          dangerouslySetInnerHTML={{ __html: t('studentDashboard.circular_feed_active') }}
+        />
       </div>
     </div>
   );
@@ -264,7 +267,21 @@ function SocialFeedTab({ newsSource, activeCategory }) {
 
 // ── Dashboard principal ──────────────────────────────────────────────────────
 export function StudentDashboard({ user }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const categoryLabel = (cat) => {
+    const map = {
+      'Tout': t('studentDashboard.category_all'),
+      'Examens': t('studentDashboard.category_exams'),
+      'Cours': t('studentDashboard.category_courses'),
+      'Événements': t('studentDashboard.category_events'),
+      'Annonces': t('studentDashboard.category_announcements'),
+      'Sport': t('studentDashboard.category_sport'),
+      'Culture': t('studentDashboard.category_culture'),
+    };
+    return map[cat] || cat;
+  };
   const [realStats, setRealStats] = useState(null);
   const [studentStats, setStudentStats] = useState(null);
   const [newsSource, setNewsSource] = useState([]);
@@ -278,7 +295,10 @@ export function StudentDashboard({ user }) {
   const refreshData = useCallback(() => {
     statsAPI.getGlobal().then(res => setRealStats(res.data)).catch(() => {});
     statsAPI.getStudent().then(res => setStudentStats(res.data)).catch(() => {});
-    examAPI.list().then(res => setExamens(res.data || [])).catch(() => {});
+    examAPI.list().then(res => {
+      const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+      setExamens(data);
+    }).catch(() => {});
     
     newsAPI.infinite()
       .then(res => {
@@ -302,14 +322,15 @@ export function StudentDashboard({ user }) {
   }, [refreshData]);
 
   const displayStats = [
-    { label: 'Utilisateurs',    value: realStats?.total_users    || '...', icon: Users,    color: 'text-blue-400' },
-    { label: 'Établissements',  value: realStats?.total_schools  || '...', icon: Globe,    color: 'text-purple-400' },
-    { label: 'Ressources',      value: realStats?.total_lessons  || '...', icon: ImageIcon,color: 'text-amber-400' },
+    { label: t('studentDashboard.users_stat'),    value: realStats?.total_users    || '...', icon: Users,    color: 'text-blue-400' },
+    { label: t('studentDashboard.schools_stat'),  value: realStats?.total_schools  || '...', icon: Globe,    color: 'text-purple-400' },
+    { label: t('studentDashboard.resources_stat'),      value: realStats?.total_lessons  || '...', icon: ImageIcon,color: 'text-amber-400' },
   ];
 
   const formatTime = (sec) => {
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
+    const totalSec = Math.max(0, Number(sec) || 0);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
     return h > 0 ? `${h}h ${m}m` : `${m}min`;
   };
 
@@ -326,26 +347,33 @@ export function StudentDashboard({ user }) {
             className="flex items-center gap-3 text-primary">
             <Sparkles size={20} className="animate-pulse" />
             <span className="text-xs font-black uppercase tracking-[0.3em]">
-              {user?.prenom ? `Bienvenue, ${user.prenom}` : 'Bienvenue'}
+              {user?.prenom ? t('studentDashboard.welcome_name', { name: user.prenom }) : t('studentDashboard.welcome')}
             </span>
           </motion.div>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="text-4xl sm:text-6xl font-black leading-none">
-            Espace <span className="text-gradient">ENENI</span>
+            {t('studentDashboard.space_eneni')}
           </motion.h1>
           <div className="flex flex-wrap gap-4 pt-2">
             <div className="glass-sm px-5 py-2 rounded-2xl flex items-center gap-3">
               <Clock size={16} className="text-emerald-400" />
               <div className="text-left">
-                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">Temps d'étude</p>
+                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">{t('studentDashboard.study_time')}</p>
                 <p className="text-sm font-black text-[var(--text-primary)]">{formatTime(studentStats?.total_study_time || 0)}</p>
               </div>
             </div>
             <div className="glass-sm px-5 py-2 rounded-2xl flex items-center gap-3">
               <CheckCircle size={16} className="text-blue-400" />
               <div className="text-left">
-                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">Cours Validés</p>
+                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">{t('studentDashboard.validated_courses')}</p>
                 <p className="text-sm font-black text-[var(--text-primary)]">{studentStats?.total_validated_chapters || 0} chapitres</p>
+              </div>
+            </div>
+            <div className="glass-sm px-5 py-2 rounded-2xl flex items-center gap-3">
+              <Hourglass size={16} className="text-amber-400" />
+              <div className="text-left">
+                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">{t('studentDashboard.pending_courses')}</p>
+                <p className="text-sm font-black text-[var(--text-primary)]">{Math.max(0, studentStats?.pending_chapters ?? 0)} chapitres</p>
               </div>
             </div>
           </div>
@@ -368,7 +396,7 @@ export function StudentDashboard({ user }) {
                 </div>
                 <div>
                   <h4 className="text-2xl font-bold text-[var(--text-primary)]">{user?.prenom || user?.username}</h4>
-                  <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mt-1">{user?.niveau || 'Niveau non défini'}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em] mt-1">{user?.niveau || t('studentDashboard.level_not_defined')}</p>
                 </div>
               </div>
               <div className="pt-6 border-t border-white/5 space-y-4">
@@ -386,7 +414,7 @@ export function StudentDashboard({ user }) {
             {/* Temps par Matière */}
             <div className="glass p-8 rounded-[2.5rem] space-y-6">
               <h3 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.3em] flex items-center gap-3">
-                <BarChart3 size={16} className="text-primary" /> Temps par Matière
+                <BarChart3 size={16} className="text-primary" /> {t('studentDashboard.time_by_subject')}
               </h3>
               <div className="space-y-4">
                 {studentStats?.matieres && studentStats.matieres.length > 0 ? (
@@ -403,12 +431,12 @@ export function StudentDashboard({ user }) {
                         />
                       </div>
                       <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase tracking-widest text-right">
-                        {m.chapitres_valides} / {m.total_chapitres} Validés
+                        {m.chapitres_valides} / {m.total_chapitres} {t('studentDashboard.validated')}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-[10px] text-[var(--text-muted)] italic">Aucune donnée d'étude enregistrée.</p>
+                  <p className="text-[10px] text-[var(--text-muted)] italic">{t('studentDashboard.no_study_data')}</p>
                 )}
               </div>
             </div>
@@ -416,7 +444,7 @@ export function StudentDashboard({ user }) {
             <button onClick={() => navigate('/courses')}
               className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-primary)] text-xs font-black uppercase tracking-widest hover:bg-primary hover:border-primary transition-all flex items-center justify-center gap-3 group"
             >
-              Reprendre les cours <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              {t('studentDashboard.resume_courses')} <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
         </aside>
@@ -428,12 +456,12 @@ export function StudentDashboard({ user }) {
                <button onClick={() => setActiveTab('feed')}
                  className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'feed' ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                >
-                 <Newspaper size={16} /> Flux Social
+                 <Newspaper size={16} /> {t('studentDashboard.social_feed')}
                </button>
                <button onClick={() => setActiveTab('gallery')}
                  className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'gallery' ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                >
-                 <ImageIcon size={16} /> Galerie
+                 <ImageIcon size={16} /> {t('studentDashboard.gallery')}
                </button>
              </div>
 
@@ -447,20 +475,20 @@ export function StudentDashboard({ user }) {
                            ? 'bg-primary border-primary text-white shadow-lg'
                            : 'bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-white/20'
                        }`}>
-                       {cat}
-                     </button>
-                   ))}
-                 </div>
+                        {categoryLabel(cat)}
+                      </button>
+                    ))}
+                  </div>
                  {loadingNews ? (
                    <div className="flex flex-col items-center justify-center py-28 gap-6 glass rounded-[3rem]">
                      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                     <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.4em] animate-pulse">Chargement...</p>
+                     <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.4em] animate-pulse">{t('common.loading')}</p>
                    </div>
                  ) : newsError ? (
                    <div className="flex flex-col items-center justify-center py-24 glass rounded-[2.5rem] border border-red-500/10">
                      <AlertTriangle size={48} className="mb-4 text-red-500/50" />
-                     <p className="text-xs font-bold uppercase tracking-widest opacity-40 text-[var(--text-muted)]">Erreur de connexion</p>
-                     <button onClick={refreshData} className="mt-4 px-4 py-2 bg-white/5 rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+                     <p className="text-xs font-bold uppercase tracking-widest opacity-40 text-[var(--text-muted)]">{t('studentDashboard.connection_error')}</p>
+                     <button onClick={refreshData} className="mt-4 px-4 py-2 bg-white/5 rounded-xl text-[10px] font-black uppercase">{t('studentDashboard.retry')}</button>
                    </div>
                  ) : (
                    <SocialFeedTab newsSource={newsSource} activeCategory={activeCategory} />
@@ -471,10 +499,10 @@ export function StudentDashboard({ user }) {
                  {GALLERY.map((item, i) => (
                    <div key={i} className="glass rounded-[2rem] overflow-hidden group cursor-pointer border border-white/5 hover:border-primary/30 transition-all">
                       <div className="aspect-[16/10] overflow-hidden">
-                        <img src={item.src} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                      </div>
-                      <div className="p-5">
-                        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest truncate">{item.title}</p>
+<img src={item.src} alt={t('studentDashboard.gallery_img' + (i + 1))} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                       </div>
+                       <div className="p-5">
+                         <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest truncate">{t('studentDashboard.gallery_img' + (i + 1))}</p>
                       </div>
                    </div>
                  ))}
@@ -489,19 +517,19 @@ export function StudentDashboard({ user }) {
              
               <div className="space-y-4">
                  <h3 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.3em] flex items-center gap-3">
-                    <AlertTriangle size={16} className="text-amber-400" /> Échéances
+                    <AlertTriangle size={16} className="text-amber-400" /> {t('studentDashboard.deadlines')}
                  </h3>
                  {examens.filter(e => new Date(e.date_debut) > new Date()).slice(0, 3).map((e, i) => (
                    <Countdown key={i} label={e.titre} targetDate={e.date_debut} />
                  ))}
                  {examens.filter(e => new Date(e.date_debut) > new Date()).length === 0 && (
-                   <p className="text-[10px] text-[var(--text-muted)] italic">Aucun examen à venir</p>
+                   <p className="text-[10px] text-[var(--text-muted)] italic">{t('studentDashboard.no_upcoming_exams')}</p>
                  )}
               </div>
 
              <div className="pt-8 border-t border-white/5 space-y-6">
                <h3 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.3em] flex items-center gap-3">
-                  <Users size={16} className="text-primary" /> Partenaires
+                  <Users size={16} className="text-primary" /> {t('studentDashboard.partners')}
                </h3>
                <div className="grid grid-cols-2 gap-4">
                  {COLLABORATORS.slice(0, 4).map(c => (
@@ -511,9 +539,9 @@ export function StudentDashboard({ user }) {
                    </a>
                  ))}
                </div>
-               <button className="w-full py-3.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
-                  Voir tout
-               </button>
+                <button className="w-full py-3.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
+                   {t('studentDashboard.view_all')}
+                </button>
              </div>
           </div>
         </aside>
@@ -521,7 +549,7 @@ export function StudentDashboard({ user }) {
       </div>
 
       <footer className="col-span-full text-center py-16 opacity-20">
-        <p className="text-[10px] font-black uppercase tracking-[0.8em]">© 2026 ENENI — Ministère de l'Éducation Nationale</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.8em]">{t('studentDashboard.footer')}</p>
       </footer>
     </div>
   );

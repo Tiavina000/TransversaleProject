@@ -1,0 +1,28 @@
+@startuml
+title DTP - Session d'examen 60 min
+robust "Etudiant" as E
+concise "Minuteur" as M
+robust "CopieExamen" as C
+robust "PleinEcran" as P
+robust "LogSurveillance" as L
+
+@0
+E is Connecte
+P is Active
+C is EnCours
+M is 60:00
+
+@17
+P is PerduFocus
+L is LogFocus
+
+@17.5
+P is Active
+
+@65
+M is 00:00
+C is Soumise
+
+@67
+C is Corrigee
+@enduml

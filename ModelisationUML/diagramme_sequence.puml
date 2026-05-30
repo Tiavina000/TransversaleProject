@@ -1,0 +1,58 @@
+@startuml
+title DSE - Passage d'examen
+
+actor Etudiant
+participant "Frontend React" as Front
+participant "API Django" as API
+database "SQLite DB" as DB
+participant Minuteur
+
+Etudiant -> Front : connexion()
+Front -> API : POST /auth/login
+API -> DB : verifier_user()
+DB --> API : OK
+API --> Front : JWT
+
+Etudiant -> Front : choisir_examen()
+Front -> API : POST /examens/start
+API -> DB : creer_copie()
+DB --> API : copie
+API --> Front : session
+
+create Minuteur
+Front ->> Minuteur : start()
+
+par Minuteur / Questions / Heartbeat
+loop chaque seconde
+Minuteur ->> Front : tic()
+end
+
+loop questions
+Etudiant -> Front : saisir_reponse()
+Front -> API : save_reponse()
+API -> DB : enregistrer()
+end
+
+loop toutes les 30s
+Front -> API : heartbeat()
+end
+end
+
+opt perte focus
+Front -> API : log_surveillance()
+API -> DB : enregistrer_log()
+end
+
+alt soumission volontaire
+Etudiant -> Front : soumettre()
+Front -> API : submit()
+else temps expire
+Minuteur ->> Front : temps=0
+Front -> API : auto_submit()
+end
+
+API -> DB : corriger()
+API --> Front : note/statut
+
+destroy Minuteur
+@enduml

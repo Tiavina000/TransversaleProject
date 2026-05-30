@@ -4,9 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, BookOpen, FileText, ShoppingBag,
-  LogOut, Menu, X, User, Bell, Award
+  LogOut, Menu, X, User, Bell, Award, School, CheckSquare
 } from 'lucide-react';
-import { LanguageSwitcher } from '../UI/LanguageSwitcher';
 import { ThemeSwitcher } from '../UI/ThemeSwitcher';
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -14,6 +13,7 @@ const NAV_ITEMS = [
   { key: 'dashboard', path: '/dashboard', icon: LayoutDashboard },
   { key: 'courses',   path: '/courses',   icon: BookOpen        },
   { key: 'exams',     path: '/exams',     icon: FileText        },
+  { key: 'corrections', path: '/corrections', icon: CheckSquare },
   { key: 'bulletin',  path: '/bulletin',  icon: Award           },
   { key: 'shop',      path: '/shop',      icon: ShoppingBag     },
 ];
@@ -36,6 +36,9 @@ export function Navbar({ user, onLogout }) {
   const filteredNavItems = NAV_ITEMS.filter(({ key }) => {
     if (key === 'bulletin') {
       return user?.type_utilisateur === 'ETUDIANT';
+    }
+    if (key === 'corrections') {
+      return user?.type_utilisateur === 'ENSEIGNANT';
     }
     return true;
   });
@@ -95,7 +98,6 @@ export function Navbar({ user, onLogout }) {
           {/* Droite */}
           <div className="flex items-center gap-2">
             <ThemeSwitcher />
-            <LanguageSwitcher />
 
             {/* ── Cloche notifications ─────────────────────────── */}
             <div className="relative">
@@ -123,16 +125,16 @@ export function Navbar({ user, onLogout }) {
                     className="absolute right-0 top-full mt-2 w-80 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
                   >
                     <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                      <h3 className="text-sm font-bold text-white">Notifications</h3>
+                      <h3 className="text-sm font-bold text-white">{t('nav.notifications')}</h3>
                       {unreadCount > 0 && (
                         <button onClick={markAllRead} className="text-xs text-primary hover:underline">
-                          Tout marquer lu
+                          {t('nav.markAllRead')}
                         </button>
                       )}
                     </div>
                     <div className="max-h-80 overflow-y-auto custom-scrollbar">
                       {notifications.length === 0
-                        ? <p className="text-center text-slate-600 text-sm py-8">Aucune notification.</p>
+                        ? <p className="text-center text-slate-600 text-sm py-8">{t('nav.noNotifications')}</p>
                         : notifications.map(n => {
                             const style = getStyle(n.type);
                             return (
@@ -172,7 +174,14 @@ export function Navbar({ user, onLogout }) {
               >
                 {user?.prenom?.[0]?.toUpperCase() || <User size={14} />}
               </div>
-              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{user?.prenom || user?.username || t('nav.student')}</span>
+              <div className="flex flex-col">
+                <span className="text-sm leading-tight" style={{ color: 'var(--text-primary)' }}>{user?.prenom || user?.username || t('nav.student')}</span>
+                {(user.etablissement || user.classe) && (
+                  <span className="text-[10px] leading-tight" style={{ color: 'var(--text-muted)' }}>
+                    {user.classe ? `${user.classe} • ` : ''}{user.etablissement || ''}
+                  </span>
+                )}
+              </div>
             </motion.div>
 
             {/* Déconnexion */}
@@ -208,6 +217,12 @@ export function Navbar({ user, onLogout }) {
             exit={{ opacity: 0 }}
           >
             <div className="p-4 space-y-2">
+              {(user.etablissement || user.classe) && (
+                <div className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl text-xs" style={{ background: 'var(--overlay-light)', color: 'var(--text-secondary)' }}>
+                  <School size={14} />
+                  <span>{user.classe ? `${user.classe} • ` : ''}{user.etablissement || t('nav.admin')}</span>
+                </div>
+              )}
               {filteredNavItems.map(({ key, path, icon: Icon }, i) => (
                 <motion.div
                   key={key}

@@ -1,0 +1,7 @@
+dans le dash board des enseignant les stats sont faux 
+certains prof sont pas assigne a des classes ou on arrive pas a get son classe et faite que son niveau soit toujour afficher 
+dans mes eleves  le conteur des eleve est afficher {count} eleve 
+faite que le profe puisse demarrer une sceance de visio confference dans la partie cour 
+faite qu'il puisse creee modifier et supprimer des examen dans le compartiment examen et que seule ses eleve aussi peut les voir 
+et il peut voir les notes de ses eleves dans sa matiere et voir les moyenne generale des eleves en une classe en sa matiere 
+faite qu'il y a i aucun erreur de creation de compte 

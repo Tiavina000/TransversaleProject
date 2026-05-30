@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { newsAPI } from '../../services/api';
 import {
@@ -10,10 +11,10 @@ import {
 
 const CATEGORIES = ['Annonces', 'Examens', 'Cours', 'Événements', 'Sport', 'Culture'];
 const AUDIENCES  = [
-  { value: 'TOUS',          label: 'Tous' },
-  { value: 'ETUDIANTS',     label: 'Élèves seulement' },
-  { value: 'ENSEIGNANTS',   label: 'Enseignants seulement' },
-  { value: 'ETABLISSEMENT', label: 'Mon établissement' },
+  { value: 'TOUS',          labelKey: 'audience_all' },
+  { value: 'ETUDIANTS',     labelKey: 'audience_students' },
+  { value: 'ENSEIGNANTS',   labelKey: 'audience_teachers' },
+  { value: 'ETABLISSEMENT', labelKey: 'audience_my_school' },
 ];
 
 const EMPTY_FORM = {
@@ -25,6 +26,7 @@ const EMPTY_FORM = {
 
 // ── Prévisualisation Instagram-Style ─────────────────────────────────────────
 function PreviewCard({ form, imagePreview, user }) {
+  const { t } = useTranslation();
   const getYoutubeId = (url) => {
     if (!url) return null;
     const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
@@ -44,11 +46,11 @@ function PreviewCard({ form, imagePreview, user }) {
           </div>
           <div>
             <h5 className="text-[10px] font-bold text-white flex items-center gap-1">
-              {user?.prenom || 'Administrateur'}
+              {user?.prenom || t('adminDashboard.admin_name')}
               {form.est_important && <Sparkles size={10} className="text-amber-400" />}
             </h5>
             <p className="text-[8px] text-slate-500 uppercase tracking-widest">
-              À l'instant • {form.categorie}
+              {t('adminDashboard.just_now')} • {form.categorie}
             </p>
           </div>
         </div>
@@ -62,11 +64,11 @@ function PreviewCard({ form, imagePreview, user }) {
         ) : ytId ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-primary">
             <Video size={32} />
-            <span className="text-[10px] font-bold">Vidéo YouTube</span>
+            <span className="text-[10px] font-bold">{t('adminDashboard.video_label')}</span>
           </div>
         ) : (
           <div className="p-6 text-center">
-             <h4 className="text-sm font-bold text-white leading-tight">{form.titre || 'Titre de l\'actualité...'}</h4>
+             <h4 className="text-sm font-bold text-white leading-tight">{form.titre || t('adminDashboard.news_title_placeholder')}</h4>
           </div>
         )}
       </div>
@@ -84,11 +86,11 @@ function PreviewCard({ form, imagePreview, user }) {
         <div className="space-y-1">
            <p className="text-[10px] text-white">
              <span className="font-bold mr-1">{user?.prenom || 'Admin'}</span>
-             {form.contenu || 'Votre texte apparaîtra ici...'}
+             {form.contenu || t('adminDashboard.text_preview')}
            </p>
            {form.lien_externe && (
              <p className="text-[9px] text-primary flex items-center gap-1 font-medium">
-               <Link2 size={10} /> {form.lien_label || 'En savoir plus'}
+               <Link2 size={10} /> {form.lien_label || t('adminDashboard.read_more')}
              </p>
            )}
         </div>
@@ -99,6 +101,7 @@ function PreviewCard({ form, imagePreview, user }) {
 
 // ── Formulaire de création/édition ───────────────────────────────────────────
 function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState(initial);
   const [imagePreview, setImagePreview] = useState(initial.image_url || null);
   const fileRef = useRef(null);
@@ -139,7 +142,7 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
               <Plus size={20} />
             </div>
             <h3 className="text-xl font-bold text-white">
-              {form.id ? 'Modifier l\'actualité' : 'Créer une actualité'}
+              {form.id ? t('adminDashboard.edit_news') : t('adminDashboard.create_news')}
             </h3>
           </div>
           <button onClick={onCancel} className="p-2.5 rounded-xl glass-sm hover:border-white/20 transition-all">
@@ -150,35 +153,35 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Titre */}
           <div className="space-y-1.5">
-            <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Titre de la publication</label>
+            <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.publication_title')}</label>
             <input type="text" required value={form.titre}
               onChange={e => set('titre', e.target.value)}
-              className={inputClass} placeholder="Ex: Résultats des examens 2026" />
+              className={inputClass} placeholder={t('adminDashboard.title_placeholder')} />
           </div>
 
           {/* Contenu */}
           <div className="space-y-1.5">
-            <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Message / Légende</label>
+            <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.message_legend')}</label>
             <textarea required value={form.contenu}
               onChange={e => set('contenu', e.target.value)}
               rows={4} className={`${inputClass} resize-none`}
-              placeholder="Décrivez votre actualité ici..." />
+              placeholder={t('adminDashboard.message_placeholder')} />
           </div>
 
           {/* Catégorie & Audience */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Catégorie</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.category_label')}</label>
               <select value={form.categorie} onChange={e => set('categorie', e.target.value)}
                 className={`${inputClass} appearance-none cursor-pointer`}>
-                {CATEGORIES.map(c => <option key={c} value={c} className="bg-[#0A0A14]">{c}</option>)}
+                {CATEGORIES.map(c => <option key={c} value={c} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{c}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Audience</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.audience_label')}</label>
               <select value={form.public_ciblie} onChange={e => set('public_ciblie', e.target.value)}
                 className={`${inputClass} appearance-none cursor-pointer`}>
-                {AUDIENCES.map(a => <option key={a.value} value={a.value} className="bg-[#0A0A14]">{a.label}</option>)}
+                {AUDIENCES.map(a => <option key={a.value} value={a.value} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{t('adminDashboard.' + a.labelKey)}</option>)}
               </select>
             </div>
           </div>
@@ -186,7 +189,7 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
           {/* Media Section */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Image de couverture</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.cover_image_label')}</label>
               <div
                 onClick={() => fileRef.current?.click()}
                 className="aspect-video border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all group overflow-hidden"
@@ -196,20 +199,20 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
                 ) : (
                   <>
                     <Upload size={20} className="text-slate-600 group-hover:text-primary transition-colors" />
-                    <span className="text-[10px] text-slate-600 font-bold group-hover:text-slate-400">Uploader</span>
+                    <span className="text-[10px] text-slate-600 font-bold group-hover:text-slate-400">{t('adminDashboard.upload_label')}</span>
                   </>
                 )}
               </div>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Vidéo (YouTube)</label>
+              <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.youtube_label')}</label>
               <div className="aspect-video glass-sm rounded-2xl flex flex-col items-center justify-center p-4 gap-2">
                  <Video size={20} className="text-slate-600" />
                  <input type="url" value={form.video_url}
                    onChange={e => set('video_url', e.target.value)}
                    className="w-full bg-transparent text-[10px] text-center focus:outline-none placeholder:text-slate-700" 
-                   placeholder="Coller l'URL YouTube ici..." />
+                   placeholder={t('adminDashboard.youtube_placeholder')} />
               </div>
             </div>
           </div>
@@ -217,7 +220,7 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
           {/* Lien externe */}
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-1.5">
-                <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Lien externe</label>
+                <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.external_link_label')}</label>
                 <div className="relative">
                   <Link2 size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
                   <input type="url" value={form.lien_externe}
@@ -226,10 +229,10 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
                 </div>
              </div>
              <div className="space-y-1.5">
-                <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">Label du lien</label>
+                <label className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold ml-1">{t('adminDashboard.link_label')}</label>
                 <input type="text" value={form.lien_label}
                   onChange={e => set('lien_label', e.target.value)}
-                  className={`${inputClass} text-[11px]`} placeholder="Ex: Télécharger PDF" />
+                  className={`${inputClass} text-[11px]`} placeholder={t('adminDashboard.link_placeholder')} />
              </div>
           </div>
 
@@ -240,7 +243,7 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
               onClick={() => set('est_important', !form.est_important)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all text-[10px] font-bold ${form.est_important ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' : 'bg-white/5 border-white/10 text-slate-500'}`}
             >
-              <Sparkles size={14} /> IMPORTANT
+              <Sparkles size={14} /> {t('adminDashboard.important')}
             </button>
             <button 
               type="button"
@@ -248,14 +251,14 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
               className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all text-[10px] font-bold ${form.est_publie ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-white/5 border-white/10 text-slate-500'}`}
             >
               {form.est_publie ? <Eye size={14} /> : <EyeOff size={14} />} 
-              {form.est_publie ? 'PUBLIÉ' : 'BROUILLON'}
+              {form.est_publie ? t('adminDashboard.published_status') : t('adminDashboard.draft_status')}
             </button>
           </div>
 
           <motion.button type="submit" disabled={loading}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary text-white font-black text-sm shadow-lg shadow-primary/30 flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
             whileTap={{ scale: 0.98 }}>
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <><Send size={18} /> {form.id ? 'METTRE À JOUR' : 'PUBLIER MAINTENANT'}</>}
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <><Send size={18} /> {form.id ? t('adminDashboard.update') : t('adminDashboard.publish_now')}</>}
           </motion.button>
         </form>
       </motion.div>
@@ -263,7 +266,7 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
       {/* Preview Column */}
       <div className="hidden lg:block sticky top-24">
         <div className="text-center mb-6">
-           <h4 className="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-black">Aperçu du flux social</h4>
+           <h4 className="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-black">{t('adminDashboard.social_preview')}</h4>
         </div>
         <PreviewCard form={form} imagePreview={imagePreview} user={user} />
       </div>
@@ -273,6 +276,7 @@ function NewsForm({ initial = EMPTY_FORM, onSave, onCancel, loading, user }) {
 
 // ── Dashboard Admin principal ─────────────────────────────────────────────────
 export function AdminDashboard({ user }) {
+  const { t } = useTranslation();
   const [news, setNews] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -297,10 +301,10 @@ export function AdminDashboard({ user }) {
     try {
       if (id) {
         await newsAPI.update(id, fd);
-        notify('ok', 'Actualité mise à jour !');
+        notify('ok', t('adminDashboard.news_updated'));
       } else {
         await newsAPI.create(fd);
-        notify('ok', 'Actualité publiée !');
+        notify('ok', t('adminDashboard.news_published'));
       }
       setShowForm(false);
       setEditItem(null);
@@ -310,7 +314,7 @@ export function AdminDashboard({ user }) {
         .catch(() => setNews([]))
         .finally(() => setLoading(false));
     } catch {
-      notify('err', 'Une erreur est survenue.');
+      notify('err', t('adminDashboard.error_occurred'));
     } finally {
       setSaving(false);
     }
@@ -320,13 +324,13 @@ export function AdminDashboard({ user }) {
     if (!window.confirm('Supprimer cette actualité ?')) return;
     try {
       await newsAPI.remove(id);
-      notify('ok', 'Actualité supprimée.');
+      notify('ok', t('adminDashboard.news_deleted'));
       setLoading(true);
       newsAPI.list({ page_size: 50 })
         .then(res => setNews(res.data?.results || res.data || []))
         .catch(() => setNews([]))
         .finally(() => setLoading(false));
-    } catch { notify('err', 'Erreur lors de la suppression.'); }
+    } catch { notify('err', t('adminDashboard.delete_error')); }
   };
 
   return (
@@ -337,9 +341,9 @@ export function AdminDashboard({ user }) {
         <div>
            <div className="flex items-center gap-2 text-primary mb-1">
              <Newspaper size={16} />
-             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Communication Portal</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('adminDashboard.communication_portal')}</span>
            </div>
-           <h1 className="text-4xl font-black text-white">Gestion <span className="text-gradient">Actualités</span></h1>
+           <h1 className="text-4xl font-black text-white">{t('adminDashboard.manage_news')}</h1>
         </div>
         {!showForm && (
           <motion.button
@@ -347,7 +351,7 @@ export function AdminDashboard({ user }) {
             className="px-6 py-3.5 rounded-2xl bg-white text-[#0A0A14] font-black text-xs flex items-center gap-2 hover:bg-primary hover:text-white transition-all shadow-xl shadow-white/5"
             whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}
           >
-            <Plus size={16} /> NOUVELLE PUBLICATION
+            <Plus size={16} /> {t('adminDashboard.new_post')}
           </motion.button>
         )}
       </div>
@@ -380,15 +384,15 @@ export function AdminDashboard({ user }) {
              {loading ? (
                <div className="col-span-full py-20 flex flex-col items-center gap-4">
                   <Loader2 size={40} className="animate-spin text-primary opacity-20" />
-                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em]">Chargement des données...</p>
+                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em]">{t('adminDashboard.loading_data')}</p>
                </div>
              ) : news.length === 0 ? (
                <div className="col-span-full py-32 flex flex-col items-center gap-6 glass rounded-[3rem] border-dashed border-2 border-white/5">
                   <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-slate-700">
                     <Newspaper size={40} />
                   </div>
-                  <p className="text-slate-500 font-bold">Aucune publication pour le moment.</p>
-                  <button onClick={() => setShowForm(true)} className="btn-ghost px-6 py-3 rounded-2xl text-xs font-black">Lancer une campagne</button>
+                  <p className="text-slate-500 font-bold">{t('adminDashboard.no_posts')}</p>
+                  <button onClick={() => setShowForm(true)} className="btn-ghost px-6 py-3 rounded-2xl text-xs font-black">{t('adminDashboard.launch_campaign')}</button>
                </div>
              ) : (
                news.map((item, idx) => (

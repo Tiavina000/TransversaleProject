@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, Award, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function ProgressChart() {
+  const { t } = useTranslation();
 
   const stats = [
-    { label: "Cours complétés", value: "12", color: "text-emerald-400", bg: "bg-emerald-500/20" },
-    { label: "Heures d'étude", value: "34h", color: "text-blue-400", bg: "bg-blue-500/20" },
-    { label: "Score moyen", value: "16/20", color: "text-purple-400", bg: "bg-purple-500/20" }
+    { label: t('progress.courses_completed'), value: "12", color: "text-emerald-400", bg: "bg-emerald-500/20" },
+    { label: t('progress.study_hours'), value: "34h", color: "text-blue-400", bg: "bg-blue-500/20" },
+    { label: t('progress.average_score'), value: "16/20", color: "text-purple-400", bg: "bg-purple-500/20" }
   ];
 
   return (
@@ -14,10 +16,10 @@ export function ProgressChart() {
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-lg flex items-center gap-2">
           <TrendingUp size={20} className="text-primary" /> 
-          Ma Progression
+          {t('progress.my_progress')}
         </h3>
         <span className="text-xs text-slate-400 flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
-          <Calendar size={12} /> Ce mois
+          <Calendar size={12} /> {t('progress.this_month')}
         </span>
       </div>
 
@@ -32,16 +34,16 @@ export function ProgressChart() {
 
       <div className="mt-4 pt-4 border-t border-white/10">
         <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-          <Award size={16} className="text-amber-400" /> Derniers Badges
+          <Award size={16} className="text-amber-400" /> {t('progress.latest_badges')}
         </h4>
         <div className="flex gap-3">
-          <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-lg" title="Explorateur de Savoir">
+          <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-lg" title={t('progress.badge_explorer')}>
             🧭
           </motion.div>
-          <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-lg" title="Parfait en Maths">
+          <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-lg" title={t('progress.badge_math')}>
             🧮
           </motion.div>
-          <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/50 flex items-center justify-center text-lg" title="Régularité">
+          <motion.div whileHover={{ scale: 1.1 }} className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/50 flex items-center justify-center text-lg" title={t('progress.badge_regularity')}>
             🔥
           </motion.div>
         </div>

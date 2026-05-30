@@ -1,0 +1,24 @@
+@startuml
+title DET - Cycle de vie CopieExamen
+
+[*] --> EnAttente
+
+EnAttente --> EnCours : start_exam / creer_copie()
+
+EnCours --> Suspendue : perte_focus [>30s] / log_triche()
+Suspendue --> EnCours : focus_retabli
+
+EnCours --> Soumise : soumission_manuel
+EnCours --> SoumiseAnticipee : expiration_temps
+
+Soumise --> EnCorrectionAuto : [QCM ou VF]
+Soumise --> EnAttenteCorrection : [Texte ou Redaction]
+SoumiseAnticipee --> EnCorrectionAuto : [QCM ou VF]
+SoumiseAnticipee --> EnAttenteCorrection : [Texte ou Redaction]
+
+EnCorrectionAuto --> Notee : auto_correction()
+EnAttenteCorrection --> EnCorrectionManuelle : prise_en_charge_enseignant
+EnCorrectionManuelle --> Notee : note_finale()
+
+Notee --> [*]
+@enduml

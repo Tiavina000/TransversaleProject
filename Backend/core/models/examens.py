@@ -11,6 +11,10 @@ class Examen (TimeStampedModel):
         ('REDACTION', 'Rédaction'),
         ('MIXTE', 'Mixte'),
     ]
+    SESSION_CHOICES = [
+        ('CC', 'Contrôle Continue'),
+        ('EF', 'Examen Final'),
+    ]
     titre = models.CharField(max_length=200)
     enseignant = models.ForeignKey(Enseignant, on_delete=models.CASCADE , related_name='examens')
     matiere = models.ForeignKey(Matiere , on_delete=models.CASCADE , related_name='examens')
@@ -22,6 +26,7 @@ class Examen (TimeStampedModel):
     coefficient = models.FloatField(default=1.0 , validators=[MinValueValidator(0)])
     type_examen = models.CharField(max_length=20, choices=TYPE_EXAMEN_CHOICES, default='MIXTE')
     lecture_automatique = models.BooleanField(default=False, help_text="Lecture automatique des sujets")
+    session = models.CharField(max_length=2, choices=SESSION_CHOICES, default='EF')
     
     class Meta : 
         app_label = 'core'
@@ -48,7 +53,7 @@ class QuestionExamen(models.Model):
     points = models.FloatField(validators=[MinValueValidator(0)])
     ordre = models.PositiveIntegerField()
     options = models.JSONField(default=list , blank=True)
-    reponse_correcte = models.TextField()
+    reponse_correcte = models.TextField(blank=True, default='')
     mot_min = models.PositiveIntegerField(null=True, blank=True, help_text="Nombre minimum de mots pour les questions de rédaction")
     mot_max = models.PositiveIntegerField(null=True, blank=True, help_text="Nombre maximum de mots pour les questions de rédaction")
     criteres_correction = models.JSONField(default=dict, blank=True, help_text="Critères de correction (orthographe, nb mots, idées)")
@@ -69,6 +74,8 @@ class CopieExamen(models.Model):
     date_soumission = models.DateTimeField(null=True , blank=True)
     note_obtenue = models.FloatField(null=True , blank=True , validators=[MinValueValidator(0) , MaxValueValidator(20)])
     est_termine = models.BooleanField(default=False)
+    note_validee = models.BooleanField(default=False)
+    date_validation = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         app_label = 'core'

@@ -2,37 +2,62 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Search, Play, FileText, Filter, Clock, Video, BarChart2 } from 'lucide-react';
-import { courseAPI } from '../services/api';
+import { BookOpen, Search, Play, FileText, Filter, Clock, Video, BarChart2, GraduationCap } from 'lucide-react';
+import { courseAPI, statsAPI } from '../services/api';
+import { TeacherCourseManager } from '../components/Feed/TeacherCourseManager';
 
-const SUBJECTS = [
-  "Mathématiques", "Français", "Malagasy", "Physique-Chimie",
-  "SVT", "Histoire-Géo", "Anglais", "Philosophie", "Informatique"
-];
+
 
 
 
 export function CoursesPage({ user }) {
   const { t }    = useTranslation();
   const navigate = useNavigate();
+  const SUBJECTS = [
+    t('subjects.math'), t('subjects.french'), t('subjects.malagasy'), t('subjects.physics_chemistry'),
+    t('subjects.svt'), t('subjects.history_geo'), t('subjects.english'), t('subjects.philosophy'), t('subjects.computer_science')
+  ];
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [studentStats] = useState(null);
+  const [studentStats, setStudentStats] = useState(null);
   const [error, setError] = useState(null);
   const selectedLevel = user?.niveau || 'Terminale';
   const [selectedSubject, setSelectedSubject] = useState('All');
   const [search, setSearch]                   = useState('');
 
+  // ── Teacher view: show course manager ──────────────────────────────
+  if (user?.type_utilisateur === 'ENSEIGNANT' || user?.role === 'ENSEIGNANT') {
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {t('teacher.manageCourses', 'Gérer mes cours')}
+          </h1>
+          {user.etablissement && (
+            <p className="text-sm mt-1 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+              <GraduationCap className="w-4 h-4" /> {user.etablissement}{user.specialite ? ` • ${user.specialite}` : ''}
+            </p>
+          )}
+        </div>
+        <TeacherCourseManager user={user} />
+      </div>
+    );
+  }
+
   const fetchCourses = async () => {
     try {
-      const res = await courseAPI.list();
+      const params = {};
+      if (user?.niveau) params.niveau = user.niveau;
+      if (user?.etablissement) params.etablissement = user.etablissement;
+      const res = await courseAPI.list(params);
       setError(null);
       let results = (res.data.results || res.data || []).map(c => ({
         id: c.id,
-        titre:   c.nom || 'Sans titre',
-        matiere: c.nom || 'Général',
-        niveau:  c.niveaux && c.niveaux.length > 0 ? c.niveaux[0].nom : 'Tout niveau',
-        duree:   'Programme complet',
+        titre:   c.nom || t('courses.untitled'),
+        matiere: c.matiere_nom || c.nom || 'Général',
+        niveau:  c.niveaux && c.niveaux.length > 0 ? (c.niveaux.some(n => n.nom === user?.niveau) ? user?.niveau : c.niveaux[0].nom) : 'Tout niveau',
+        etablissement: c.etablissement_nom || '',
+        duree:   t('courses.full_program'),
         emoji:   '📚',
         color:   'rgba(156,163,175,0.3)',
         has_live: false,
@@ -43,7 +68,7 @@ export function CoursesPage({ user }) {
       setCourses(results);
     } catch (err) {
       console.error('Failed to fetch courses', err);
-      setError('Impossible de charger les cours.');
+      setError(t('common.error'));
       setCourses([]);
     } finally {
       setLoading(false);
@@ -51,33 +76,15 @@ export function CoursesPage({ user }) {
   };
 
   useEffect(() => {
-    courseAPI.list()
-      .then(res => {
-        let results = (res.data.results || res.data || []).map(c => ({
-          id: c.id,
-          titre:   c.nom || 'Sans titre',
-          matiere: c.nom || 'Général',
-          niveau:  c.niveaux && c.niveaux.length > 0 ? c.niveaux[0].nom : 'Tout niveau',
-          duree:   'Programme complet',
-          emoji:   '📚',
-          color:   'rgba(156,163,175,0.3)',
-          has_live: false,
-        }));
-        if (selectedLevel !== 'All') {
-          results = results.filter(r => r.niveau === selectedLevel || r.niveau === 'Tout niveau');
-        }
-        setCourses(results);
-      })
-      .catch(err => {
-        console.error('Failed to fetch courses', err);
-        setError('Impossible de charger les cours.');
-        setCourses([]);
-      })
-      .finally(() => setLoading(false));
+    fetchCourses();
+    statsAPI.getStudent()
+      .then(res => setStudentStats(res.data))
+      .catch(() => {});
   }, [selectedLevel]);
 
   const filteredCourses = courses.filter(c =>
-    c.titre.toLowerCase().includes(search.toLowerCase())
+    c.titre.toLowerCase().includes(search.toLowerCase()) &&
+    (selectedSubject === 'All' || c.matiere === selectedSubject)
   );
 
 
@@ -92,22 +99,25 @@ export function CoursesPage({ user }) {
       >
         <div className="glass-panel p-5 rounded-2xl space-y-4">
           <h3 className="font-bold text-lg flex items-center gap-2">
-            <Filter size={18} className="text-primary" /> Filtres
+            <Filter size={18} className="text-primary" /> {t('courses.filters')}
           </h3>
           
           <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Votre Niveau</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">{t('courses.your_level')}</p>
             <p className="text-sm font-bold text-primary">{selectedLevel}</p>
+            {user?.etablissement && (
+              <p className="text-[10px] text-slate-400 mt-1">{user.etablissement}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 uppercase tracking-wider mb-2 block">Matière</label>
+            <label className="text-xs text-slate-400 uppercase tracking-wider mb-2 block">{t('courses.subject_label')}</label>
             <div className="flex flex-wrap gap-2">
               <button 
                   onClick={() => setSelectedSubject('All')}
                   className={`px-3 py-1.5 rounded-lg text-xs transition-all ${selectedSubject === 'All' ? 'bg-secondary/20 text-secondary border border-secondary/30' : 'bg-white/5 text-slate-400 border border-transparent hover:bg-white/10'}`}
                 >
-                  Toutes
+                  {t('courses.all_filter')}
               </button>
               {SUBJECTS.map(subject => (
                 <button 
@@ -137,7 +147,7 @@ export function CoursesPage({ user }) {
                 <Clock size={16} className="text-violet-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Temps total</p>
+                <p className="text-xs text-slate-500">{t('courses.total_time')}</p>
                 <p className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{studentStats.total_time_hours}h</p>
               </div>
             </div>
@@ -146,13 +156,13 @@ export function CoursesPage({ user }) {
                 <BarChart2 size={16} className="text-emerald-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Exercices faits</p>
+                <p className="text-xs text-slate-500">{t('courses.exercises_done')}</p>
                 <p className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{studentStats.exercises_done}</p>
               </div>
             </div>
             {studentStats.subjects && (
               <div className="glass-sm rounded-2xl p-4 col-span-2 sm:col-span-1">
-                <p className="text-xs text-slate-500 mb-2">Temps par matière</p>
+                <p className="text-xs text-slate-500 mb-2">{t('courses.time_by_subject')}</p>
                 <div className="space-y-1.5">
                   {Object.entries(studentStats.subjects).slice(0, 3).map(([subj, hours]) => (
                     <div key={subj} className="flex items-center gap-2">
@@ -177,7 +187,7 @@ export function CoursesPage({ user }) {
           className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
         >
           <div>
-            <h1 className="text-3xl font-bold">Catalogue des <span className="text-gradient">Cours</span></h1>
+            <h1 className="text-3xl font-bold">{t('courses.catalog_title')}</h1>
             <p className="text-slate-400 text-sm mt-1">
               {filteredCourses.length} cours adaptés à votre niveau ({selectedLevel})
             </p>
@@ -208,7 +218,7 @@ export function CoursesPage({ user }) {
         ) : filteredCourses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-500">
             <BookOpen size={48} className="mb-4 opacity-50" />
-            <p>Aucun cours trouvé pour ces critères.</p>
+            <p>{t('courses.no_results')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -242,7 +252,12 @@ export function CoursesPage({ user }) {
                           className="text-[10px] font-bold px-2 py-1 rounded-md bg-red-500/15 border border-red-500/30 text-red-400 flex items-center gap-1.5 cursor-pointer hover:bg-red-500/25 transition-all"
                         >
                           <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />
-                          LIVE
+                          {t('visio.live_badge')}
+                        </span>
+                      )}
+                      {course.etablissement && (
+                        <span className="text-[10px] font-medium px-2 py-1 rounded-md bg-white/5 border border-white/10 text-slate-400">
+                          {course.etablissement}
                         </span>
                       )}
                       <span className="text-xs font-medium px-2 py-1 rounded-md bg-white/5 border border-white/10 text-slate-300">
@@ -258,7 +273,7 @@ export function CoursesPage({ user }) {
 
                   <div className="mt-4 flex items-center justify-between pt-4 border-t border-white/5">
                     <div className="flex items-center gap-2 text-xs text-slate-500">
-                      {course.type === 'video' ? <Video size={13} className="text-blue-400" /> : <FileText size={13} className="text-rose-400" />}
+                      <FileText size={13} style={{ color: 'var(--color-primary)' }} />
                       <Clock size={12} />
                       <span>{course.duree}</span>
                     </div>
@@ -267,7 +282,7 @@ export function CoursesPage({ user }) {
                       onClick={e => { e.stopPropagation(); navigate(`/courses/${course.id}`); }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Play size={11} fill="currentColor" /> Étudier
+                      <Play size={11} fill="currentColor" /> {t('courses.study')}
                     </motion.button>
                   </div>
                 </motion.div>

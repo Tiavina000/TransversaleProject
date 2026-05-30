@@ -61,12 +61,44 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'email': self.user.email,
             'prenom': self.user.prenom or self.user.username,
             'role': self.user.type_utilisateur,
+            'type_utilisateur': self.user.type_utilisateur,
         }
         
         if self.user.type_utilisateur == 'ETUDIANT' and hasattr(self.user, 'etudiant_profile'):
             profile = self.user.etudiant_profile
             user_data['niveau'] = profile.niveau.nom if profile.niveau else None
+            user_data['niveau_id'] = profile.niveau.id if profile.niveau else None
             user_data['numero_etudiant'] = profile.numero_etudiant
+            if profile.etablissement:
+                user_data['etablissement'] = profile.etablissement.nom
+                user_data['etablissement_id'] = profile.etablissement.id
+            if profile.classe:
+                user_data['classe'] = profile.classe.nom
+                user_data['classe_id'] = profile.classe.id
+        elif self.user.type_utilisateur == 'ENSEIGNANT' and hasattr(self.user, 'enseignant_profile'):
+            profile = self.user.enseignant_profile
+            user_data['specialite'] = profile.specialite
+            if profile.niveau:
+                user_data['niveau'] = profile.niveau.nom
+                user_data['niveau_id'] = profile.niveau.id
+            if profile.etablissement:
+                user_data['etablissement'] = profile.etablissement.nom
+                user_data['etablissement_id'] = profile.etablissement.id
+            from core.models.pedagogie import Matiere as MatiereModel
+            matieres = set()
+            matieres_ids = set()
+            if profile.specialite:
+                m = MatiereModel.objects.filter(nom__iexact=profile.specialite).first()
+                if m:
+                    matieres.add(m.nom)
+                    matieres_ids.add(m.id)
+            for ex in profile.examens.all():
+                if ex.matiere:
+                    matieres.add(ex.matiere.nom)
+                    matieres_ids.add(ex.matiere.id)
+            user_data['matieres_enseignees'] = list(matieres)
+            user_data['matieres_enseignees_ids'] = list(matieres_ids)
+            user_data['niveaux_enseignes'] = [profile.niveau.nom] if profile.niveau else []
         
         data['user'] = user_data
         return data
@@ -87,10 +119,11 @@ class EtudiantSerializer(serializers.ModelSerializer):
 class EnseignantSerializer(serializers.ModelSerializer):
     utilisateur = UtilisateurSerializer(read_only=True)
     utilisateur_id = serializers.IntegerField(write_only=True)
+    niveau_nom = serializers.ReadOnlyField(source='niveau.nom')
 
     class Meta:
         model = Enseignant
-        fields = ['id', 'utilisateur', 'utilisateur_id', 'specialite', 'date_embauche']
+        fields = ['id', 'utilisateur', 'utilisateur_id', 'specialite', 'date_embauche', 'niveau', 'niveau_nom']
         read_only_fields = ['id']
 
 

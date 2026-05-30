@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — ENENI</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="login">
+  <div class="login-page">
+    <div class="login-orb" style="width:300px;height:300px;background:var(--color-primary);top:-100px;left:-100px"></div>
+    <div class="login-orb" style="width:250px;height:250px;background:var(--color-accent);bottom:-80px;right:-80px"></div>
+
+    <div class="glass-blur login-card">
+      <div style="text-align:center;margin-bottom:2rem">
+        <div class="logo-icon" style="width:4rem;height:4rem;font-size:1.25rem;margin:0 auto 1rem">EN</div>
+        <h1 style="font-size:1.5rem;font-weight:800;margin:0">EN<span class="text-gradient">ENI</span></h1>
+        <p class="text-muted" style="font-size:0.875rem;margin-top:0.5rem">Portail de Connexion Sécurisé</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label">Établissement</label>
+          <div class="establishment-dropdown" id="estab-dropdown">
+            <button type="button" class="establishment-trigger" id="estab-trigger">
+              <span id="estab-label">Choisir votre établissement</span>
+              <i data-lucide="chevron-down" style="width:18px;height:18px;color:var(--color-primary)"></i>
+            </button>
+            <div class="establishment-panel" id="estab-panel">
+              <div class="establishment-search">
+                <input type="text" class="form-input" id="estab-search" placeholder="Rechercher..." style="margin:0" />
+                <div class="flex gap-2" style="margin-top:0.5rem;flex-wrap:wrap">
+                  <button type="button" class="filter-chip active" data-type="">Tous</button>
+                  <button type="button" class="filter-chip" data-type="LYCEE">Lycée</button>
+                  <button type="button" class="filter-chip" data-type="CEG">CEG</button>
+                  <button type="button" class="filter-chip" data-type="EPP">EPP</button>
+                </div>
+              </div>
+              <div class="establishment-list" id="estab-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Votre Rôle</label>
+          <div class="role-tabs">
+            <button type="button" class="role-tab active" data-role="ETUDIANT">Élève</button>
+            <button type="button" class="role-tab" data-role="ENSEIGNANT">Enseignant</button>
+            <button type="button" class="role-tab" data-role="ADMINISTRATEUR">Admin</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="id-label">Numéro Étudiant</label>
+          <input type="text" class="form-input" id="username" placeholder="Ex: 2026001" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mot de passe</label>
+          <div style="position:relative">
+            <input type="password" class="form-input" id="password" placeholder="••••••••" required style="padding-right:2.5rem" />
+            <button type="button" id="toggle-pwd" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted)">
+              <i data-lucide="eye" style="width:18px;height:18px"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="login-error" class="hidden" style="padding:0.75rem;border-radius:0.75rem;background:rgba(214,69,69,0.1);color:var(--color-danger);font-size:0.875rem;margin-bottom:1rem"></div>
+
+        <button type="submit" class="btn-metal" style="width:100%;justify-content:center;padding:0.875rem;font-size:0.875rem;letter-spacing:0.05em">
+          SE CONNECTER
+        </button>
+
+        <p class="text-muted" style="font-size:0.75rem;text-align:center;margin-top:1rem;line-height:1.5">
+          Comptes gérés par les établissements. Mot de passe démo : <strong>pass1234</strong>
+        </p>
+      </form>
+
+      <a href="index.html" class="text-primary" style="display:block;text-align:center;margin-top:1.5rem;font-size:0.75rem;font-weight:600;text-decoration:none">← RETOUR À L'ACCUEIL</a>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (ENENI.getUser()) window.location.href = 'dashboard.html';
+
+    let selectedEstab = null;
+    let selectedRole = 'ETUDIANT';
+    let typeFilter = '';
+
+    const TYPE_COLORS = {
+      LYCEE: { bg: 'rgba(27,138,90,0.15)', text: '#1B8A5A' },
+      CEG: { bg: 'rgba(124,58,237,0.15)', text: '#7C3AED' },
+      EPP: { bg: 'rgba(6,182,212,0.15)', text: '#06B6D4' },
+    };
+
+    function renderEstabs() {
+      const q = document.getElementById('estab-search').value.toLowerCase();
+      const list = ENENI_DATA.establishments.filter(e => {
+        const matchQ = e.nom.toLowerCase().includes(q);
+        const matchT = !typeFilter || e.type === typeFilter;
+        return matchQ && matchT;
+      });
+      document.getElementById('estab-list').innerHTML = list.map(e => `
+        <button type="button" class="establishment-option ${selectedEstab === e.id ? 'selected' : ''}" data-id="${e.id}">
+          <span>${e.nom}</span>
+          <span class="type-badge" style="background:${(TYPE_COLORS[e.type]||{}).bg};color:${(TYPE_COLORS[e.type]||{}).text}">${e.type_label}</span>
+        </button>
+      `).join('');
+      list.forEach((_, i) => {
+        document.querySelectorAll('.establishment-option')[i]?.addEventListener('click', function() {
+          selectedEstab = +this.dataset.id;
+          const e = ENENI_DATA.establishments.find(x => x.id === selectedEstab);
+          document.getElementById('estab-label').textContent = e.nom;
+          document.getElementById('estab-panel').classList.remove('open');
+          renderEstabs();
+        });
+      });
+    }
+
+    document.getElementById('estab-trigger').addEventListener('click', () => {
+      document.getElementById('estab-panel').classList.toggle('open');
+      renderEstabs();
+    });
+    document.getElementById('estab-search').addEventListener('input', renderEstabs);
+    document.querySelectorAll('[data-type]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        typeFilter = btn.dataset.type;
+        renderEstabs();
+      });
+    });
+    document.addEventListener('click', e => {
+      if (!document.getElementById('estab-dropdown').contains(e.target))
+        document.getElementById('estab-panel').classList.remove('open');
+    });
+
+    document.querySelectorAll('.role-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        selectedRole = tab.dataset.role;
+        const isStudent = selectedRole === 'ETUDIANT';
+        document.getElementById('id-label').textContent = isStudent ? 'Numéro Étudiant' : 'Identifiant / Email';
+        document.getElementById('username').placeholder = isStudent ? 'Ex: 2026001' : 'nom.prenom@eneni.mg';
+      });
+    });
+
+    document.getElementById('toggle-pwd').addEventListener('click', () => {
+      const inp = document.getElementById('password');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+
+    document.getElementById('login-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const err = document.getElementById('login-error');
+      if (!selectedEstab) {
+        err.textContent = 'Veuillez choisir un établissement';
+        err.classList.remove('hidden');
+        return;
+      }
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const demo = ENENI_DATA.demoUsers[selectedRole];
+      const validUser = (username === demo.username || username === demo.numero_etudiant) && password === demo.password;
+      if (!validUser) {
+        err.textContent = 'Identifiants incorrects. Essayez : 2026001 / prof.rabe / admin avec pass1234';
+        err.classList.remove('hidden');
+        return;
+      }
+      const estab = ENENI_DATA.establishments.find(x => x.id === selectedEstab);
+      const user = { ...demo, etablissement: estab?.nom || demo.etablissement };
+      ENENI.setUser(user);
+      sessionStorage.setItem('eneni_token', 'demo-token-static');
+      window.location.href = 'dashboard.html';
+    });
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>

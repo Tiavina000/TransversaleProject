@@ -1,0 +1,236 @@
+.mes-classes-container {
+  padding: 1rem 0;
+}
+
+.mes-classes-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.mes-classes-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mes-classes-total {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  background: var(--bg-card-hover, #f3f4f6);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+}
+
+.mes-classes-loading,
+.mes-classes-error,
+.mes-classes-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary, #6b7280);
+  font-size: 1rem;
+}
+
+.mes-classes-error {
+  color: var(--danger, #ef4444);
+}
+
+.classe-card {
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  background: var(--bg-card, #fff);
+  transition: box-shadow 0.2s;
+}
+
+.classe-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.classe-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.classe-header:hover {
+  background: var(--bg-card-hover, #f9fafb);
+}
+
+.classe-nom {
+  font-weight: 600;
+  font-size: 1.05rem;
+  min-width: 100px;
+}
+
+.classe-niveau {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #6b7280);
+  background: var(--bg-tag, #f3f4f6);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.classe-eleves-count {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.classe-chevron {
+  font-size: 0.85rem;
+  transition: transform 0.2s;
+  margin-left: 0.5rem;
+}
+
+.classe-chevron.open {
+  transform: rotate(180deg);
+}
+
+.classe-body {
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  padding: 1rem 1.25rem;
+}
+
+.classe-professeurs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.professeur-tag {
+  background: var(--primary-light, #dbeafe);
+  color: var(--primary, #2563eb);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.eleves-list {
+  font-size: 0.875rem;
+}
+
+.eleve-header,
+.eleve-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 100px 1fr 140px 100px;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  align-items: center;
+}
+
+.eleve-header {
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  margin-bottom: 0.25rem;
+}
+
+.eleve-row:not(:last-child) {
+  border-bottom: 1px solid var(--border-color, #f3f4f6);
+}
+
+.eleve-index {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.eleve-nom {
+  font-weight: 500;
+}
+
+.eleve-num {
+  font-family: monospace;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.8rem;
+}
+
+.eleve-email {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eleve-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.eleve-stats-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-tag, #f3f4f6);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 50px;
+}
+
+.eleve-stats-fill {
+  display: block;
+  height: 100%;
+  background: var(--success, #10b981);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.eleve-stats-text {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.eleve-action {
+  text-align: center;
+}
+
+.eleve-btn-signaler {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--warning, #f59e0b);
+  background: transparent;
+  color: var(--warning, #f59e0b);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.eleve-btn-signaler:hover {
+  background: var(--warning, #f59e0b);
+  color: #fff;
+}
+
+.eleve-btn-signaler:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.eleve-btn-signaler.sent {
+  border-color: var(--success, #10b981);
+  color: var(--success, #10b981);
+}
+
+.eleve-btn-signaler.sent:hover {
+  background: var(--success, #10b981);
+  color: #fff;
+}

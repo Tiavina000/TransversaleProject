@@ -7,7 +7,7 @@ from .etablissements_views import EtablissementViewSet, AdminEtablissementViewSe
 from .pedagogie_views import (
     NiveauScolaireViewSet, MatiereViewSet, ChapitreViewSet,
     LeconViewSet, FichierMultimediaViewSet, PublicSearchView,
-    SessionEtudeViewSet
+    SessionEtudeViewSet, ClasseViewSet
 )
 from .examens_views import (
     ExamenViewSet, QuestionExamenViewSet, CopieExamenViewSet,
@@ -30,6 +30,7 @@ __all__ = [
     # Pédagogie
     'NiveauScolaireViewSet', 'MatiereViewSet', 'ChapitreViewSet',
     'LeconViewSet', 'FichierMultimediaViewSet', 'PublicSearchView',
+    'SessionEtudeViewSet', 'ClasseViewSet',
     # Examens
     'ExamenViewSet', 'QuestionExamenViewSet', 'CopieExamenViewSet',
     'ReponseExamenViewSet', 'LogSurveillanceViewSet', 'CorrectionViewSet',

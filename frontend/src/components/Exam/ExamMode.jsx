@@ -1,134 +1,125 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useExamSecurity } from '../../hooks/useExamSecurity';
 import { useSurveillance } from '../../hooks/useSurveillance';
 import { AttentionIndicator } from '../UI/AttentionIndicator';
 import { VoiceInput } from '../UI/VoiceInput';
 import { examAPI } from '../../services/api';
-import { CheckCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 
-/**
- * DynamicTimer — Cercle SVG de compte à rebours.
- * Change de couleur (primaire → orange → rouge) à l'approche de la fin.
- */
-function DynamicTimer({ totalSeconds, remainingSeconds }) {
-  const { t } = useTranslation();
-  const radius    = 44;
-  const stroke    = 5;
-  const circ      = 2 * Math.PI * radius;
-  const progress  = remainingSeconds / totalSeconds;
-  const dashoffset = circ * (1 - progress);
-
-  const mins = Math.floor(remainingSeconds / 60);
-  const secs = remainingSeconds % 60;
-
-  const color =
-    progress > 0.3 ? '#7C3AED' :
-    progress > 0.1 ? '#F59E0B' : '#EF4444';
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <svg width="110" height="110" className="rotate-[-90deg]">
-        <circle cx="55" cy="55" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} />
-        <motion.circle
-          cx="55" cy="55" r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeDasharray={circ}
-          strokeDashoffset={dashoffset}
-          strokeLinecap="round"
-          animate={{ strokeDashoffset: dashoffset, stroke: color }}
-          transition={{ duration: 0.8 }}
-          style={{ filter: `drop-shadow(0 0 8px ${color})` }}
-        />
-      </svg>
-      <div className="text-center -mt-20">
-        <p className="text-2xl font-bold font-mono" style={{ color }}>
-          {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-        </p>
-        <p className="text-xs text-slate-400">{t('exam.time_left')}</p>
-      </div>
-    </div>
-  );
-}
-
-/**
- * ExamMode — Module e-Exam High-Security.
- * Active le plein écran, bloque les actions de triche,
- * surveille l'attention et synchronise le timer avec le backend.
- */
 export function ExamMode({ exam, onFinish }) {
   const { t }    = useTranslation();
   const examId   = exam?.id;
+  const navigate = useNavigate();
+  const total    = exam?.duree_minutes * 60 || 3600;
 
   const [started, setStarted]       = useState(false);
   const [answers, setAnswers]       = useState({});
   const [currentQ, setCurrentQ]     = useState(0);
-  const [remaining, setRemaining]   = useState(exam?.duree_minutes * 60 || 3600);
+  const [remaining, setRemaining]   = useState(total);
   const [isFocused, setIsFocused]   = useState(true);
   const [alert, setAlert]           = useState('');
   const [submitted, setSubmitted]   = useState(false);
   const timerRef                    = useRef(null);
   const syncRef                     = useRef(null);
-  const handleSubmitRef             = useRef(handleSubmit);
-
-  // ── Sécurité ──────────────────────────────────────────────────────────────
-  useExamSecurity(started, () => {
-    setAlert(t('exam.leave_warning'));
-    setTimeout(() => setAlert(''), 4000);
-  });
-
-  // ── Surveillance ──────────────────────────────────────────────────────────
-  useSurveillance(started ? examId : null, (msg) => {
-    setIsFocused(false);
-    setAlert(msg);
-    setTimeout(() => { setIsFocused(true); setAlert(''); }, 4000);
-  });
-
-  // ── Timer local ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!started || submitted) return;
-    timerRef.current = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) { clearInterval(timerRef.current); handleSubmitRef.current(); return 0; }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [started, submitted]);
-
-  // ── Synchronisation du timer avec le backend toutes les 30s ──────────────
-  useEffect(() => {
-    if (!started || !examId) return;
-    syncRef.current = setInterval(async () => {
-      try {
-        const res = await examAPI.syncTimer(examId);
-        if (res.data?.remaining_seconds) setRemaining(res.data.remaining_seconds);
-      } catch { /* silencieux */ }
-    }, 30000);
-    return () => clearInterval(syncRef.current);
-  }, [started, examId]);
-
-  const handleAnswer = (qId, value) => setAnswers((a) => ({ ...a, [qId]: value }));
-
-  useEffect(() => { handleSubmitRef.current = handleSubmit; }, [handleSubmit]);
+  const submitRef                   = useRef(null);
 
   const handleSubmit = useCallback(async () => {
     clearInterval(timerRef.current);
     clearInterval(syncRef.current);
     try {
-      await examAPI.submit(examId, { reponses: answers });
+      const reponses = Object.entries(answers).map(([qId, val]) => ({
+        question_id: parseInt(qId),
+        reponse: val,
+      }));
+      await examAPI.submit(examId, { reponses });
     } catch { /* silencieux */ }
     setSubmitted(true);
     onFinish?.();
   }, [examId, answers, onFinish]);
 
+  submitRef.current = handleSubmit;
+
+  const onEscape = useCallback(() => {
+    setAlert(t('exam.leave_warning'));
+    setTimeout(() => setAlert(''), 4000);
+  }, [t]);
+  useExamSecurity(started, onEscape);
+
+  useEffect(() => {
+    if (!started) return;
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+      setAlert(t('exam.leave_warning'));
+      setTimeout(() => setAlert(''), 4000);
+    };
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [started, t]);
+
+  const onAlert = useCallback((msg) => {
+    setIsFocused(false);
+    setAlert(msg);
+    setTimeout(() => { setIsFocused(true); setAlert(''); }, 4000);
+  }, []);
+  useSurveillance(started ? examId : null, onAlert);
+
+  // ── Timer local (setTimeout chaine) ────────────────────────────────────
+  useEffect(() => {
+    if (!started || submitted) return;
+    let id;
+    const tick = () => {
+      setRemaining((r) => r - 1);
+      id = setTimeout(tick, 1000);
+    };
+    id = setTimeout(tick, 1000);
+    return () => clearTimeout(id);
+  }, [started, submitted]);
+
+  // ── Auto-submit quand remaining arrive à 0 ─────────────────────────────
+  useEffect(() => {
+    if (!started || submitted || remaining > 0) return;
+    submitRef.current();
+  }, [started, submitted, remaining]);
+
+  // ── Synchronisation du timer avec le backend ────────────────────────────
+  useEffect(() => {
+    if (!started || !examId) return;
+    const doSync = async () => {
+      try {
+        const res = await examAPI.syncTimer(examId);
+        if (res.data?.remaining_seconds !== undefined) setRemaining(res.data.remaining_seconds);
+      } catch { /* silencieux */ }
+    };
+    doSync();
+    syncRef.current = setInterval(doSync, 30000);
+    return () => clearInterval(syncRef.current);
+  }, [started, examId]);
+
+  const handleAnswer = (qId, value) => setAnswers((a) => ({ ...a, [qId]: value }));
+
   const questions = exam?.questions || [];
   const question  = questions[currentQ];
+  const mins      = Math.floor(remaining / 60);
+  const secs      = remaining % 60;
+  const progress  = remaining / total;
+  const color     = progress > 0.3 ? '#7C3AED' : progress > 0.1 ? '#F59E0B' : '#EF4444';
 
-  // ── Confirmation démarrage ────────────────────────────────────────────────
+  const trySubmit = () => {
+    setAlert(t('exam.finish_confirm'));
+  };
+  const confirmSubmit = () => {
+    setAlert('');
+    handleSubmit();
+  };
+  const cancelSubmit = () => {
+    setAlert('');
+    try { if (!document.fullscreenElement) document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch {}
+  };
+
   if (!started) {
     return (
       <div className="min-h-screen exam-mode-bg flex items-center justify-center p-4">
@@ -142,15 +133,19 @@ export function ExamMode({ exam, onFinish }) {
           <p className="text-slate-400 text-sm">{t('exam.leave_warning')}</p>
           <div className="grid grid-cols-2 gap-3 text-sm text-slate-300">
             <div className="glass-sm p-3 rounded-xl">
-              <p className="text-xs text-slate-500 mb-1">Durée</p>
+              <p className="text-xs text-slate-500 mb-1">{t('exam.duration')}</p>
               <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{exam?.duree_minutes} {t('common.minutes')}</p>
             </div>
             <div className="glass-sm p-3 rounded-xl">
-              <p className="text-xs text-slate-500 mb-1">Questions</p>
+              <p className="text-xs text-slate-500 mb-1">{t('exam.questions_count')}</p>
               <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{questions.length}</p>
             </div>
           </div>
-          <button className="btn-metal w-full py-3" onClick={() => setStarted(true)}>
+          <button className="btn-metal w-full py-3" onClick={async (e) => {
+            try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch {}
+            try { await examAPI.start(examId); } catch { /* already started */ }
+            setStarted(true);
+          }}>
             {t('exam.start')}
           </button>
         </motion.div>
@@ -158,7 +153,6 @@ export function ExamMode({ exam, onFinish }) {
     );
   }
 
-  // ── Exam terminé ──────────────────────────────────────────────────────────
   if (submitted) {
     return (
       <div className="min-h-screen exam-mode-bg flex items-center justify-center p-4">
@@ -167,47 +161,60 @@ export function ExamMode({ exam, onFinish }) {
           initial={{ scale: 0 }} animate={{ scale: 1 }}
         >
           <CheckCircle size={64} className="text-green-400 mx-auto" />
-          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Examen soumis !</h2>
-          <p className="text-slate-400 text-sm">Vos réponses ont été enregistrées.</p>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('exam.exam_submitted')}</h2>
+          <p className="text-slate-400 text-sm">{t('exam.answers_saved')}</p>
         </motion.div>
       </div>
     );
   }
 
-  // ── Interface d'examen ────────────────────────────────────────────────────
   return (
     <div className="min-h-screen exam-mode-bg flex flex-col">
-      {/* Header */}
       <div className="glass border-b border-white/10 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <AttentionIndicator isFocused={isFocused} />
           <h2 className="font-semibold text-sm hidden sm:block" style={{ color: 'var(--text-primary)' }}>{exam?.titre}</h2>
         </div>
-        <DynamicTimer totalSeconds={exam?.duree_minutes * 60 || 3600} remainingSeconds={remaining} />
-        <button className="btn-ghost text-xs" onClick={() => {
-          if (window.confirm(t('exam.finish_confirm'))) handleSubmit();
-        }}>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-2xl font-bold font-mono" style={{ color }}>
+            {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+          </p>
+          <p className="text-xs text-slate-400">{t('exam.time_left')}</p>
+        </div>
+        <button className="btn-ghost text-xs" onClick={trySubmit}>
           {t('exam.submit')}
         </button>
       </div>
 
-      {/* Alert banner */}
       <AnimatePresence>
         {alert && (
           <motion.div
-            className="flex items-center gap-2 bg-orange-500/20 border border-orange-500/40 text-orange-300 px-6 py-2 text-sm"
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+            className="flex items-center gap-2 px-6 py-2 text-sm"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            style={{
+              background: alert === t('exam.finish_confirm') ? 'rgba(124,58,237,0.15)' : 'rgba(245,158,11,0.15)',
+              borderColor: alert === t('exam.finish_confirm') ? 'rgba(124,58,237,0.4)' : 'rgba(245,158,11,0.4)',
+              color: alert === t('exam.finish_confirm') ? '#c4b5fd' : '#fcd34d',
+              borderWidth: 1,
+              borderStyle: 'solid',
+            }}
           >
-            <AlertTriangle size={14} /> {alert}
+            <AlertTriangle size={14} />
+            <span className="flex-1">{alert}</span>
+            {alert === t('exam.finish_confirm') && (
+              <div className="flex gap-2">
+                <button className="btn-metal text-xs px-3 py-1" onClick={confirmSubmit}>Oui</button>
+                <button className="btn-ghost text-xs px-3 py-1" onClick={cancelSubmit}>Non</button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Question */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-2xl space-y-6">
-          {/* Progress pills */}
           <div className="flex gap-1 flex-wrap">
             {questions.map((_, i) => (
               <button
@@ -237,7 +244,6 @@ export function ExamMode({ exam, onFinish }) {
               </div>
               <p className="font-medium leading-relaxed" style={{ color: 'var(--text-primary)' }}>{question.texte}</p>
 
-              {/* QCM */}
               {question.type_question === 'QCM' && (
                 <div className="space-y-2">
                   {question.options?.map((opt, i) => (
@@ -264,15 +270,14 @@ export function ExamMode({ exam, onFinish }) {
                 </div>
               )}
 
-              {/* TEXTE */}
               {(question.type_question === 'TEXTE' || question.type_question === 'NUMERIQUE') && (
                 <div className="relative">
                   <textarea
                     value={answers[question.id] || ''}
                     onChange={(e) => handleAnswer(question.id, e.target.value)}
                     rows={4}
-                    className="w-full glass-sm bg-transparent p-3 pr-12 text-sm text-white rounded-xl resize-none focus:outline-none border border-white/10 focus:border-primary/50 transition"
-                    placeholder="Votre réponse..."
+                    className="w-full glass-sm bg-white p-3 pr-12 text-sm text-gray-900 rounded-xl resize-none focus:outline-none border border-gray-300 focus:border-primary/50 transition"
+                    placeholder={t('exam.answer_placeholder')}
                   />
                   <div className="absolute bottom-3 right-3">
                     <VoiceInput onResult={(txt) => handleAnswer(question.id, txt)} />
@@ -280,7 +285,6 @@ export function ExamMode({ exam, onFinish }) {
                 </div>
               )}
 
-              {/* VRAI / FAUX */}
               {question.type_question === 'VRAI_FAUX' && (
                 <div className="flex gap-3">
                   {['Vrai', 'Faux'].map((v) => (
@@ -298,23 +302,94 @@ export function ExamMode({ exam, onFinish }) {
                   ))}
                 </div>
               )}
+
+              {question.type_question === 'REDACTION' && (
+                <div className="relative">
+                  <textarea
+                    value={answers[question.id] || ''}
+                    onChange={(e) => handleAnswer(question.id, e.target.value)}
+                    rows={8}
+                    className="w-full glass-sm bg-white p-3 pr-12 text-sm text-gray-900 rounded-xl resize-none focus:outline-none border border-gray-300 focus:border-primary/50 transition"
+                    placeholder={t('exam.answer_placeholder')}
+                  />
+                  <div className="absolute bottom-3 right-3">
+                    <VoiceInput onResult={(txt) => handleAnswer(question.id, txt)} />
+                  </div>
+                  {answers[question.id] && (
+                    <div className="flex justify-end mt-1 gap-3 text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      <span>{answers[question.id].trim() ? answers[question.id].trim().split(/\s+/).length : 0} mots</span>
+                      {question.mot_min > 0 && <span>min: {question.mot_min}</span>}
+                      {question.mot_max > 0 && <span>max: {question.mot_max}</span>}
+                    </div>
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
 
-          {/* Navigation */}
           <div className="flex justify-between gap-3">
             <button className="btn-ghost flex-1" onClick={() => setCurrentQ(Math.max(0, currentQ - 1))} disabled={currentQ === 0}>
-              ← Précédent
+              {t('exam.previous')}
             </button>
             <button className="btn-metal flex-1" onClick={() => {
               if (currentQ < questions.length - 1) setCurrentQ(currentQ + 1);
-              else if (window.confirm(t('exam.finish_confirm'))) handleSubmit();
+              else trySubmit();
             }}>
-              {currentQ < questions.length - 1 ? 'Suivant →' : t('exam.submit')}
+              {currentQ < questions.length - 1 ? t('exam.next') : t('exam.submit')}
             </button>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+export function ExamView() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [exam, setExam] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await examAPI.detail(id);
+        if (res.data?.soumis) {
+          setError("Vous avez déjà soumis cet examen.");
+        } else {
+          setExam(res.data);
+        }
+      } catch (err) {
+        setError("Impossible de charger l'examen.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen exam-mode-bg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-primary)' }} />
+      </div>
+    );
+  }
+
+  if (error || !exam) {
+    return (
+      <div className="min-h-screen exam-mode-bg flex items-center justify-center p-4">
+        <div className="glass max-w-sm w-full p-8 text-center space-y-4">
+          <AlertTriangle size={48} className="text-red-400 mx-auto" />
+          <p className="text-white font-semibold">{error || "Examen introuvable"}</p>
+          <button className="btn-metal w-full py-2" onClick={() => navigate('/exams')}>
+            Retour aux examens
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <ExamMode exam={exam} onFinish={() => navigate('/exams', { replace: true })} />;
 }

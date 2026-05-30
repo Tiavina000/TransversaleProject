@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -75,8 +76,9 @@ export function InfiniteScrollContainer({ courses = [], onLoadMore, hasMore, onS
   const { t } = useTranslation();
   const { ref: loaderRef, inView } = useInView({ threshold: 0.5 });
 
-  // Déclencher le chargement suivant
-  if (inView && hasMore) onLoadMore?.();
+  useEffect(() => {
+    if (inView && hasMore) onLoadMore?.();
+  }, [inView, hasMore, onLoadMore]);
 
   return (
     <div className="space-y-6">
@@ -101,7 +103,7 @@ export function InfiniteScrollContainer({ courses = [], onLoadMore, hasMore, onS
           </div>
         ) : (
           courses.length > 0 && (
-            <span className="text-slate-600 text-xs">— Fin des résultats —</span>
+            <span className="text-slate-600 text-xs">{t('common.end_of_results')}</span>
           )
         )}
       </div>

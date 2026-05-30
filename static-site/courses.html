@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cours — ENENI</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="courses">
+  <div id="app-navbar"></div>
+  <main class="page-main">
+    <div class="container page-content">
+      <div id="courses-content"></div>
+    </div>
+  </main>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (!ENENI.requireAuth()) throw '';
+    const user = ENENI.getUser();
+    const container = document.getElementById('courses-content');
+    const subjects = ['All', 'Mathématiques', 'Physique-Chimie', 'Français', 'Histoire-Géographie', 'SVT', 'Anglais'];
+    let selectedSubject = 'All';
+    let search = '';
+
+    if (user.type_utilisateur === 'ENSEIGNANT') {
+      const td = ENENI_DATA.teacherData;
+      let chapitres = JSON.parse(JSON.stringify(td.chapitres));
+      let selected = td.selectedMatiere;
+      let lastLeconId = 3;
+      let lastChapitreId = 2;
+      let lastFileId = 1;
+
+      function saveState() {
+        td.chapitres = JSON.parse(JSON.stringify(chapitres));
+      }
+
+      container.innerHTML = `
+        <div style="margin-bottom:1.5rem">
+          <div class="flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h1 style="font-size:1.5rem;font-weight:800;margin:0">Gérer mes cours</h1>
+              <p class="text-sec" style="margin:0.25rem 0 0">${user.etablissement} · ${user.specialite || ''}</p>
+            </div>
+            <button class="btn-metal" onclick="showNewChapterForm()" style="font-size:0.875rem"><i data-lucide="plus"></i> Nouveau chapitre</button>
+          </div>
+        </div>
+        <div id="matiere-tabs" class="flex gap-2 flex-wrap" style="margin-bottom:1.5rem"></div>
+        <div id="chapters-admin" class="space-y-3"></div>
+        <div id="new-chapter-form" style="display:none"></div>
+      `;
+
+      function renderMatiereTabs() {
+        document.getElementById('matiere-tabs').innerHTML = td.matieres.map(m => `
+          <button class="filter-chip ${m === selected ? 'active' : ''}" data-matiere="${m}">${m}</button>
+        `).join('');
+        document.querySelectorAll('[data-matiere]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selected = btn.dataset.matiere;
+            saveState();
+            renderAll();
+          });
+        });
+      }
+
+      function renderAll() {
+        renderMatiereTabs();
+        renderChapitres();
+        lucide.createIcons();
+      }
+
+      function showNewChapterForm() {
+        const form = document.getElementById('new-chapter-form');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'block') {
+          form.innerHTML = `
+            <div class="glass" style="padding:1.5rem;border-radius:1rem;margin-bottom:1.5rem">
+              <h3 style="font-weight:700;margin:0 0 1rem;font-size:0.875rem">Nouveau chapitre</h3>
+              <div class="form-group">
+                <label class="form-label">Titre du chapitre</label>
+                <input class="form-input" id="new-ch-titre" placeholder="Ex: Analyse — Limites">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input" id="new-ch-desc" rows="2" placeholder="Description du chapitre"></textarea>
+              </div>
+              <div class="flex gap-2 justify-end" style="margin-top:1rem">
+                <button class="btn-ghost" style="font-size:0.75rem;padding:0.5rem 1rem" onclick="document.getElementById('new-chapter-form').style.display='none'">Annuler</button>
+                <button class="btn-metal" style="font-size:0.75rem;padding:0.5rem 1rem" onclick="createChapter()"><i data-lucide="save"></i> Créer</button>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      }
+      window.showNewChapterForm = showNewChapterForm;
+
+      window.createChapter = function() {
+        const titre = document.getElementById('new-ch-titre').value.trim();
+        const desc = document.getElementById('new-ch-desc').value.trim();
+        if (!titre) { ENENI.showToast('Veuillez saisir un titre'); return; }
+        lastChapitreId++;
+        chapitres.push({ id: lastChapitreId, titre, description: desc, lecons: [] });
+        saveState();
+        document.getElementById('new-chapter-form').style.display = 'none';
+        renderAll();
+        ENENI.showToast('Chapitre créé');
+      };
+
+      function renderChapitres() {
+        const container = document.getElementById('chapters-admin');
+        const filtered = chapitres;
+        if (!filtered.length) {
+          container.innerHTML = `<div class="glass" style="padding:3rem;text-align:center;border-radius:1rem"><p class="text-muted" style="margin:0">Aucun chapitre. Cliquez sur "Nouveau chapitre" pour commencer.</p></div>`;
+          return;
+        }
+        container.innerHTML = filtered.map((c, ci) => `
+          <div class="glass" style="border-radius:1rem;overflow:hidden">
+            <div class="flex justify-between items-center" style="padding:1rem 1.25rem;cursor:pointer" onclick="toggleChapter(${ci})">
+              <div style="flex:1;min-width:0">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="book-open" style="width:18px;height:18px;color:var(--color-primary);flex-shrink:0"></i>
+                  <p style="font-weight:700;margin:0;font-size:0.875rem">${c.titre}</p>
+                </div>
+                ${c.description ? `<p class="text-muted" style="font-size:0.75rem;margin:0.25rem 0 0 1.625rem">${c.description}</p>` : ''}
+                <p class="text-muted" style="font-size:0.75rem;margin:0.25rem 0 0 1.625rem">${c.lecons.length} leçon(s)</p>
+              </div>
+              <div class="flex items-center gap-1">
+                <button class="icon-btn" onclick="event.stopPropagation();editChapter(${ci})" title="Modifier"><i data-lucide="edit-3" style="width:16px;height:16px"></i></button>
+                <button class="icon-btn" onclick="event.stopPropagation();deleteChapter(${ci})" title="Supprimer" style="color:var(--color-danger)"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
+                <i data-lucide="chevron-down" style="width:18px;height:18px;transition:transform 0.2s" id="chevron-${ci}"></i>
+              </div>
+            </div>
+            <div id="chapter-body-${ci}" style="display:none;border-top:1px solid var(--border-glass);padding:1rem 1.25rem">
+              <div class="flex gap-2 flex-wrap" style="margin-bottom:1rem">
+                <button class="btn-ghost" style="font-size:0.75rem;padding:0.375rem 0.75rem" onclick="showNewLeconForm(${ci})"><i data-lucide="plus" style="width:14px;height:14px"></i> Nouvelle leçon</button>
+              </div>
+              <div id="lecons-${ci}" class="space-y-2">
+                ${c.lecons.length === 0 ? '<p class="text-muted" style="font-size:0.875rem;text-align:center;padding:1rem">Aucune leçon</p>' : ''}
+                ${c.lecons.map((l, li) => renderLeconCard(ci, li, l)).join('')}
+              </div>
+              <div id="new-lecon-form-${ci}" style="display:none;margin-top:1rem"></div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      window.toggleChapter = function(ci) {
+        const body = document.getElementById('chapter-body-' + ci);
+        const chevron = document.getElementById('chevron-' + ci);
+        if (body.style.display === 'none') {
+          body.style.display = 'block';
+          chevron.style.transform = 'rotate(180deg)';
+        } else {
+          body.style.display = 'none';
+          chevron.style.transform = '';
+        }
+        lucide.createIcons();
+      };
+
+      window.editChapter = function(ci) {
+        const c = chapitres[ci];
+        document.getElementById('new-chapter-form').style.display = 'block';
+        document.getElementById('new-chapter-form').innerHTML = `
+          <div class="glass" style="padding:1.5rem;border-radius:1rem;margin-bottom:1.5rem">
+            <h3 style="font-weight:700;margin:0 0 1rem;font-size:0.875rem">Modifier le chapitre</h3>
+            <div class="form-group">
+              <label class="form-label">Titre</label>
+              <input class="form-input" id="edit-ch-titre" value="${c.titre}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea class="form-input" id="edit-ch-desc" rows="2">${c.description || ''}</textarea>
+            </div>
+            <div class="flex gap-2 justify-end" style="margin-top:1rem">
+              <button class="btn-ghost" style="font-size:0.75rem;padding:0.5rem 1rem" onclick="document.getElementById('new-chapter-form').style.display='none'">Annuler</button>
+              <button class="btn-metal" style="font-size:0.75rem;padding:0.5rem 1rem" onclick="saveChapterEdit(${ci})"><i data-lucide="save"></i> Enregistrer</button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      };
+
+      window.saveChapterEdit = function(ci) {
+        const titre = document.getElementById('edit-ch-titre').value.trim();
+        const desc = document.getElementById('edit-ch-desc').value.trim();
+        if (!titre) { ENENI.showToast('Veuillez saisir un titre'); return; }
+        chapitres[ci].titre = titre;
+        chapitres[ci].description = desc;
+        saveState();
+        document.getElementById('new-chapter-form').style.display = 'none';
+        renderAll();
+        ENENI.showToast('Chapitre modifié');
+      };
+
+      window.deleteChapter = function(ci) {
+        if (!confirm('Supprimer ce chapitre et toutes ses leçons ?')) return;
+        chapitres.splice(ci, 1);
+        saveState();
+        renderAll();
+        ENENI.showToast('Chapitre supprimé');
+      };
+
+      function renderLeconCard(ci, li, l) {
+        const isVideo = l.video_url && (l.video_url.includes('youtube') || l.video_url.includes('youtu.be') || l.video_url.includes('vimeo') || l.video_url.match(/\.(mp4|webm|ogg)(\?|$)/i));
+        return `
+          <div class="glass-sm" style="padding:0.75rem 1rem;border-radius:0.75rem">
+            <div class="flex items-center gap-3">
+              <i data-lucide="file-text" style="width:16px;height:16px;color:var(--color-primary);flex-shrink:0"></i>
+              <div style="flex:1;min-width:0">
+                <p style="font-weight:600;margin:0;font-size:0.875rem">${l.titre}</p>
+                <p class="text-muted" style="font-size:0.75rem;margin:0">${l.objectifs || ''} · ${l.duree_estimee}min</p>
+              </div>
+              ${l.video_url ? `<i data-lucide="video" style="width:16px;height:16px;color:var(--color-danger);flex-shrink:0" title="Vidéo"></i>` : ''}
+              ${l.fichiers.length ? `<span class="text-muted" style="font-size:0.75rem">${l.fichiers.length} fichier(s)</span>` : ''}
+              <span class="filter-chip" style="font-size:0.65rem;padding:0.125rem 0.5rem;cursor:default;${l.est_publie ? 'background:var(--color-primary);color:white;border-color:var(--color-primary)' : ''}">${l.est_publie ? 'Publié' : 'Brouillon'}</span>
+              <button class="icon-btn" onclick="editLecon(${ci},${li})" title="Modifier"><i data-lucide="edit-3" style="width:14px;height:14px"></i></button>
+              <button class="icon-btn" onclick="deleteLecon(${ci},${li})" title="Supprimer" style="color:var(--color-danger)"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderLeconEditForm(ci, li, l) {
+        return `
+          <div class="glass" style="padding:1.25rem;border-radius:0.75rem;margin-top:0.75rem;background:var(--overlay-light)">
+            <div class="form-group">
+              <label class="form-label">Titre de la leçon</label>
+              <input class="form-input" id="lecon-title-${ci}-${li}" value="${l.titre}" placeholder="Titre de la leçon">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contenu de la leçon</label>
+              <textarea class="form-input" id="lecon-content-${ci}-${li}" rows="4" placeholder="Rédigez votre contenu ici...">${l.contenue_texte || ''}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i data-lucide="video" style="width:14px;height:14px;display:inline;vertical-align:middle"></i> Vidéo (lien YouTube, Vimeo...)</label>
+              <div class="flex gap-2">
+                <input class="form-input" id="lecon-video-${ci}-${li}" value="${l.video_url || ''}" placeholder="https://www.youtube.com/watch?v=..." style="flex:1">
+                <label class="flex items-center gap-1 px-3 py-2 rounded-lg text-xs cursor-pointer" style="color:var(--color-primary);border:1px dashed var(--color-primary);white-space:nowrap" id="video-upload-label-${ci}-${li}">
+                  <i data-lucide="upload" style="width:14px;height:14px"></i>
+                  <span id="video-upload-text-${ci}-${li}">Vidéo PC</span>
+                  <input type="file" class="hidden" accept=".mp4,.webm,.ogg,.mov,.avi" onchange="handleVideoUpload(${ci},${li},this)">
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fichiers (PDF, audio, image...)</label>
+              <div id="fichiers-list-${ci}-${li}">
+                ${(l.fichiers || []).map(f => `
+                  <div class="flex items-center gap-2" style="padding:0.375rem 0.5rem;margin-bottom:0.25rem;background:var(--bg-card);border-radius:0.5rem">
+                    <i data-lucide="${f.type_fichier === 'VIDEO' ? 'video' : f.type_fichier === 'AUDIO' ? 'music' : 'file-text'}" style="width:14px;height:14px;color:var(--color-primary)"></i>
+                    <span style="font-size:0.75rem;flex:1">${f.nom}</span>
+                    <button class="icon-btn" style="color:var(--color-danger);padding:0.25rem" onclick="removeFile(${ci},${li},${f.id})"><i data-lucide="x" style="width:12px;height:12px"></i></button>
+                  </div>
+                `).join('')}
+              </div>
+              <label class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs cursor-pointer" style="color:var(--color-primary);border:1px dashed var(--border-color);margin-top:0.25rem">
+                <i data-lucide="upload" style="width:14px;height:14px"></i>
+                Ajouter un fichier (PDF, vidéo, audio, image...)
+                <input type="file" class="hidden" accept=".pdf,.mp4,.webm,.mp3,.wav,.jpg,.png,.txt,.doc,.docx" onchange="handleFileUpload(${ci},${li},this)">
+              </label>
+            </div>
+            <div class="flex gap-2">
+              <div class="form-group" style="flex:1">
+                <label class="form-label">Objectifs</label>
+                <input class="form-input" id="lecon-objectifs-${ci}-${li}" value="${l.objectifs || ''}" placeholder="Objectifs de la leçon">
+              </div>
+              <div class="form-group" style="width:100px">
+                <label class="form-label">Durée (min)</label>
+                <input type="number" class="form-input" id="lecon-duree-${ci}-${li}" value="${l.duree_estimee || 30}" min="1">
+              </div>
+            </div>
+            <label class="flex items-center gap-2" style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:1rem">
+              <input type="checkbox" id="lecon-publie-${ci}-${li}" ${l.est_publie ? 'checked' : ''} class="rounded">
+              Publier la leçon (visible par les étudiants)
+            </label>
+            <div class="flex gap-2 justify-end">
+              <button class="btn-ghost" style="font-size:0.75rem;padding:0.5rem 1rem" onclick="cancelLeconEdit(${ci})">Annuler</button>
+              <button class="btn-metal" style="font-size:0.75rem;padding:0.5rem 1rem" onclick="saveLeconEdit(${ci},${li})"><i data-lucide="save" style="width:14px;height:14px"></i> Enregistrer</button>
+            </div>
+          </div>
+        `;
+      }
+
+      window.handleVideoUpload = function(ci, li, input) {
+        const file = input.files[0];
+        if (!file) return;
+        document.getElementById('video-upload-text-' + ci + '-' + li).textContent = file.name;
+        if (li === -1) {
+          ENENI.showToast('Vidéo "' + file.name + '" (sera liée après création)');
+        } else {
+          ENENI.showToast('Vidéo "' + file.name + '" prête (upload simulé)');
+        }
+      };
+
+      window.handleFileUpload = function(ci, li, input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (li === -1) {
+          ENENI.showToast('"' + file.name + '" pourra être lié après création de la leçon');
+          input.value = '';
+          return;
+        }
+        lastFileId++;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const type = ['mp4','webm','ogg','mov','avi'].includes(ext) ? 'VIDEO' : ['mp3','wav'].includes(ext) ? 'AUDIO' : 'PDF';
+        if (!chapitres[ci].lecons[li]) chapitres[ci].lecons[li] = { fichiers: [] };
+        if (!chapitres[ci].lecons[li].fichiers) chapitres[ci].lecons[li].fichiers = [];
+        chapitres[ci].lecons[li].fichiers.push({ id: lastFileId, nom: file.name, type_fichier: type });
+        input.value = '';
+        ENENI.showToast('Fichier "' + file.name + '" ajouté');
+        document.getElementById('lecons-' + ci).innerHTML = renderLeconEditForm(ci, li, chapitres[ci].lecons[li]);
+        lucide.createIcons();
+      };
+
+      window.removeFile = function(ci, li, fid) {
+        if (li === -1) return;
+        const lecon = chapitres[ci].lecons[li];
+        if (lecon && lecon.fichiers) {
+          lecon.fichiers = lecon.fichiers.filter(f => f.id !== fid);
+        }
+        document.getElementById('lecons-' + ci).innerHTML = renderLeconEditForm(ci, li, chapitres[ci].lecons[li]);
+        lucide.createIcons();
+      };
+
+      window.editLecon = function(ci, li) {
+        const l = chapitres[ci].lecons[li];
+        document.getElementById('lecons-' + ci).innerHTML = renderLeconEditForm(ci, li, l);
+        lucide.createIcons();
+      };
+
+      window.cancelLeconEdit = function(ci) {
+        const c = chapitres[ci];
+        document.getElementById('lecons-' + ci).innerHTML = c.lecons.length === 0 ? '<p class="text-muted" style="font-size:0.875rem;text-align:center;padding:1rem">Aucune leçon</p>' : c.lecons.map((l, li) => renderLeconCard(ci, li, l)).join('');
+        lucide.createIcons();
+      };
+
+      window.saveLeconEdit = function(ci, li) {
+        const titre = document.getElementById('lecon-title-' + ci + '-' + li).value.trim();
+        if (!titre) { ENENI.showToast('Veuillez saisir un titre'); return; }
+        chapitres[ci].lecons[li].titre = titre;
+        chapitres[ci].lecons[li].contenue_texte = document.getElementById('lecon-content-' + ci + '-' + li).value;
+        chapitres[ci].lecons[li].video_url = document.getElementById('lecon-video-' + ci + '-' + li).value;
+        chapitres[ci].lecons[li].objectifs = document.getElementById('lecon-objectifs-' + ci + '-' + li).value;
+        chapitres[ci].lecons[li].duree_estimee = parseInt(document.getElementById('lecon-duree-' + ci + '-' + li).value) || 30;
+        chapitres[ci].lecons[li].est_publie = document.getElementById('lecon-publie-' + ci + '-' + li).checked;
+        saveState();
+        const c = chapitres[ci];
+        document.getElementById('lecons-' + ci).innerHTML = c.lecons.map((l, li) => renderLeconCard(ci, li, l)).join('');
+        ENENI.showToast('Leçon enregistrée');
+        lucide.createIcons();
+      };
+
+      window.deleteLecon = function(ci, li) {
+        if (!confirm('Supprimer cette leçon ?')) return;
+        chapitres[ci].lecons.splice(li, 1);
+        saveState();
+        const c = chapitres[ci];
+        document.getElementById('lecons-' + ci).innerHTML = c.lecons.length === 0 ? '<p class="text-muted" style="font-size:0.875rem;text-align:center;padding:1rem">Aucune leçon</p>' : c.lecons.map((l, li) => renderLeconCard(ci, li, l)).join('');
+        ENENI.showToast('Leçon supprimée');
+        lucide.createIcons();
+      };
+
+      window.showNewLeconForm = function(ci) {
+        const form = document.getElementById('new-lecon-form-' + ci);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'block') {
+          const id = Date.now();
+          form.innerHTML = renderLeconEditForm(ci, -1, { id, titre: '', contenue_texte: '', video_url: '', objectifs: '', duree_estimee: 30, est_publie: false, fichiers: [] });
+          document.querySelector('#new-lecon-form-' + ci + ' .btn-metal').onclick = function() { createLecon(ci); };
+          document.querySelector('#new-lecon-form-' + ci + ' .btn-ghost').onclick = function() { form.style.display = 'none'; };
+          lucide.createIcons();
+        }
+      };
+
+      window.createLecon = function(ci) {
+        const titre = document.getElementById('lecon-title-' + ci + '--1').value.trim();
+        if (!titre) { ENENI.showToast('Veuillez saisir un titre'); return; }
+        lastLeconId++;
+        const newLecon = {
+          id: lastLeconId,
+          titre,
+          contenue_texte: document.getElementById('lecon-content-' + ci + '--1').value || '',
+          video_url: document.getElementById('lecon-video-' + ci + '--1').value || '',
+          objectifs: document.getElementById('lecon-objectifs-' + ci + '--1').value || '',
+          duree_estimee: parseInt(document.getElementById('lecon-duree-' + ci + '--1').value) || 30,
+          est_publie: document.getElementById('lecon-publie-' + ci + '--1').checked,
+          fichiers: [],
+        };
+        chapitres[ci].lecons.push(newLecon);
+        saveState();
+        document.getElementById('new-lecon-form-' + ci).style.display = 'none';
+        const c = chapitres[ci];
+        document.getElementById('lecons-' + ci).innerHTML = c.lecons.map((l, li) => renderLeconCard(ci, li, l)).join('');
+        ENENI.showToast('Leçon créée');
+        lucide.createIcons();
+      };
+
+      renderAll();
+    } else {
+      container.innerHTML = `
+        <div class="flex flex-col gap-6" style="flex-direction:row;flex-wrap:wrap">
+          <aside class="glass-panel" style="padding:1.25rem;width:100%;max-width:16rem;flex-shrink:0;height:fit-content">
+            <h3 style="font-weight:700;font-size:0.875rem;margin:0 0 1rem">Filtres</h3>
+            <div style="position:relative;margin-bottom:1rem">
+              <i data-lucide="search" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);width:16px;color:var(--text-muted)"></i>
+              <input class="form-input" id="course-search" placeholder="Rechercher..." style="padding-left:2.25rem;font-size:0.875rem">
+            </div>
+            <p class="text-muted" style="font-size:0.75rem;margin-bottom:0.5rem">Matières</p>
+            <div id="subject-filters" class="flex flex-col gap-2"></div>
+            <div class="glass-sm" style="padding:1rem;border-radius:0.75rem;margin-top:1.5rem">
+              <p class="text-muted" style="font-size:0.75rem;margin:0 0 0.5rem">Votre progression</p>
+              <div class="progress-bar-track"><div class="progress-bar-fill" style="width:68%"></div></div>
+              <p style="font-size:0.875rem;font-weight:700;margin:0.5rem 0 0;color:var(--color-primary)">68%</p>
+            </div>
+          </aside>
+            <div style="flex:1;min-width:0">
+              <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 0.25rem">Mes Cours</h1>
+              <p class="text-sec" style="margin-bottom:1.5rem">${user.niveau || 'Terminale'} · ${user.etablissement}</p>
+              <div id="recommandations-section" style="margin-bottom:1.5rem"></div>
+              <div class="grid grid-3 gap-4" id="courses-grid"></div>
+            </div>
+        </div>
+      `;
+
+      function render() {
+        document.getElementById('subject-filters').innerHTML = subjects.map(s => `
+          <button class="filter-chip ${s === selectedSubject ? 'active' : ''}" data-subj="${s}" style="text-align:left">${s === 'All' ? 'Toutes matières' : s}</button>
+        `).join('');
+        const filtered = ENENI_DATA.courses.filter(c =>
+          (selectedSubject === 'All' || c.matiere === selectedSubject) &&
+          c.titre.toLowerCase().includes(search.toLowerCase())
+        );
+        document.getElementById('courses-grid').innerHTML = filtered.length ? filtered.map(c => `
+          <a href="course-player.html?id=${c.id}" class="glass course-card" style="text-decoration:none;display:block;background:${c.color}">
+            <div class="course-emoji">${c.emoji}</div>
+            <h3 style="font-weight:700;margin:0 0 0.25rem;color:var(--text-primary)">${c.titre}</h3>
+            <p class="text-muted" style="font-size:0.75rem;margin:0 0 0.75rem">${c.matiere} · ${c.niveau}</p>
+            <div class="progress-bar-track" style="margin-bottom:0.5rem"><div class="progress-bar-fill" style="width:${c.progression}%"></div></div>
+            <p style="font-size:0.75rem;color:var(--color-primary);font-weight:600">${c.progression}% · ${c.duree}</p>
+          </a>
+        `).join('') : '<p class="text-muted">Aucun cours trouvé</p>';
+
+        document.querySelectorAll('[data-subj]').forEach(btn => btn.addEventListener('click', () => {
+          selectedSubject = btn.dataset.subj;
+          render();
+        }));
+        lucide.createIcons();
+      }
+
+      function renderRecommandations() {
+        const recs = ENENI_DATA.recommandations || [];
+        const container = document.getElementById('recommandations-section');
+        if (!recs.length) { container.innerHTML = ''; return; }
+        container.innerHTML = `
+          <div class="glass" style="padding:1.25rem;border-radius:1rem;border-left:4px solid var(--color-accent)">
+            <div class="flex items-center gap-2" style="margin-bottom:1rem">
+              <i data-lucide="sparkles" style="width:18px;height:18px;color:var(--color-accent)"></i>
+              <h3 style="font-weight:700;font-size:0.875rem;margin:0">Recommandations personnalisées</h3>
+            </div>
+            <div style="display:flex;gap:1rem;overflow-x:auto;padding-bottom:0.5rem">
+              ${recs.map(r => {
+                const course = ENENI_DATA.courses.find(c => c.id === r.cours_id);
+                return `
+                  <a href="course-player.html?id=${r.cours_id}" class="glass-sm" style="flex-shrink:0;width:260px;padding:1rem;border-radius:0.75rem;text-decoration:none;display:block;background:${course?.color || 'var(--bg-card)'}">
+                    <div style="font-size:2rem;margin-bottom:0.5rem">${course?.emoji || '📚'}</div>
+                    <p style="font-weight:700;margin:0 0 0.25rem;color:var(--text-primary);font-size:0.875rem">${course?.titre || 'Cours'}</p>
+                    <p class="text-muted" style="font-size:0.75rem;margin:0 0 0.5rem">${course?.matiere || ''} · ${course?.niveau || ''}</p>
+                    <div class="flex items-center gap-2" style="margin-bottom:0.5rem">
+                      <span style="font-size:0.75rem;font-weight:600;color:var(--color-accent)">${Math.round(r.score_pertinence * 100)}% pertinent</span>
+                    </div>
+                    <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;line-height:1.4">${r.explication}</p>
+                    ${course ? `<div class="progress-bar-track" style="margin-top:0.75rem"><div class="progress-bar-fill" style="width:${course.progression}%"></div></div>` : ''}
+                  </a>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+
+      document.getElementById('course-search').addEventListener('input', e => { search = e.target.value; render(); });
+      render();
+      renderRecommandations();
+    }
+    lucide.createIcons();
+  </script>
+</body>
+</html>

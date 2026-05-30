@@ -1,0 +1,53 @@
+@startuml
+title DAC - Passage d'examen
+
+|Etudiant|
+start
+:Se connecter;
+:Choisir examen;
+
+|Frontend React|
+:Activer plein écran;
+:Bloquer touches sensibles;
+
+|API Django|
+:Créer CopieExamen;
+:Initialiser minuteur;
+
+fork
+|Minuteur|
+repeat
+:Décompte temps;
+repeat while (temps restant ?)
+
+fork again
+|Etudiant|
+repeat
+:Répondre aux questions;
+repeat while (questions restantes ?)
+
+fork again
+|Frontend React|
+:Heartbeat 30s;
+:Détection perte focus;
+end fork
+
+|Etudiant|
+if (Soumettre ?) then (oui)
+:Soumission manuelle;
+else (non)
+:Expiration minuteur;
+endif
+
+|API Django|
+:Auto-correction QCM/VF;
+
+if (Questions rédaction ?) then (oui)
+|Enseignant|
+:Correction manuelle;
+endif
+
+|API Django|
+:Enregistrer note;
+stop
+@enduml

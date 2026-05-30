@@ -97,9 +97,17 @@ export const courseAPI = {
 export const examAPI = {
   list:         ()       => api.get('/api/examens/'),
   detail:       (id)     => api.get(`/api/examens/${id}/`),
+  create:       (d)      => api.post('/api/examens/', d),
+  update:       (id, d)  => api.patch(`/api/examens/${id}/`, d),
+  delete:       (id)     => api.delete(`/api/examens/${id}/`),
   start:        (id)     => api.post(`/api/examens/${id}/start/`),
   submit:       (id, d)  => api.post(`/api/examens/${id}/submit/`, d),
   syncTimer:    (id)     => api.get(`/api/examens/${id}/timer/`),
+  publier:      (id)     => api.post(`/api/examens/${id}/publier/`),
+  ajouterQuestion: (id, d) => api.post(`/api/examens/${id}/ajouter-question/`, d),
+  questions:    (id)     => api.get(`/api/examens/${id}/questions/`),
+  updateQuestion: (id, d) => api.patch(`/api/questions-examen/${id}/`, d),
+  deleteQuestion: (id) => api.delete(`/api/questions-examen/${id}/`),
 };
 // ─── Surveillance (Logs silencieux) ──────────────────────────────────────────
 export const surveillanceAPI = {
@@ -118,6 +126,7 @@ export const surveillanceAPI = {
 // ─── Visio ───────────────────────────────────────────────────────────────────
 export const visioAPI = {
   sessions: ()   => api.get('/api/sessions-visio/'),
+  create:   (d)  => api.post('/api/sessions-visio/', d),
   detail:   (id) => api.get(`/api/sessions-visio/${id}/`),
   join:     (id) => api.post(`/api/sessions-visio/${id}/join/`),
   leave:    (id) => api.post(`/api/sessions-visio/${id}/leave/`),
@@ -134,16 +143,18 @@ export const shopAPI = {
 export const statsAPI = {
   getGlobal:   () => api.get('/api/stats/'),
   getStudent:  () => api.get('/api/stats/student/'),
+  getTeacher:  () => api.get('/api/stats/teacher/'),
 };
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 export const notifAPI = {
-  list:        () => api.get('/api/notifications/'),
-  markRead:    (id) => api.patch(`/api/notifications/lire/${id}/`),
-  markAllRead: () => api.post('/api/notifications/tout-lire/'),
-  count:       () => api.get('/api/notifications/compte/'),
-  creerVisio:  (data) => api.post('/api/notifications/creer-visio/', data),
-  notifierBan: (data) => api.post('/api/notifications/notifier-ban/', data),
+  list:          () => api.get('/api/notifications/'),
+  markRead:      (id) => api.patch(`/api/notifications/lire/${id}/`),
+  markAllRead:   () => api.post('/api/notifications/tout-lire/'),
+  count:         () => api.get('/api/notifications/compte/'),
+  creerVisio:    (data) => api.post('/api/notifications/creer-visio/', data),
+  notifierBan:   (data) => api.post('/api/notifications/notifier-ban/', data),
+  signalerRetard: (data) => api.post('/api/notifications/signaler-retard/', data),
 };
 
 // ─── News / Actualités établissement ─────────────────────────────────────────
@@ -165,6 +176,7 @@ export const newsAPI = {
 // ─── Notes / Bulletin (R21) ──────────────────────────────────────────────────
 export const notesAPI = {
   mesNotes: () => api.get('/api/mes-notes/'),
+  notesEnseignant: (params) => api.get('/api/notes-enseignant/', { params }),
 };
 
 // ─── Live Class (cours en direct) ────────────────────────────────────────────
@@ -178,6 +190,7 @@ export const liveAPI = {
   sendQuestion: (id, q) => api.post(`/api/live-sessions/${id}/questions/`, { content: q }),
   markAnswered: (id, qId) => api.patch(`/api/live-sessions/${id}/questions/${qId}/answered/`),
   banStudent:   (id, userId, duration) => api.post(`/api/live-sessions/${id}/ban/`, { user_id: userId, duration_hours: duration }),
+  livekitToken: (id)   => api.get(`/api/live-sessions/${id}/livekit-token/`),
 };
 
 // ─── Teacher Course Management (R7) ──────────────────────────────────────────
@@ -193,7 +206,10 @@ export const teacherCourseAPI = {
   uploadFile:  (formData) => api.post('/api/chapitres/upload_file/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  deleteFile:  (id)      => api.delete(`/api/fichiers-multimedia/${id}/`),
+  getQCM:      (chapitreId) => api.get(`/api/chapitres/${chapitreId}/qcm-validation/`),
   createQCM:   (chapitreId, data) => api.post(`/api/chapitres/${chapitreId}/qcm-validation/`, data),
+  deleteQCM:   (chapitreId) => api.delete(`/api/chapitres/${chapitreId}/qcm-validation/`),
 };
 
 // ─── Corrections (R12) ───────────────────────────────────────────────────────
@@ -203,8 +219,17 @@ export const correctionAPI = {
   matieres:    ()       => api.get('/api/corrections/matieres/'),
   noter:       (id, note) => api.post(`/api/corrections/${id}/noter/`, { note }),
   spellcheck:  (id)     => api.get(`/api/corrections/${id}/spellcheck/`),
+  valider:     (id)     => api.post(`/api/corrections/${id}/valider/`),
   corrigeables: ()      => api.get('/api/examens/corrigeables/'),
   corriger:    (examId, copieId, data) => api.post(`/api/examens/${examId}/corriger/${copieId}/`, data),
+};
+
+export const copieAPI = {
+  detail: (id) => api.get(`/api/copies-examen/${id}/`),
+};
+
+export const reponseAPI = {
+  update: (id, data) => api.patch(`/api/reponses-examen/${id}/`, data),
 };
 
 // ─── Course Session (chrono de présence) ─────────────────────────────────────
@@ -222,7 +247,13 @@ export const publicAPI = {
   getStats:      ()   => api.get('/api/public/stats/'),
   getPartners:   ()   => api.get('/api/public/partners/'),
   getRenovations: ()  => api.get('/api/public/renovations/'),
-  getEstablishments: () => api.get('/api/etablissements/'),
+  getEstablishments: (params) => api.get('/api/etablissements/', { params }),
+};
+
+// ─── Classes (R13) ───────────────────────────────────────────────────────────
+export const classesAPI = {
+  list: (params) => api.get('/api/classes/', { params }),
+  get:  (id)     => api.get(`/api/classes/${id}/`),
 };
 
 export default api;

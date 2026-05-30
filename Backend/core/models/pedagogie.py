@@ -49,6 +49,7 @@ class Chapitre(models.Model):
     matiere = models.ForeignKey(Matiere , on_delete=models.CASCADE , related_name='chapitres')
     niveau = models.ForeignKey(NiveauScolaire , on_delete=models.CASCADE , related_name='chapitres')
     description = models.TextField(blank=True)
+    createur = models.ForeignKey('core.Enseignant', on_delete=models.SET_NULL, null=True, blank=True, related_name='chapitres_crees')
     
     class Meta:
         app_label = 'core'
@@ -64,9 +65,12 @@ class Lecon(models.Model):
     titre = models.CharField(max_length=200)
     order = models.PositiveIntegerField()
     chapitre = models.ForeignKey(Chapitre , on_delete=models.CASCADE , related_name='lecons')
-    contenue_texte = models.TextField(blank=True)
+    contenue_texte = models.TextField(blank=True, help_text="Contenu en HTML (rich text)")
+    video_url = models.URLField(blank=True, help_text="URL vidéo externe (YouTube, Vimeo, etc.)")
     duree_estimee = models.PositiveIntegerField(help_text="Durée estimée en minutes")
     objectifs  = models.TextField(blank=True)
+    est_publie = models.BooleanField(default=False, help_text="La leçon est visible par les étudiants")
+    createur = models.ForeignKey('core.Enseignant', on_delete=models.SET_NULL, null=True, blank=True, related_name='lecons_crees')
     
     class Meta:
         app_label = 'core'

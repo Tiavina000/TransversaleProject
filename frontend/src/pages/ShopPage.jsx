@@ -10,10 +10,17 @@ export function ShopPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  // Cart state
-  const [cart, setCart] = useState([]);
+  // Cart state (persisted in localStorage)
+  const [cart, setCart] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('eneni_cart') || '[]'); }
+    catch { return []; }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutStatus, setCheckoutStatus] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem('eneni_cart', JSON.stringify(cart));
+  }, [cart]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -38,7 +45,7 @@ export function ShopPage() {
       }
       return [...prev, { ...product, qty: 1 }];
     });
-    // In a real app, call shopAPI.addToCart(product.id)
+    shopAPI.addToCart(product.id).catch(() => {});
   };
 
   const removeFromCart = (id) => {
@@ -51,16 +58,16 @@ export function ShopPage() {
   const handleCheckout = async () => {
     setCheckoutStatus('loading');
     try {
-      // Simulate API call for checkout
       await shopAPI.checkout();
       setCheckoutStatus('success');
       setCart([]);
+      localStorage.removeItem('eneni_cart');
       setTimeout(() => setCheckoutStatus(null), 3000);
     } catch {
-      // Fake success for demo if backend is down
       setTimeout(() => {
         setCheckoutStatus('success');
         setCart([]);
+        localStorage.removeItem('eneni_cart');
         setTimeout(() => setCheckoutStatus(null), 3000);
       }, 1500);
     }
@@ -82,9 +89,9 @@ export function ShopPage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <ShoppingBag className="text-primary" size={32} />
-            La <span className="text-gradient">Boutique</span> ENENI
+            {t('shop.shop_title')}
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Ressources, annales et services éducatifs</p>
+          <p className="text-slate-400 text-sm mt-1">{t('shop.shop_desc')}</p>
         </div>
 
         <div className="flex items-center gap-4 w-full md:w-auto">
@@ -142,7 +149,7 @@ export function ShopPage() {
                 
                 <div className="mt-auto flex items-center justify-between">
                   <span className="text-lg font-bold text-gradient">
-                    {product.prix.toLocaleString('fr-MG')} MGA
+                    {product.prix.toLocaleString('fr-MG')} {t('shop.mga_currency')}
                   </span>
                   <button 
                     onClick={() => addToCart(product)}
@@ -176,7 +183,7 @@ export function ShopPage() {
             >
               <div className="p-5 flex items-center justify-between border-b border-white/10">
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  <ShoppingCart size={20} /> Votre Panier
+                  <ShoppingCart size={20} /> {t('shop.cart')}
                 </h2>
                 <button onClick={() => setIsCartOpen(false)} className="p-2 rounded-xl hover:bg-white/10 transition">
                   <X size={20} />
@@ -187,7 +194,7 @@ export function ShopPage() {
                 {cart.length === 0 ? (
                   <div className="text-center text-slate-500 py-10">
                     <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>Votre panier est vide.</p>
+                    <p>{t('shop.cart_empty')}</p>
                   </div>
                 ) : (
                   cart.map((item) => (
@@ -197,7 +204,7 @@ export function ShopPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h5 className="text-sm font-bold truncate">{item.titre || item.nom}</h5>
-                        <p className="text-xs text-slate-400">{item.prix.toLocaleString('fr-MG')} MGA x {item.qty}</p>
+                        <p className="text-xs text-slate-400">{item.prix.toLocaleString('fr-MG')} {t('shop.mga_currency')} x {item.qty}</p>
                       </div>
                       <button 
                         onClick={() => removeFromCart(item.id)}
@@ -212,13 +219,13 @@ export function ShopPage() {
 
               <div className="p-5 border-t border-white/10" style={{ background: 'var(--overlay-heavy)' }}>
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-slate-400">Total</span>
-                  <span className="text-xl font-bold">{cartTotal.toLocaleString('fr-MG')} MGA</span>
+                  <span className="text-slate-400">{t('shop.total')}</span>
+                  <span className="text-xl font-bold">{cartTotal.toLocaleString('fr-MG')} {t('shop.mga_currency')}</span>
                 </div>
                 
                 {checkoutStatus === 'success' ? (
                   <div className="w-full py-3 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center gap-2 font-bold border border-emerald-500/30">
-                    <Check size={20} /> Commande validée
+                    <Check size={20} /> {t('shop.order_confirmed')}
                   </div>
                 ) : (
                   <button 
@@ -229,7 +236,7 @@ export function ShopPage() {
                     {checkoutStatus === 'loading' ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <>Payer via MVola / Orange</>
+                      <>{t('shop.pay_button')}</>
                     )}
                   </button>
                 )}

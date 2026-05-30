@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ENENI — Éducation Nationale Numérique Madagascar</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="index">
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">
+        <div class="logo-icon">EN</div>
+        <span class="text-primary" style="font-weight:700">ENENI</span>
+      </a>
+      <div class="nav-actions">
+        <span class="text-sec hidden md-block" style="font-size:0.75rem;display:none" id="platform-desc">Plateforme Nationale d'Éducation — Madagascar</span>
+        <div class="dropdown">
+          <button class="icon-btn" id="theme-btn"><i data-lucide="palette"></i></button>
+          <div class="dropdown-menu" id="theme-menu">
+            <button class="dropdown-item active" data-theme-set="green">🟢 Institutionnel</button>
+            <button class="dropdown-item" data-theme-set="dark">🌙 Sombre</button>
+            <button class="dropdown-item" data-theme-set="light">☀️ Clair</button>
+          </div>
+        </div>
+        <a href="login.html" class="btn-metal" style="font-size:0.875rem;padding:0.5rem 1rem">
+          <i data-lucide="log-in" style="width:15px;height:15px"></i> Se connecter
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-main">
+    <!-- Hero -->
+    <section class="hero-section">
+      <div class="hero-bg"></div>
+      <div class="hero-content animate-slide-up">
+        <div class="flex items-center justify-center gap-2 text-primary" style="margin-bottom:1rem">
+          <i data-lucide="star" style="width:16px;height:16px;fill:currentColor"></i>
+          <span style="font-size:0.875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em">Ministère de l'Éducation Nationale — Madagascar</span>
+          <i data-lucide="star" style="width:16px;height:16px;fill:currentColor"></i>
+        </div>
+        <h1 class="hero-title">Bienvenue sur le portail<br>de l'Éducation Nationale</h1>
+        <p class="hero-desc">Informations scolaires, examens, résultats et services éducatifs.</p>
+
+        <div class="search-box">
+          <i data-lucide="search" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);width:20px;height:20px;color:#94a3b8"></i>
+          <input type="text" id="hero-search" placeholder="Rechercher un cours, une matière, un établissement..." />
+          <div class="search-results glass" id="search-results"></div>
+        </div>
+
+        <div class="flex gap-3 justify-center flex-wrap">
+          <a href="#about" class="btn-metal" style="padding:1rem 2rem;font-size:1rem">Découvrir</a>
+          <a href="#stats" class="btn-ghost" style="padding:1rem 2rem;font-size:1rem">Résultats</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Partenaires bandeau -->
+    <section style="border-top:1px solid var(--border-glass);border-bottom:1px solid var(--border-glass);padding:2.5rem 0;background:var(--overlay-light)">
+      <p style="text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:0.4em;font-weight:900;color:var(--text-muted);margin-bottom:1.5rem">Soutenu par nos partenaires institutionnels</p>
+      <div class="flex flex-wrap justify-center gap-6 container" id="partners-strip"></div>
+    </section>
+
+    <!-- Stats -->
+    <section class="container" style="padding:4rem 0" id="stats">
+      <div class="grid grid-4 gap-4" id="stats-grid"></div>
+    </section>
+
+    <!-- Mission -->
+    <section class="container" style="padding:4rem 0" id="about">
+      <div style="text-align:center;margin-bottom:3rem">
+        <h2 style="font-size:2.25rem;font-weight:900;margin-bottom:1rem">Notre Mission</h2>
+        <p class="text-sec" style="font-size:1.125rem;max-width:42rem;margin:0 auto">Digitaliser l'écosystème éducatif malgache en fournissant une plateforme centralisée et accessible à tous les acteurs de l'éducation nationale.</p>
+      </div>
+      <div class="grid grid-3 gap-6">
+        <div class="glass card-topline" style="padding:2rem">
+          <div class="stat-icon" style="margin-bottom:1rem;width:3.5rem;height:3.5rem"><i data-lucide="school"></i></div>
+          <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem">Pour les Élèves</h3>
+          <p class="text-sec" style="line-height:1.6">Accédez à vos cours, passez vos examens en ligne, suivez votre progression et interagissez avec vos enseignants depuis une interface unique.</p>
+        </div>
+        <div class="glass card-topline" style="padding:2rem">
+          <div class="stat-icon" style="margin-bottom:1rem;width:3.5rem;height:3.5rem"><i data-lucide="users"></i></div>
+          <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem">Pour les Enseignants</h3>
+          <p class="text-sec" style="line-height:1.6">Créez et gérez vos cours, concevez des examens, suivez les performances de vos élèves et animez des classes virtuelles.</p>
+        </div>
+        <div class="glass card-topline" style="padding:2rem">
+          <div class="stat-icon" style="margin-bottom:1rem;width:3.5rem;height:3.5rem"><i data-lucide="shield-check"></i></div>
+          <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.75rem">Pour les Établissements</h3>
+          <p class="text-sec" style="line-height:1.6">Administrez votre établissement, gérez les inscriptions, suivez les résultats et centralisez les données pédagogiques.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rénovations -->
+    <section class="container" style="padding:4rem 0">
+      <div class="glass" style="padding:2rem 3rem;border-radius:1.5rem">
+        <div class="flex justify-between items-center flex-wrap gap-4" style="margin-bottom:2rem">
+          <div>
+            <h2 style="font-size:1.875rem;font-weight:900">Rénovations Éducatives</h2>
+            <p class="text-muted" style="margin-top:0.25rem">Les grandes avancées du Ministère ces dernières années</p>
+          </div>
+          <a href="https://www.education.gov.mg" target="_blank" class="btn-ghost" style="font-size:0.875rem;padding:0.5rem 1rem">
+            <i data-lucide="external-link" style="width:14px;height:14px"></i> Site officiel du Ministère
+          </a>
+        </div>
+        <div class="flex gap-2 flex-wrap" id="reno-tabs" style="margin-bottom:2rem"></div>
+        <div id="reno-content" class="glass-sm" style="padding:1.5rem;border-radius:1rem"></div>
+      </div>
+    </section>
+
+    <!-- Partenaires carousel -->
+    <section class="container" style="padding:4rem 0">
+      <div style="text-align:center;margin-bottom:2.5rem">
+        <h2 style="font-size:1.875rem;font-weight:900;margin-bottom:0.75rem">Nos Partenaires</h2>
+        <p class="text-muted">Organisations internationales soutenant l'éducation à Madagascar</p>
+      </div>
+      <div id="partners-carousel" class="flex gap-4" style="overflow:hidden;padding:0 3rem;position:relative"></div>
+    </section>
+
+    <!-- CTA -->
+    <section class="container" style="padding:4rem 0">
+      <div style="border-radius:1.5rem;padding:3rem;text-align:center;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));box-shadow:0 20px 40px rgba(27,138,90,0.3)">
+        <i data-lucide="award" style="width:48px;height:48px;color:white;margin:0 auto 1.5rem"></i>
+        <h2 style="font-size:2.25rem;font-weight:900;color:white;margin-bottom:1rem">Prêt à Apprendre ?</h2>
+        <p style="color:rgba(255,255,255,0.9);font-size:1.125rem;margin-bottom:2rem;max-width:36rem;margin-left:auto;margin-right:auto">Connectez-vous avec les identifiants fournis par votre établissement pour accéder à votre espace personnalisé.</p>
+        <a href="login.html" class="btn-metal" style="background:white;color:var(--color-primary);font-size:1.125rem;padding:1rem 2.5rem;margin:0 auto">
+          <i data-lucide="log-in" style="width:20px;height:20px"></i> Accéder à ma plateforme
+        </a>
+        <p style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:1.5rem">Vous n'avez pas de compte ? Contactez votre établissement scolaire.</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container grid grid-3 gap-6">
+        <div>
+          <div class="flex items-center gap-3" style="margin-bottom:1rem">
+            <div class="logo-icon">EN</div>
+            <span style="font-weight:700;font-size:1.125rem">ENENI</span>
+          </div>
+          <p class="text-sec" style="font-size:0.875rem">Ministère de l'Éducation Nationale — Madagascar</p>
+          <p class="text-muted" style="font-size:0.75rem;margin-top:0.5rem">© 2025 ENENI — Tous droits réservés</p>
+        </div>
+        <div>
+          <h4 style="font-weight:700;margin-bottom:0.75rem">Contact</h4>
+          <p class="text-sec" style="font-size:0.875rem">contact@education.gov.mg</p>
+          <p class="text-sec" style="font-size:0.875rem">+261 20 22 123 45</p>
+          <p class="text-sec" style="font-size:0.875rem">Antananarivo, Madagascar</p>
+        </div>
+        <div>
+          <h4 style="font-weight:700;margin-bottom:0.75rem">Liens</h4>
+          <a href="https://www.education.gov.mg" target="_blank" class="text-sec" style="display:block;font-size:0.875rem;margin-bottom:0.5rem;text-decoration:none">Site officiel</a>
+          <a href="login.html" class="text-sec" style="display:block;font-size:0.875rem;margin-bottom:0.5rem;text-decoration:none">Espace enseignant</a>
+          <a href="login.html" class="text-sec" style="display:block;font-size:0.875rem;text-decoration:none">Espace élève</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (ENENI.getUser()) window.location.href = 'dashboard.html';
+
+    // Stats
+    const stats = [
+      { label: 'Établissements', value: ENENI_DATA.stats.total_schools, icon: 'school' },
+      { label: 'Élèves inscrits', value: ENENI_DATA.stats.total_students, icon: 'users' },
+      { label: 'Ressources', value: ENENI_DATA.stats.total_lessons, icon: 'book-open' },
+      { label: 'Taux de réussite', value: ENENI_DATA.stats.success_rate, icon: 'sparkles' },
+    ];
+    document.getElementById('stats-grid').innerHTML = stats.map(s => `
+      <div class="glass stat-card">
+        <div class="stat-icon"><i data-lucide="${s.icon}"></i></div>
+        <span class="stat-value">${s.value}</span>
+        <span class="stat-label">${s.label}</span>
+      </div>
+    `).join('');
+
+    // Partners strip
+    document.getElementById('partners-strip').innerHTML = ENENI_DATA.partners.slice(0, 5).map(p => `
+      <a href="${p.url}" target="_blank" style="height:2.5rem;opacity:0.5;transition:opacity 0.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
+        <img src="${p.logo}" alt="${p.nom}" style="height:100%;object-fit:contain;max-width:100px" onerror="this.style.display='none'">
+      </a>
+    `).join('');
+
+    // Renovations
+    let activeReno = 0;
+    const renderReno = () => {
+      const r = ENENI_DATA.renovations[activeReno];
+      document.getElementById('reno-tabs').innerHTML = ENENI_DATA.renovations.map((x, i) => `
+        <button class="filter-chip ${i === activeReno ? 'active' : ''}" onclick="setReno(${i})">${x.annee}</button>
+      `).join('');
+      document.getElementById('reno-content').innerHTML = `
+        <div class="flex gap-6 items-start flex-wrap">
+          <div style="width:4rem;height:4rem;border-radius:1rem;background:rgba(27,138,90,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;color:var(--color-primary);flex-shrink:0">${r.annee.slice(2)}</div>
+          <div>
+            <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:0.5rem">${r.titre}</h3>
+            <p class="text-sec" style="line-height:1.6">${r.description}</p>
+          </div>
+        </div>
+      `;
+    };
+    window.setReno = i => { activeReno = i; renderReno(); };
+    renderReno();
+
+    // Partners carousel
+    let partnerIdx = 0;
+    const renderPartners = () => {
+      const visible = 4;
+      const items = [];
+      for (let i = 0; i < visible; i++) items.push(ENENI_DATA.partners[(partnerIdx + i) % ENENI_DATA.partners.length]);
+      document.getElementById('partners-carousel').innerHTML = items.map(p => `
+        <a href="${p.url}" target="_blank" class="glass flex-col items-center" style="flex:1;min-width:0;padding:1rem;display:flex;gap:0.75rem;text-decoration:none;transition:transform 0.2s" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+          <img src="${p.logo}" alt="${p.nom}" style="height:3rem;object-fit:contain" onerror="this.parentElement.querySelector('span').style.fontWeight='700'">
+          <span class="text-muted" style="font-size:10px;text-align:center">${p.nom}</span>
+        </a>
+      `).join('');
+    };
+    renderPartners();
+    setInterval(() => { partnerIdx = (partnerIdx + 1) % ENENI_DATA.partners.length; renderPartners(); }, 3500);
+
+    // Search
+    const searchInput = document.getElementById('hero-search');
+    const searchResults = document.getElementById('search-results');
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) { searchResults.classList.remove('open'); return; }
+      const results = ENENI_DATA.searchResults.filter(r => r.titre.toLowerCase().includes(q));
+      if (!results.length) { searchResults.classList.remove('open'); return; }
+      searchResults.classList.add('open');
+      searchResults.innerHTML = results.slice(0, 6).map(r => `
+        <div class="search-result-item">
+          <i data-lucide="book-open" style="width:14px;height:14px;color:var(--color-primary);flex-shrink:0"></i>
+          <div style="min-width:0;flex:1">
+            <p style="font-size:0.875rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.titre}</p>
+            <p style="font-size:0.75rem;margin:0;color:var(--text-muted)">${r.type} · ${r.niveau}</p>
+          </div>
+          <span style="font-size:0.75rem;color:var(--color-primary);flex-shrink:0">Connexion requise</span>
+        </div>
+      `).join('') + `<div style="padding:0.75rem;text-align:center"><a href="login.html" style="font-size:0.75rem;color:var(--color-primary)">Connectez-vous pour accéder →</a></div>`;
+      lucide.createIcons();
+    });
+
+    // Theme dropdown on landing
+    document.getElementById('theme-btn')?.addEventListener('click', e => {
+      e.stopPropagation();
+      document.getElementById('theme-menu').classList.toggle('open');
+    });
+    document.addEventListener('click', () => document.getElementById('theme-menu')?.classList.remove('open'));
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>

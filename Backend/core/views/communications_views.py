@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from core.models import Actualite, Notification, Partenaire, Renovation
 from core.serializers.communications_serializers import (
     ActualiteSerializer, NotificationSerializer, PartenaireSerializer, RenovationSerializer
@@ -134,7 +135,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def lire(self, request, pk=None):
         notif = self.get_object()
         notif.est_lue = True
-        notif.date_lecture = __import__('django').utils.timezone.now()
+        notif.date_lecture = timezone.now()
         notif.save()
         return Response(NotificationSerializer(notif).data)
 
@@ -144,7 +145,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             Notification.objects.filter(utilisateur=user, est_lue=False).update(
                 est_lue=True,
-                date_lecture=__import__('django').utils.timezone.now()
+                date_lecture=timezone.now()
             )
         return Response({"status": "all_read"})
 
@@ -155,6 +156,21 @@ class NotificationViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             count = Notification.objects.filter(utilisateur=user, est_lue=False).count()
         return Response({"non_lues": count})
+
+    @action(detail=False, methods=['post'])
+    def signaler_retard(self, request):
+        etudiant_id = request.data.get('etudiant_id')
+        message = request.data.get('message', '')
+        from core.models.utilisateurs import Etudiant as EtudiantModel
+
+        etudiant = get_object_or_404(EtudiantModel, id=etudiant_id)
+        Notification.objects.create(
+            utilisateur=etudiant.utilisateur,
+            titre="Rappel de cours en attente",
+            message=message or f"{request.user.prenom} vous signale que vous avez encore des chapitres à valider. Veuillez les terminer rapidement.",
+            url_lien="/cours"
+        )
+        return Response({"status": "notified", "etudiant": etudiant.utilisateur.prenom})
 
 
 class PartenaireViewSet(viewsets.ReadOnlyModelViewSet):

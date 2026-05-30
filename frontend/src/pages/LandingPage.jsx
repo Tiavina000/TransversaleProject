@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,12 +10,7 @@ import {
 import { publicAPI } from '../services/api';
 import { ThemeSwitcher } from '../components/UI/ThemeSwitcher';
 
-const DEFAULT_STATS = [
-  { label: 'Établissements', value: '2 500+', icon: School,    color: 'from-[#1B8A5A] to-[#126B45]' },
-  { label: 'Élèves inscrits', value: '1.2M',  icon: Users,     color: 'from-[#2EA87A] to-[#1B8A5A]' },
-  { label: 'Ressources',      value: '15 000+',icon: BookOpen,  color: 'from-[#3CB892] to-[#2EA87A]' },
-  { label: 'Taux de réussite',value: '85%',   icon: Sparkles,  color: 'from-[#1B8A5A] to-[#0F5A3A]' },
-];
+
 
 // ── Carrousel partenaires ───────────────────────────────────────────────────
 function PartnerCarousel({ partners = [] }) {
@@ -88,6 +84,14 @@ function PartnerCarousel({ partners = [] }) {
 // ── Page principale ─────────────────────────────────────────────────────────
 export function LandingPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const DEFAULT_STATS = [
+    { label: t('landing.stat_establishments'), value: '2 500+', icon: School,    color: 'from-[#1B8A5A] to-[#126B45]' },
+    { label: t('landing.stat_students'),       value: '1.2M',  icon: Users,     color: 'from-[#2EA87A] to-[#1B8A5A]' },
+    { label: t('landing.stat_resources'),      value: '15 000+',icon: BookOpen,  color: 'from-[#3CB892] to-[#2EA87A]' },
+    { label: t('landing.stat_success_rate'),   value: '85%',   icon: Sparkles,  color: 'from-[#1B8A5A] to-[#0F5A3A]' },
+  ];
   const [search, setSearch]       = useState('');
   const [results, setResults]     = useState([]);
   const [searching, setSearching] = useState(false);
@@ -125,10 +129,10 @@ export function LandingPage() {
 
   const displayStats = stats
     ? [
-        { label: 'Établissements', value: stats.total_schools || '2 500+',  icon: School,   color: 'from-[#1B8A5A] to-[#126B45]' },
-        { label: 'Élèves inscrits', value: stats.total_students || '1.2M', icon: Users,    color: 'from-[#2EA87A] to-[#1B8A5A]' },
-        { label: 'Ressources',      value: stats.total_lessons || '15 000+',icon: BookOpen, color: 'from-[#3CB892] to-[#2EA87A]' },
-        { label: 'Taux de réussite',value: stats.success_rate || '85%',    icon: Sparkles, color: 'from-[#1B8A5A] to-[#0F5A3A]' },
+        { label: t('landing.stat_establishments'), value: stats.total_schools || '2 500+',  icon: School,   color: 'from-[#1B8A5A] to-[#126B45]' },
+        { label: t('landing.stat_students'),       value: stats.total_students || '1.2M', icon: Users,    color: 'from-[#2EA87A] to-[#1B8A5A]' },
+        { label: t('landing.stat_resources'),      value: stats.total_lessons || '15 000+',icon: BookOpen, color: 'from-[#3CB892] to-[#2EA87A]' },
+        { label: t('landing.stat_success_rate'),   value: stats.success_rate || '85%',    icon: Sparkles, color: 'from-[#1B8A5A] to-[#0F5A3A]' },
       ]
     : DEFAULT_STATS;
 
@@ -147,7 +151,7 @@ export function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs hidden md:block" style={{ color: 'var(--text-secondary)' }}>Plateforme Nationale d'Éducation</span>
+            <span className="text-xs hidden md:block" style={{ color: 'var(--text-secondary)' }}>{t('auth.platform_desc')}</span>
             <ThemeSwitcher />
             <button
               onClick={() => navigate('/login')}
@@ -171,19 +175,18 @@ export function LandingPage() {
             <motion.div className="flex items-center justify-center gap-2 text-primary"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <Star size={16} fill="currentColor" />
-              <span className="text-sm font-semibold uppercase tracking-widest">Ministère de l'Éducation Nationale — Madagascar</span>
+              <span className="text-sm font-semibold uppercase tracking-widest">{t('landing.hero_label')}</span>
               <Star size={16} fill="currentColor" />
             </motion.div>
 
             <motion.h1
               className="text-4xl sm:text-6xl font-black leading-tight text-[var(--text-primary)]"
-              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              Bienvenue sur le portail<br />de l'Éducation Nationale
-            </motion.h1>
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              dangerouslySetInnerHTML={{ __html: t('landing.hero_title') }} />
 
             <motion.p className="text-lg max-w-2xl mx-auto leading-relaxed text-[var(--text-secondary)]"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              Informations scolaires, examens, résultats et services éducatifs.
+              {t('landing.hero_desc')}
             </motion.p>
 
             {/* ── Barre de recherche publique ────────────────────────── */}
@@ -195,7 +198,7 @@ export function LandingPage() {
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Rechercher un cours, une matière, un établissement..."
+                  placeholder={t('landing.search_placeholder')}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl placeholder:text-slate-400 focus:outline-none border-2 border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/20 transition text-base bg-app text-main"
                 />
                 {searching && (
@@ -218,13 +221,13 @@ export function LandingPage() {
                           <p className="text-xs truncate text-muted">{r.type || 'Cours'} · {r.niveau || ''}</p>
                         </div>
                         <span className="ml-auto text-xs text-primary flex-shrink-0">
-                          Connexion requise
+                          {t('landing.login_required')}
                         </span>
                       </div>
                     ))}
                     <div className="px-4 py-3 text-center">
                       <button onClick={() => navigate('/login')} className="text-xs text-primary hover:underline">
-                        Connectez-vous pour accéder au contenu →
+                        {t('landing.login_to_access')}
                       </button>
                     </div>
                   </motion.div>
@@ -234,10 +237,10 @@ export function LandingPage() {
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => navigate('/about')} className="btn-metal flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold rounded-lg">
-                Découvrir
+                {t('landing.discover')}
               </button>
               <button onClick={() => navigate('/results')} className="btn-ghost flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold rounded-lg">
-                Résultats
+                {t('landing.results')}
               </button>
             </div>
           </div>
@@ -246,7 +249,7 @@ export function LandingPage() {
         {/* ── Bandeau Partenaires ─────────────────────────────────── */}
         <section className="border-y py-10 overflow-hidden" style={{ borderColor: 'var(--border-glass)', background: 'var(--overlay-light)' }}>
           <div className="flex flex-col gap-6">
-            <p className="text-[10px] text-center uppercase tracking-[0.4em] font-black text-muted">Soutenu par nos partenaires institutionnels</p>
+            <p className="text-[10px] text-center uppercase tracking-[0.4em] font-black text-muted">{t('landing.partners_title')}</p>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 px-4">
               {partners.length > 0 ? partners.map((p, i) => (
                 <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="h-10 md:h-12 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all flex items-center gap-3">
@@ -285,17 +288,17 @@ export function LandingPage() {
         <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
           <motion.div className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-4xl font-black mb-4 text-main">Notre <span className="text-primary">Mission</span></h2>
+            <h2 className="text-4xl font-black mb-4 text-main">{t('landing.mission_title')}</h2>
             <p className="text-lg max-w-2xl mx-auto text-sec">
-              Digitaliser l'écosystème éducatif malgache pour garantir un accès équitable à une éducation de qualité sur tout le territoire.
+              {t('landing.mission_desc')}
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: School,      title: 'Pour les Élèves', desc: 'Accès aux cours, ressources, vidéos et examens depuis n\'importe quel appareil, à tout moment.' },
-              { icon: Users,       title: 'Pour les Enseignants', desc: 'Outils de gestion de classe, diffusion de cours en direct, suivi des progrès élèves.' },
-              { icon: ShieldCheck, title: 'Pour les Établissements', desc: 'Tableau de bord administratif, gestion des inscriptions et communication institutionnelle.' },
+              { icon: School,      title: t('landing.for_students_title'), desc: t('landing.for_students_desc') },
+              { icon: Users,       title: t('landing.for_teachers_title'), desc: t('landing.for_teachers_desc') },
+              { icon: ShieldCheck, title: t('landing.for_schools_title'), desc: t('landing.for_schools_desc') },
             ].map((c, i) => (
               <motion.div key={i} className="card-topline p-8 space-y-4 group glass"
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -317,12 +320,12 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
               <div>
-                <h2 className="text-3xl font-black text-main">Rénovations <span className="text-primary">Éducatives</span></h2>
-                <p className="mt-1 text-muted">Les grandes avancées du Ministère ces dernières années</p>
+                <h2 className="text-3xl font-black text-main">{t('landing.renovations_title')}</h2>
+                <p className="mt-1 text-muted">{t('landing.renovations_desc')}</p>
               </div>
               <a href="https://www.education.gov.mg" target="_blank" rel="noopener noreferrer"
                 className="btn-ghost flex items-center gap-2 text-sm px-4 py-2">
-                <ExternalLink size={14} /> Site officiel du Ministère
+                <ExternalLink size={14} /> {t('landing.ministry_site')}
               </a>
             </div>
 
@@ -359,8 +362,8 @@ export function LandingPage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
           <motion.div className="text-center mb-10"
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-3xl font-black mb-3 text-main">Nos <span className="text-primary">Partenaires</span></h2>
-            <p className="text-muted">Organisations internationales soutenant l'éducation à Madagascar</p>
+            <h2 className="text-3xl font-black mb-3 text-main">{t('landing.partners_section_title')}</h2>
+            <p className="text-muted">{t('landing.partners_section_desc')}</p>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
             <PartnerCarousel partners={partners} />
@@ -374,15 +377,15 @@ export function LandingPage() {
             style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' }}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <Award size={48} className="mx-auto mb-6 text-white" />
-            <h2 className="text-4xl font-black mb-4 text-white">Prêt à Apprendre ?</h2>
+            <h2 className="text-4xl font-black mb-4 text-white">{t('landing.ready_title')}</h2>
             <p className="text-lg mb-8 max-w-xl mx-auto text-white/90">
-              Connectez-vous avec les identifiants fournis par votre établissement pour accéder à tous vos cours et ressources.
+              {t('landing.ready_desc')}
             </p>
             <button onClick={() => navigate('/login')} className="flex items-center gap-2 px-10 py-4 text-lg font-semibold rounded-lg mx-auto bg-white text-[var(--color-primary)] hover:bg-gray-100 transition">
-              <LogIn size={20} /> Accéder à ma plateforme
+              <LogIn size={20} /> {t('landing.access_platform')}
             </button>
             <p className="text-xs mt-6 text-white/60">
-              Vous n'avez pas de compte ? Contactez votre établissement scolaire.
+              {t('landing.no_account')}
             </p>
           </motion.div>
         </section>
@@ -397,20 +400,20 @@ export function LandingPage() {
                     onError={e => { e.target.style.display='none'; }} />
                   <span className="font-bold text-lg text-main">ENENI</span>
                 </div>
-                <p className="text-sm text-sec">Ministère de l'Éducation Nationale de Madagascar</p>
-                <p className="text-xs mt-2 text-muted">© 2026 ENENI — Plateforme Nationale d'E-Learning</p>
+                <p className="text-sm text-sec">{t('landing.hero_label')}</p>
+                <p className="text-xs mt-2 text-muted">{t('studentDashboard.footer')}</p>
               </div>
               <div>
-                <h4 className="font-bold mb-3 text-main">Contact</h4>
+                <h4 className="font-bold mb-3 text-main">{t('landing.footer_contact')}</h4>
                 <p className="text-sm text-sec hover:text-primary transition cursor-pointer">contact@education.gov.mg</p>
                 <p className="text-sm text-sec hover:text-primary transition cursor-pointer">+261 20 22 123 45</p>
                 <p className="text-sm text-sec">Antananarivo, Madagascar</p>
               </div>
               <div>
-                <h4 className="font-bold mb-3 text-main">Liens</h4>
-                <a href="https://www.education.gov.mg" target="_blank" rel="noopener noreferrer" className="block text-sm mb-2 text-sec hover:text-primary transition">Site officiel</a>
-                <a href="/login" className="block text-sm mb-2 text-sec hover:text-primary transition">Espace enseignant</a>
-                <a href="/login" className="block text-sm text-sec hover:text-primary transition">Espace élève</a>
+                <h4 className="font-bold mb-3 text-main">{t('landing.footer_links')}</h4>
+                <a href="https://www.education.gov.mg" target="_blank" rel="noopener noreferrer" className="block text-sm mb-2 text-sec hover:text-primary transition">{t('landing.footer_site')}</a>
+                <a href="/login" className="block text-sm mb-2 text-sec hover:text-primary transition">{t('landing.footer_teacher')}</a>
+                <a href="/login" className="block text-sm text-sec hover:text-primary transition">{t('landing.footer_student')}</a>
               </div>
             </div>
           </div>

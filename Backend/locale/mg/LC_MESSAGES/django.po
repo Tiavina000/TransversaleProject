@@ -1,21 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Translations en malgache pour la plateforme ENENI
+# Copyright (C) 2026 ENENI
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: ENENI\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-06 10:01+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2026-05-27 15:00+0000\n"
+"Last-Translator: ENENI Team\n"
+"Language-Team: MG <mg@eneni.mg>\n"
+"Language: mg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ENENI/settings.py:134
 msgid "Malagasy"
@@ -31,31 +29,31 @@ msgstr "Anglisy"
 
 #: core/views/examens_views.py:71
 msgid "Cette copie a déjà été soumise"
-msgstr "Efa nalefa ity kopia ity"
+msgstr "Efa napetraka ity kopia ity"
 
 #: core/views/ia_views.py:31
 msgid "Paramètre 'q' requis."
-msgstr "Tsy maintsy fenoina ny 'q'."
+msgstr "Ilaina ny mari-pamantarana 'q'."
 
 #: core/views/ia_views.py:43
 msgid "résultats trouvés"
-msgstr "valiny hita"
+msgstr "vokatra hita"
 
 #: core/views/ia_views.py:56
 msgid "Paramètres 'matiere_id' et 'lecon_id' requis."
-msgstr "Tsy maintsy fenoina ny 'matiere_id' sy 'lecon_id'."
+msgstr "Ilaina ny 'matiere_id' sy 'lecon_id'."
 
 #: core/views/ia_views.py:74
 msgid "Le champ 'texte_dicte' est requis."
-msgstr "Tsy maintsy fenoina ny 'texte_dicte'."
+msgstr "Tsy maintsy fenoina ny saha 'texte_dicte'."
 
 #: core/views/ia_views.py:104
 msgid "Action réservée aux étudiants."
-msgstr "Natokana ho an'ny mpianatra ihany."
+msgstr "Ho an'ny mpianatra ihany ity hetsika ity."
 
 #: core/views/ia_views.py:108
 msgid "Paramètre 'matiere_id' requis dans le body."
-msgstr "Tsy maintsy fenoina ny 'matiere_id'."
+msgstr "Ilaina ny 'matiere_id' ao amin'ny body."
 
 #: core/views/ia_views.py:113
 msgid "Matière non trouvée."
@@ -63,8 +61,8 @@ msgstr "Tsy hita ny taranja."
 
 #: core/views/ia_views.py:120
 msgid "Recommandation générée"
-msgstr "Soso-kevitra voaforona"
+msgstr "Voaforona ny soso-kevitra"
 
 #: core/views/ia_views.py:122
 msgid "Aucune recommandation nécessaire, bons résultats !"
-msgstr "Tsy misy soso-kevitra ilaina, vokatra tsara!"
+msgstr "Tsy misy soso-kevitra ilaina, fahombiazana!"

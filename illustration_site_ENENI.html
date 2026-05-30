@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ENENI — Plateforme Éducative Numérique (Illustration)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0b0e14;color:#e2e8f0;line-height:1.6}
+nav{position:fixed;top:0;width:100%;z-index:100;background:rgba(11,14,20,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+nav .logo{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1.1rem;color:#a78bfa}
+nav .logo svg{width:28px;height:28px}
+nav .links{display:flex;gap:1.5rem;align-items:center}
+nav .links a{color:#94a3b8;text-decoration:none;font-size:.85rem;transition:color .2s;cursor:pointer}
+nav .links a:hover{color:#a78bfa}
+nav .lang{display:flex;gap:.3rem}
+nav .lang button{padding:.2rem .6rem;border:1px solid rgba(255,255,255,.1);border-radius:4px;background:transparent;color:#94a3b8;font-size:.75rem;cursor:pointer}
+nav .lang button.active{border-color:#a78bfa;color:#a78bfa}
+.container{max-width:1200px;margin:0 auto;padding:2rem;padding-top:6rem}
+.section-title{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:#64748b;margin:3rem 0 1rem;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.5rem}
+.section-title:first-of-type{margin-top:0}
+h1{font-size:2rem;font-weight:700;margin-bottom:.5rem;background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-size:1.3rem;font-weight:600;margin-bottom:.8rem;color:#f1f5f9}
+h3{font-size:1rem;font-weight:600;margin-bottom:.4rem;color:#e2e8f0}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;transition:border-color .2s}
+.card:hover{border-color:rgba(167,139,250,.25)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.badge{font-size:.7rem;padding:.2rem .7rem;border-radius:20px;background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.2)}
+.badge-green{background:rgba(52,211,153,.12);color:#34d399;border-color:rgba(52,211,153,.2)}
+.badge-amber{background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.2)}
+.badge-red{background:rgba(239,68,68,.12);color:#ef4444;border-color:rgba(239,68,68,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+.text-muted{color:#64748b;font-size:.85rem}
+.text-sm{font-size:.85rem}
+.text-xs{font-size:.75rem}
+.mt-1{margin-top:.5rem}
+.mt-2{margin-top:1rem}
+.mb-1{margin-bottom:.5rem}
+.mb-2{margin-bottom:1rem}
+.gap-1{display:flex;gap:.5rem;flex-wrap:wrap}
+.gap-2{display:flex;gap:.8rem;flex-wrap:wrap}
+.flex-center{display:flex;align-items:center;gap:.5rem}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.btn{padding:.5rem 1.2rem;border-radius:8px;border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-primary{background:#7c3aed;color:#fff}
+.btn-primary:hover{background:#6d28d9}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.12);color:#e2e8f0}
+.btn-outline:hover{border-color:#7c3aed}
+.btn-sm{padding:.35rem .9rem;font-size:.8rem}
+.progress{height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin:.4rem 0}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c3aed,#a78bfa);transition:width .5s}
+.icon-lg{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem}
+.mock-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.mock-table th,.mock-table td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+.mock-table th{color:#64748b;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+.mock-table tr:hover td{background:rgba(255,255,255,.02)}
+.tabs{display:flex;gap:.2rem;margin-bottom:1.2rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.tab{padding:.5rem 1rem;font-size:.85rem;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:#a78bfa;border-bottom-color:#a78bfa}
+.exam-mode{background:#070a10;border:2px solid rgba(239,68,68,.2);position:relative}
+.exam-mode::before{content:'🔒 MODE EXAMEN SÉCURISÉ';position:absolute;top:-1px;right:1rem;font-size:.65rem;background:#ef4444;color:#fff;padding:.2rem .8rem;border-radius:0 0 8px 8px;letter-spacing:1px}
+.timer-circle{width:100px;height:100px;border-radius:50%;border:4px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.timer-circle svg{position:absolute;width:100%;height:100%;transform:rotate(-90deg)}
+.timer-circle .time{font-size:1.3rem;font-weight:700;font-family:monospace}
+.timer-circle .label{font-size:.6rem;color:#64748b}
+.option-row{padding:.7rem 1rem;border-radius:8px;border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.7rem;margin-bottom:.4rem}
+.option-row:hover{border-color:rgba(167,139,250,.3)}
+.option-row.selected{border-color:#7c3aed;background:rgba(124,58,237,.08)}
+.option-row .radio{width:18px;height:18px;border-radius:50%;border:2px solid #475569;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.option-row.selected .radio{border-color:#7c3aed;background:#7c3aed}
+.option-row .radio::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;opacity:0}
+.option-row.selected .radio::after{opacity:1}
+.security-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;padding:.2rem .6rem;border-radius:4px;background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.security-badge.green{background:rgba(52,211,153,.1);color:#6ee7b7;border-color:rgba(52,211,153,.2)}
+.feature-pill{display:inline-block;padding:.15rem .6rem;border-radius:12px;font-size:.7rem;background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.15);margin:.15rem}
+.visio-grid{display:grid;grid-template-columns:2fr 1fr;gap:.8rem;min-height:280px}
+.visio-main{background:rgba(0,0,0,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
+.visio-side{display:flex;flex-direction:column;gap:.5rem}
+.visio-participant{background:rgba(0,0,0,.2);border-radius:8px;padding:.5rem;display:flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.04)}
+.visio-participant .name{font-size:.8rem;font-weight:500}
+.visio-participant .status{font-size:.65rem;color:#64748b}
+.shop-item{text-align:center;padding:1rem}
+.shop-item .price{font-size:1.1rem;font-weight:700;color:#a78bfa}
+.shop-item .old-price{font-size:.8rem;color:#64748b;text-decoration:line-through;margin-left:.4rem}
+.notif-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.notif-dot.unread{background:#7c3aed}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;text-align:center}
+.stat-value{font-size:1.8rem;font-weight:700;color:#f1f5f9}
+.stat-label{font-size:.75rem;color:#64748b;margin-top:.2rem}
+.footer{margin-top:4rem;padding:2rem 0;border-top:1px solid rgba(255,255,255,.06);text-align:center;font-size:.8rem;color:#475569}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none"><rect x="2" y="2" width="24" height="24" rx="6" stroke="#a78bfa" stroke-width="1.5"/><path d="M8 10h12M8 14h8M8 18h4" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/></svg>
+    ENENI
+  </div>
+  <div class="links">
+    <a onclick="scrollToSection('landing')">Accueil</a>
+    <a onclick="scrollToSection('dashboard')">Dashboard</a>
+    <a onclick="scrollToSection('courses')">Cours</a>
+    <a onclick="scrollToSection('exams')">Examens</a>
+    <a onclick="scrollToSection('visio')">Visio</a>
+    <a onclick="scrollToSection('shop')">Boutique</a>
+    <a onclick="scrollToSection('bulletin')">Bulletin</a>
+    <div class="lang">
+      <button class="active">MG</button>
+      <button>FR</button>
+      <button>EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ====== LANDING PAGE ====== -->
+<div id="landing" class="section-title">ACCUEIL / LANDING PAGE (R3)</div>
+<div class="card" style="text-align:center;padding:3rem 2rem">
+  <h1>Plateforme Éducative Numérique ENENI</h1>
+  <p class="text-muted" style="max-width:600px;margin:0 auto">Gestion des cours, examens, visioconférence et ressources pédagogiques pour les établissements scolaires malgaches</p>
+  <div class="stats-row" style="margin-top:2rem">
+    <div><div class="stat-value">1 200+</div><div class="stat-label">Établissements</div></div>
+    <div><div class="stat-value">45 000+</div><div class="stat-label">Étudiants</div></div>
+    <div><div class="stat-value">3 800+</div><div class="stat-label">Enseignants</div></div>
+    <div><div class="stat-value">21</div><div class="stat-label">Fonctionnalités</div></div>
+  </div>
+  <div class="gap-2 flex-center" style="justify-content:center;margin-top:1.5rem">
+    <span class="badge">🎯 Multilingue MG/FR/EN</span>
+    <span class="badge">🌙 3 thèmes</span>
+    <span class="badge">♿ Accessible</span>
+    <span class="badge">🤖 IA intégrée</span>
+  </div>
+  <div class="gap-2 flex-center" style="justify-content:center;margin-top:1rem">
+    <span class="security-badge green">Anti-triche</span>
+    <span class="security-badge green">WebRTC</span>
+    <span class="security-badge green">JWT</span>
+  </div>
+  <div style="margin-top:2rem">
+    <p class="text-xs text-muted">Partenaires institutionnels</p>
+    <div class="gap-2 flex-center" style="justify-content:center;margin-top:.5rem;font-size:.75rem;color:#475569">
+      <span>UNICEF</span><span>•</span><span>AFD</span><span>•</span><span>UNESCO</span><span>•</span><span>Banque Mondiale</span><span>•</span><span>USAID</span><span>•</span><span>GIZ</span>
+    </div>
+  </div>
+  <p class="text-xs text-muted mt-2">📸 CAPTURE D'ÉCRAN : Page d'accueil avec statistiques et logos des partenaires</p>
+</div>
+
+<!-- ====== LOGIN ====== -->
+<div id="login" class="section-title">AUTHENTIFICATION (R1)</div>
+<div class="card" style="max-width:500px;margin:0 auto 1.5rem">
+  <h3>Connexion multiniveaux</h3>
+  <div class="mb-1">
+    <label class="text-xs text-muted">Établissement</label>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.6rem .8rem;margin-top:.3rem;font-size:.85rem;color:#94a3b8">Lycée Mixte Andohalo</div>
+  </div>
+  <div class="mb-1">
+    <label class="text-xs text-muted">Rôle</label>
+    <div style="display:flex;gap:.5rem;margin-top:.3rem">
+      <span class="badge" style="background:rgba(167,139,250,.15);color:#a78bfa">👨‍🎓 Étudiant</span>
+      <span class="badge" style="background:rgba(251,191,36,.1);color:#fbbf24">👨‍🏫 Enseignant</span>
+      <span class="badge" style="background:rgba(52,211,153,.1);color:#34d399">⚙ Admin Établissement</span>
+    </div>
+  </div>
+  <div class="mb-1">
+    <label class="text-xs text-muted">Identifiants (JWT)</label>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.6rem .8rem;margin-top:.3rem;display:flex;justify-content:space-between">
+      <span style="font-size:.85rem">✉️ etudiant@lycee.mg</span>
+      <span style="font-size:.75rem;color:#475569">🔒 ⋅ ⋅ ⋅ ⋅ ⋅ ⋅</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:1rem;margin-top:1rem;font-size:.75rem;color:#64748b">
+    <span>✅ Access Token (24h)</span>
+    <span>🔄 Refresh Token (7j)</span>
+  </div>
+  <p class="text-xs text-muted mt-1">📸 CAPTURE : Écran de connexion avec sélection établissement / rôle / identifiants</p>
+</div>
+
+<!-- ====== DASHBOARD ====== -->
+<div id="dashboard" class="section-title">TABLEAUX DE BORD (R2, R5)</div>
+
+<div class="tabs">
+  <span class="tab active" onclick="switchTab(this,'dash-s')">👨‍🎓 Étudiant</span>
+  <span class="tab" onclick="switchTab(this,'dash-t')">👨‍🏫 Enseignant</span>
+  <span class="tab" onclick="switchTab(this,'dash-a')">⚙ Admin</span>
+</div>
+
+<!-- Dashboard Étudiant -->
+<div id="dash-s" class="dash-tab">
+<div class="grid-2">
+  <div class="card">
+    <h3>📊 Ma Progression</h3>
+    <div class="mb-1"><div class="flex-between"><span class="text-sm">Mathématiques</span><span class="text-sm" style="color:#a78bfa">75%</span></div><div class="progress"><div class="progress-fill" style="width:75%"></div></div></div>
+    <div class="mb-1"><div class="flex-between"><span class="text-sm">Français</span><span class="text-sm" style="color:#a78bfa">60%</span></div><div class="progress"><div class="progress-fill" style="width:60%"></div></div></div>
+    <div class="mb-1"><div class="flex-between"><span class="text-sm">Sciences</span><span class="text-sm" style="color:#a78bfa">90%</span></div><div class="progress"><div class="progress-fill" style="width:90%"></div></div></div>
+    <div><div class="flex-between"><span class="text-sm">Anglais</span><span class="text-sm" style="color:#a78bfa">45%</span></div><div class="progress"><div class="progress-fill" style="width:45%"></div></div></div>
+  </div>
+  <div class="card">
+    <h3>🔔 Notifications</h3>
+    <div class="flex-between" style="padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span class="flex-center"><span class="notif-dot unread" style="margin-right:.5rem"></span><span class="text-sm">Examen de Maths demain 8h</span></span>
+      <span class="text-xs text-muted">2h</span>
+    </div>
+    <div class="flex-between" style="padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span class="flex-center"><span class="notif-dot" style="margin-right:.5rem;background:transparent;border:1px solid #475569"></span><span class="text-sm">Visio Sciences ajoutée</span></span>
+      <span class="text-xs text-muted">1j</span>
+    </div>
+    <div class="flex-between" style="padding:.4rem 0">
+      <span class="flex-center"><span class="notif-dot" style="margin-right:.5rem;background:transparent;border:1px solid #475569"></span><span class="text-sm">Nouveau cours disponible</span></span>
+      <span class="text-xs text-muted">3j</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🤖 Recommandations IA</h3>
+    <div class="gap-1" style="flex-direction:column">
+      <div class="flex-between" style="padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span class="text-sm">📖 Révisez le chapitre 3 de Maths</span>
+        <span class="badge badge-amber" style="font-size:.65rem">92% match</span>
+      </div>
+      <div class="flex-between" style="padding:.4rem 0">
+        <span class="text-sm">📝 Examen blanc Français recommandé</span>
+        <span class="badge badge-amber" style="font-size:.65rem">88% match</span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📅 Prochains événements</h3>
+    <div class="text-sm" style="padding:.3rem 0">📝 Examen Mathématiques — demain 08:00</div>
+    <div class="text-sm" style="padding:.3rem 0">🎥 Visio Sciences — ven. 14:00</div>
+    <div class="text-sm" style="padding:.3rem 0">📚 Cours Anglais — lun. 09:00</div>
+  </div>
+</div>
+<p class="text-xs text-muted mt-1">📸 CAPTURE : Dashboard étudiant avec progression, notifications et recommandations IA</p>
+</div>
+
+<!-- Dashboard Enseignant -->
+<div id="dash-t" class="dash-tab" style="display:none">
+<div class="grid-3">
+  <div class="card">
+    <h3>👨‍🎓 Mes Classes</h3>
+    <div class="flex-between" style="padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span class="text-sm">Terminale C</span><span class="badge badge-green" style="font-size:.65rem">32 élèves</span>
+    </div>
+    <div class="flex-between" style="padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span class="text-sm">Première A</span><span class="badge badge-green" style="font-size:.65rem">28 élèves</span>
+    </div>
+    <div class="flex-between" style="padding:.4rem 0">
+      <span class="text-sm">Seconde S</span><span class="badge badge-green" style="font-size:.65rem">35 élèves</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📝 Examens à corriger</h3>
+    <div class="flex-between" style="padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span class="text-sm">DS Maths Term C</span><span class="badge badge-red" style="font-size:.65rem">18 copies</span>
+    </div>
+    <div class="flex-between" style="padding:.4rem 0">
+      <span class="text-sm">Interro Français 1ère A</span><span class="badge badge-amber" style="font-size:.65rem">5 copies</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📊 Statistiques</h3>
+    <div class="text-sm" style="padding:.3rem 0">Moyenne classe : <strong>12.4/20</strong></div>
+    <div class="text-sm" style="padding:.3rem 0">Taux de réussite : <strong>78%</strong></div>
+    <div class="text-sm" style="padding:.3rem 0">Cours publiés : <strong>24</strong></div>
+  </div>
+</div>
+<p class="text-xs text-muted mt-1">📸 CAPTURE : Dashboard enseignant avec classes, copies et statistiques</p>
+</div>
+
+<!-- Dashboard Admin -->
+<div id="dash-a" class="dash-tab" style="display:none">
+<div class="grid-3">
+  <div class="card"><h3>🏫 Établissements</h3><div class="text-lg" style="font-size:1.5rem;font-weight:700;color:#a78bfa">8</div><div class="text-xs text-muted">lycées, CEG, EPP</div></div>
+  <div class="card"><h3>👥 Utilisateurs</h3><div class="text-lg" style="font-size:1.5rem;font-weight:700;color:#a78bfa">1 245</div><div class="text-xs text-muted">étudiants, enseignants, admins</div></div>
+  <div class="card"><h3>📚 Cours</h3><div class="text-lg" style="font-size:1.5rem;font-weight:700;color:#a78bfa">156</div><div class="text-xs text-muted">publiés cette année</div></div>
+</div>
+<p class="text-xs text-muted mt-1">📸 CAPTURE : Dashboard administrateur avec statistiques globales</p>
+</div>
+
+<!-- ====== COURS ====== -->
+<div id="courses" class="section-title">GESTION DES COURS (R6, R7, R14)</div>
+<div class="grid-2">
+  <div class="card">
+    <h3>📚 Matières disponibles</h3>
+    <div class="gap-1" style="flex-direction:column">
+      <div class="flex-between" style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span class="flex-center"><span class="icon-lg" style="background:rgba(167,139,250,.1)">📐</span><span class="text-sm">Mathématiques</span></span>
+        <span class="badge badge-green">12 chapitres</span>
+      </div>
+      <div class="flex-between" style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span class="flex-center"><span class="icon-lg" style="background:rgba(52,211,153,.1)">📖</span><span class="text-sm">Français</span></span>
+        <span class="badge badge-green">8 chapitres</span>
+      </div>
+      <div class="flex-between" style="padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span class="flex-center"><span class="icon-lg" style="background:rgba(251,191,36,.1)">🔬</span><span class="text-sm">Sciences</span></span>
+        <span class="badge badge-green">15 chapitres</span>
+      </div>
+      <div class="flex-between" style="padding:.5rem 0">
+        <span class="flex-center"><span class="icon-lg" style="background:rgba(239,68,68,.1)">🌍</span><span class="text-sm">Anglais</span></span>
+        <span class="badge badge-green">6 chapitres</span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📖 Lecteur de cours (CoursePlayer)</h3>
+    <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:1rem;margin-bottom:.8rem;text-align:center;border:1px solid rgba(255,255,255,.04)">
+      <div style="font-size:2rem;margin-bottom:.5rem">🎬</div>
+      <div class="text-sm">Chapitre 3 : Les équations différentielles</div>
+      <div class="progress" style="margin-top:.5rem"><div class="progress-fill" style="width:45%"></div></div>
+      <div class="text-xs text-muted mt-1">45% complété • Durée estimée : 35 min</div>
+    </div>
+    <div class="gap-1" style="flex-direction:column">
+      <div class="flex-between text-sm" style="padding:.3rem 0"><span>✅ 3.1 Introduction</span><span class="text-xs text-muted">12 min</span></div>
+      <div class="flex-between text-sm" style="padding:.3rem 0"><span>✅ 3.2 Variables séparables</span><span class="text-xs text-muted">18 min</span></div>
+      <div class="flex-between text-sm" style="padding:.3rem 0;color:#a78bfa"><span>▶ 3.3 Équations linéaires</span><span class="text-xs text-muted">15 min</span></div>
+      <div class="flex-between text-sm" style="padding:.3rem 0;color:#475569"><span>🔒 3.4 Applications</span><span class="text-xs text-muted">20 min</span></div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <h3>📎 Upload de fichiers multimédia (R7)</h3>
+  <div class="gap-2">
+    <span class="feature-pill">🎥 Vidéo (MP4)</span>
+    <span class="feature-pill">🎵 Audio (MP3)</span>
+    <span class="feature-pill">📄 PDF</span>
+    <span class="feature-pill">🖼 Images</span>
+  </div>
+  <div class="flex-between mt-1" style="background:rgba(0,0,0,.15);border-radius:6px;padding:.5rem .8rem">
+    <span class="text-sm flex-center">📄 cours_chap3_equations_diff.pdf</span>
+    <span class="text-xs text-muted">2.4 MB</span>
+  </div>
+  <p class="text-xs text-muted mt-1">📸 CAPTURE : Interface de création de cours (TeacherCourseManager) + upload fichiers</p>
+</div>
+
+<!-- ====== EXAMENS ====== -->
+<div id="exams" class="section-title">EXAMENS — MODE SÉCURISÉ (R10-R19)</div>
+
+<div class="card exam-mode">
+  <div class="card-header"><h3>📝 Examen : DS Mathématiques Terminale C</h3><span class="badge badge-amber">QCM + Rédaction</span></div>
+
+  <!-- Header avec timer -->
+  <div class="flex-between" style="margin-bottom:1.5rem;background:rgba(0,0,0,.15);border-radius:10px;padding:.8rem 1rem">
+    <div class="flex-center">
+      <span class="security-badge">🔒 Plein écran</span>
+      <span class="security-badge">⌨️ Clavier bloqué</span>
+      <span class="security-badge">🖱 Clic droit désactivé</span>
+      <span class="security-badge">📋 Logs surveillance</span>
+    </div>
+    <div class="timer-circle">
+      <svg><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="4"/><circle cx="50" cy="50" r="46" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="289" stroke-dashoffset="86" stroke-linecap="round" transform="rotate(-90,50,50)"/></svg>
+      <div class="time" style="color:#f59e0b">18:42</div>
+      <div class="label">Temps restant</div>
+    </div>
+  </div>
+
+  <!-- Navigation questions -->
+  <div class="gap-1 mb-2">
+    <span class="badge" style="background:#7c3aed;color:#fff">1</span>
+    <span class="badge" style="background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.2)">2</span>
+    <span class="badge" style="background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.2)">3</span>
+    <span class="badge" style="background:rgba(255,255,255,.06)">4</span>
+    <span class="badge" style="background:rgba(255,255,255,.06)">5</span>
+    <span class="badge" style="background:rgba(255,255,255,.06)">6</span>
+    <span class="badge" style="background:rgba(255,255,255,.06)">7</span>
+    <span class="badge" style="background:rgba(255,255,255,.06)">8</span>
+  </div>
+
+  <!-- Question QCM -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1rem">
+    <div class="flex-between mb-1"><span class="text-sm" style="color:#a78bfa">Question 1/8</span><span class="text-xs text-muted">2 points</span></div>
+    <p style="margin-bottom:.8rem">Quelle est la solution de l'équation différentielle y' + 2y = 0 ?</p>
+    <div class="option-row"><div class="radio"></div> y = Ce<sup>2x</sup></div>
+    <div class="option-row selected"><div class="radio"></div> y = Ce<sup>-2x</sup></div>
+    <div class="option-row"><div class="radio"></div> y = 2Ce<sup>x</sup></div>
+    <div class="option-row"><div class="radio"></div> y = Ce<sup>x/2</sup></div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="flex-between mt-2">
+    <button class="btn btn-outline btn-sm">← Précédent</button>
+    <button class="btn btn-primary btn-sm">Suivant →</button>
+  </div>
+
+  <!-- Logs surveillance -->
+  <div style="margin-top:1rem;background:rgba(0,0,0,.15);border-radius:6px;padding:.5rem .8rem;font-size:.7rem;font-family:monospace;color:#475569">
+    [12:34:01] Heartbeat OK • [12:33:31] Heartbeat OK • [12:33:01] Heartbeat OK • [12:32:31] 🔴 Perte de focus (1/3)
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:.5rem">
+  <div class="card">
+    <h3>📝 Soumission automatique</h3>
+    <div class="text-sm">⏱ Minuteur synchronisé côté serveur (30s heartbeat)</div>
+    <div class="text-sm">⚠️ 3 infractions → soumission automatique</div>
+    <div class="text-sm">📤 Soumission manuelle + auto au timeout</div>
+    <p class="text-xs text-muted mt-1">📸 CAPTURE : Examen en cours avec timer, question QCM et barre de sécurité</p>
+  </div>
+  <div class="card">
+    <h3>📊 Résultat & Correction</h3>
+    <div class="flex-between"><span class="text-sm">QCM :</span><span class="badge badge-green">5/5 correct</span></div>
+    <div class="flex-between"><span class="text-sm">Rédaction :</span><span class="badge badge-amber">En attente de correction</span></div>
+    <div class="flex-between" style="margin-top:.5rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.5rem">
+      <span class="text-sm font-bold">Note :</span><span class="text-lg" style="font-weight:700;color:#a78bfa">14.5/20</span>
+    </div>
+  </div>
+</div>
+
+<!-- ====== CORRECTION ====== -->
+<div class="section-title">CORRECTION & AUTO-CORRECTION (R11, R12)</div>
+<div class="card">
+  <h3>Interface de correction enseignant</h3>
+  <table class="mock-table">
+    <thead><tr><th>Élève</th><th>Classe</th><th>Note</th><th>Statut</th></tr></thead>
+    <tbody>
+      <tr><td>Rakoto H.</td><td>Term C</td><td>15/20</td><td><span class="badge badge-green">QCM auto</span></td></tr>
+      <tr><td>Rabe M.</td><td>Term C</td><td>12/20</td><td><span class="badge badge-amber">Manuel</span></td></tr>
+      <tr><td>Rasoa F.</td><td>Term C</td><td>—</td><td><span class="badge badge-red">Non soumis</span></td></tr>
+    </tbody>
+  </table>
+  <p class="text-xs text-muted mt-1">📸 CAPTURE : Interface de correction avec auto-correction QCM et correction manuelle rédaction</p>
+</div>
+
+<!-- ====== BULLETIN ====== -->
+<div id="bulletin" class="section-title">BULLETIN DE NOTES (R20)</div>
+<div class="card">
+  <h3>📋 Bulletin — S1 2025/2026</h3>
+  <table class="mock-table">
+    <thead><tr><th>Matière</th><th>Moyenne</th><th>Coeff</th><th>Appréciation</th></tr></thead>
+    <tbody>
+      <tr><td>Mathématiques</td><td><strong>14.5</strong></td><td>4</td><td class="text-xs text-muted">Bon travail</td></tr>
+      <tr><td>Français</td><td><strong>12.0</strong></td><td>3</td><td class="text-xs text-muted">Peut mieux faire</td></tr>
+      <tr><td>Sciences</td><td><strong>16.5</strong></td><td>3</td><td class="text-xs text-muted">Excellent</td></tr>
+      <tr><td>Anglais</td><td><strong>10.5</strong></td><td>2</td><td class="text-xs text-muted">Doit réviser</td></tr>
+      <tr style="border-top:2px solid rgba(167,139,250,.2)"><td><strong>Moyenne Générale</strong></td><td><strong style="color:#a78bfa">13.6</strong></td><td>—</td><td class="text-xs" style="color:#a78bfa">Assez Bien</td></tr>
+    </tbody>
+  </table>
+  <p class="text-xs text-muted mt-1">📸 CAPTURE : Bulletin de notes avec moyenne par matière et moyenne générale</p>
+</div>
+
+<!-- ====== VISIOCONFÉRENCE ====== -->
+<div id="visio" class="section-title">VISIOCONFÉRENCE (R8)</div>
+<div class="card">
+  <h3>🎥 Live Class — Sciences Terminale C</h3>
+  <div class="visio-grid">
+    <div class="visio-main">
+      <div style="text-align:center">
+        <div style="font-size:3rem">👨‍🏫</div>
+        <div class="text-sm">Professeur — M. Razafindrakoto</div>
+        <div class="text-xs text-muted">Flux WebRTC • LiveKit</div>
+      </div>
+    </div>
+    <div class="visio-side">
+      <div class="visio-participant"><div class="avatar" style="background:rgba(167,139,250,.2);color:#a78bfa">R</div><div><div class="name">Rakoto H.</div><div class="status">🎤 Micro activé</div></div></div>
+      <div class="visio-participant"><div class="avatar" style="background:rgba(52,211,153,.2);color:#34d399">M</div><div><div class="name">Miora R.</div><div class="status">✋ Main levée</div></div></div>
+      <div class="visio-participant"><div class="avatar" style="background:rgba(251,191,36,.2);color:#fbbf24">F</div><div><div class="name">Faly T.</div><div class="status">🔇 Micro désactivé</div></div></div>
+      <div class="visio-participant"><div class="avatar" style="background:rgba(239,68,68,.2);color:#ef4444">B</div><div><div class="name">+3 autres</div><div class="status">👥</div></div></div>
+    </div>
+  </div>
+  <div class="flex-between mt-1">
+    <div class="gap-1">
+      <span class="feature-pill">🎤 Micro</span>
+      <span class="feature-pill">📹 Caméra</span>
+      <span class="feature-pill">✋ Main levée</span>
+      <span class="feature-pill">💬 Questions</span>
+    </div>
+    <span class="badge badge-green">● 8 participants</span>
+  </div>
+  <p class="text-xs text-muted mt-1">📸 CAPTURE : Session visioconférence avec flux caméra, main levée et participants</p>
+</div>
+
+<!-- ====== NOTIFICATIONS ====== -->
+<div class="section-title">NOTIFICATIONS (R9)</div>
+<div class="card">
+  <div class="flex-between">
+    <h3>🔔 Alertes & Rappels</h3>
+    <span class="badge badge-red">3 non lues</span>
+  </div>
+  <div class="grid-2 mt-1">
+    <div><span class="badge badge-red" style="font-size:.65rem">📝 Examen</span><div class="text-sm mt-1">DS Mathématiques demain 08:00 — Salle 12</div><div class="text-xs text-muted">Il y a 2h</div></div>
+    <div><span class="badge badge-amber" style="font-size:.65rem">🎥 Visio</span><div class="text-sm mt-1">Visio Sciences reprogrammé au vendredi 14h</div><div class="text-xs text-muted">Il y a 1j</div></div>
+    <div><span class="badge badge-green" style="font-size:.65rem">📚 Cours</span><div class="text-sm mt-1">Nouveau chapitre disponible : Algèbre linéaire</div><div class="text-xs text-muted">Il y a 3j</div></div>
+    <div><span class="badge" style="font-size:.65rem;background:rgba(167,139,250,.1);color:#a78bfa">🏪 Boutique</span><div class="text-sm mt-1">Nouvelle ressource : Annales BAC S 2024</div><div class="text-xs text-muted">Il y a 5j</div></div>
+  </div>
+</div>
+
+<!-- ====== BOUTIQUE ====== -->
+<div id="shop" class="section-title">BOUTIQUE DE RESSOURCES (R21)</div>
+<div class="grid-4">
+  <div class="card shop-item">
+    <div style="font-size:2.5rem;margin-bottom:.5rem">📘</div>
+    <div class="text-sm font-bold">Annales BAC S</div>
+    <div class="text-xs text-muted mb-1">Sujets corrigés 2020-2024</div>
+    <div class="price">12 000 Ar</div>
+    <button class="btn btn-primary btn-sm mt-1" style="width:100%">Ajouter au panier</button>
+  </div>
+  <div class="card shop-item">
+    <div style="font-size:2.5rem;margin-bottom:.5rem">📗</div>
+    <div class="text-sm font-bold">Exercices Maths</div>
+    <div class="text-xs text-muted mb-1">200 exercices corrigés</div>
+    <div class="price">8 000 Ar</div>
+    <button class="btn btn-primary btn-sm mt-1" style="width:100%">Ajouter au panier</button>
+  </div>
+  <div class="card shop-item">
+    <div style="font-size:2.5rem;margin-bottom:.5rem">🎓</div>
+    <div class="text-sm font-bold">Pack Révision</div>
+    <div class="text-xs text-muted mb-1">Cours + exercices + examens</div>
+    <div class="price">25 000 Ar</div>
+    <button class="btn btn-primary btn-sm mt-1" style="width:100%">Ajouter au panier</button>
+  </div>
+  <div class="card shop-item">
+    <div style="font-size:2.5rem;margin-bottom:.5rem">📕</div>
+    <div class="text-sm font-bold">Guide Grammaire</div>
+    <div class="text-xs text-muted mb-1">Français & Anglais</div>
+    <div class="price">5 000 Ar</div>
+    <button class="btn btn-primary btn-sm mt-1" style="width:100%">Ajouter au panier</button>
+  </div>
+</div>
+
+<!-- ====== TECHNOLOGIES ====== -->
+<div class="section-title">TECHNOLOGIES UTILISÉES</div>
+<div class="grid-3">
+  <div class="card">
+    <h3>⚙️ Backend</h3>
+    <div class="gap-1"><span class="feature-pill">Python 3.x</span><span class="feature-pill">Django 6.0.3</span><span class="feature-pill">DRF 3.x</span><span class="feature-pill">PostgreSQL</span><span class="feature-pill">JWT</span><span class="feature-pill">LiveKit</span></div>
+  </div>
+  <div class="card">
+    <h3>🎨 Frontend</h3>
+    <div class="gap-1"><span class="feature-pill">React 19</span><span class="feature-pill">Vite 8</span><span class="feature-pill">Tailwind CSS</span><span class="feature-pill">Framer Motion</span><span class="feature-pill">i18next</span></div>
+  </div>
+  <div class="card">
+    <h3>🔐 Sécurité Examens</h3>
+    <div class="gap-1"><span class="security-badge">Plein écran</span><span class="security-badge">Blocage touches</span><span class="security-badge">Anti-triche</span><span class="security-badge">Heartbeat 30s</span></div>
+  </div>
+</div>
+
+<!-- ====== FONCTIONNALITÉS ====== -->
+<div class="section-title">21 FONCTIONNALITÉS CLÉS (R1-R21)</div>
+<div class="card">
+  <div class="grid-3" style="font-size:.8rem">
+    <div><span class="badge badge-green" style="font-size:.65rem">R1</span> Authentification JWT</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R2</span> Dashboard étudiant</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R3</span> Landing page</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R4</span> Navigation responsive</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R5</span> Dashboard professeur</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R6</span> Gestion cours CRUD</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R7</span> Upload fichiers</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R8</span> Visioconférence</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R9</span> Notifications</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R10</span> Création examens</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R11</span> Auto-correction QCM</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R12</span> Correction manuelle</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R13</span> Gestion apprenants</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R14</span> Navigation cours</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R15</span> Progrès étudiant</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R16</span> Examen plein écran</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R17</span> Anti-triche</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R18</span> Minuteur synchronisé</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R19</span> Soumission examen</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R20</span> Bulletin de notes</div>
+    <div><span class="badge badge-green" style="font-size:.65rem">R21</span> Boutique</div>
+  </div>
+</div>
+
+<!-- ====== LÉGENDE ====== -->
+<div class="section-title">📷 CAPTURES D'ÉCRAN À INSÉRER DANS LE RAPPORT</div>
+<div class="card">
+  <div class="grid-2">
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">1. Landing page</div><div class="text-sm mt-1">Page d'accueil avec statistiques globales + logos partenaires</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">2. Connexion</div><div class="text-sm mt-1">Écran login 3 niveaux (établissement → rôle → identifiants)</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">3. Dashboard étudiant</div><div class="text-sm mt-1">Progression + notifications + recommandations IA</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">4. Dashboard enseignant</div><div class="text-sm mt-1">Classes, copies à corriger, statistiques</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">5. Gestion cours</div><div class="text-sm mt-1">TeacherCourseManager : chapitres, leçons, fichiers</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">6. Lecteur cours</div><div class="text-sm mt-1">CoursePlayer avec progression et contenu multimédia</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">7. Examen sécurisé</div><div class="text-sm mt-1">Mode plein écran + timer + questions QCM + barre sécurité</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">8. Correction</div><div class="text-sm mt-1">Liste des copies avec notes (auto + manuel)</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">9. Bulletin</div><div class="text-sm mt-1">Notes par matière + moyenne générale</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">10. Visioconférence</div><div class="text-sm mt-1">Session live avec flux, main levée, participants</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">11. Boutique</div><div class="text-sm mt-1">Ressources pédagogiques avec prix</div></div>
+    <div><div class="badge" style="background:rgba(167,139,250,.1);font-size:.75rem">12. Structure dossiers</div><div class="text-sm mt-1">Arborescence Backend/ et frontend/ (commande tree)</div></div>
+  </div>
+</div>
+
+<div class="footer">
+  ENENI — Plateforme Éducative Numérique • Projet Transversal L2SIO 2025-2026<br>
+  ANDRIANANTENAINA Tiavina Davidson • Encadré par M. RAZAFINDRAIBE Fabrice
+</div>
+
+</div>
+
+<script>
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function switchTab(el, id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.dash-tab').forEach(d=>d.style.display='none');
+  document.getElementById(id).style.display='';
+}
+
+// Lang switcher
+document.querySelectorAll('.lang button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.lang button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

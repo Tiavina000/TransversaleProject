@@ -1,0 +1,128 @@
+flowchart TB
+
+%% ===================== ROOT =====================
+ENENI["ENENI - Plateforme Éducative Numérique"]
+
+%% =================================================
+%% 1. PAQUET UTILISATEURS
+%% =================================================
+subgraph P1["Paquet : Utilisateurs"]
+    U1["Utilisateur"]
+    U2["Etudiant"]
+    U3["Enseignant"]
+    U4["AdminPlateforme"]
+end
+
+%% =================================================
+%% 2. PAQUET ETABLISSEMENT
+%% =================================================
+subgraph P2["Paquet : Etablissements"]
+    E1["Etablissement"]
+    E2["Classe"]
+    E3["AdminEtablissement"]
+end
+
+%% =================================================
+%% 3. PAQUET PEDAGOGIE
+%% =================================================
+subgraph P3["Paquet : Pedagogie"]
+    P31["NiveauScolaire"]
+    P32["Matiere"]
+    P33["Chapitre"]
+    P34["Lecon"]
+    P35["FichierMultimedia"]
+    P36["SessionEtude"]
+    P37["ProgressionChapitre"]
+end
+
+%% =================================================
+%% 4. PAQUET EXAMENS
+%% =================================================
+subgraph P4["Paquet : Examens"]
+    X1["Examen"]
+    X2["QuestionExamen"]
+    X3["CopieExamen"]
+    X4["ReponseExamen"]
+    X5["LogSurveillance"]
+end
+
+%% =================================================
+%% 5. PAQUET VISIOCONFERENCE
+%% =================================================
+subgraph P5["Paquet : Visioconference"]
+    V1["SessionVisio"]
+    V2["ParticipationVisio"]
+    V3["QuestionVisio"]
+end
+
+%% =================================================
+%% 6. PAQUET BOUTIQUE
+%% =================================================
+subgraph P6["Paquet : Boutique"]
+    B1["RessourceBoutique"]
+    B2["Panier"]
+    B3["PanierItem"]
+    B4["Commande"]
+end
+
+%% =================================================
+%% 7. PAQUET COMMUNICATION
+%% =================================================
+subgraph P7["Paquet : Communication"]
+    C1["Actualite"]
+    C2["Notification"]
+    C3["Partenaire"]
+    C4["Renovation"]
+end
+
+%% =================================================
+%% 8. PAQUET IA
+%% =================================================
+subgraph P8["Paquet : Intelligence Artificielle"]
+    IA1["RequestIA"]
+    IA2["Recommandation"]
+end
+
+%% =================================================
+%% RELATIONS ENTRE PAQUETS
+%% =================================================
+
+ENENI --> P1
+ENENI --> P2
+ENENI --> P3
+ENENI --> P4
+ENENI --> P5
+ENENI --> P6
+ENENI --> P7
+ENENI --> P8
+
+%% ===================== DEPENDANCES =====================
+
+%% Utilisateurs dépend des autres modules
+P2 --> P1
+P3 --> P1
+P4 --> P1
+P5 --> P1
+P6 --> P1
+P7 --> P1
+P8 --> P1
+
+%% Etablissement influence pédagogie
+P2 --> P3
+P2 --> P4
+
+%% Pédagogie alimente examens et visio
+P3 --> P4
+P3 --> P5
+P3 --> P6
+
+%% Examens influence communication et IA
+P4 --> P7
+P4 --> P8
+
+%% Boutique dépend pédagogie
+P6 --> P3
+
+%% IA utilise pédagogie + examens
+P8 --> P3
+P8 --> P4

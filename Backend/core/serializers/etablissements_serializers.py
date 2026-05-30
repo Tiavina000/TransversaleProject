@@ -4,10 +4,15 @@ from .base_serializers import UtilisateurSerializer
 
 
 class EtablissementSerializer(serializers.ModelSerializer):
+    type_label = serializers.SerializerMethodField()
+
     class Meta:
         model = Etablissement
-        fields = ['id', 'nom', 'adresse', 'telephone', 'email', 'code_etablissement']
-        read_only_fields = ['id']
+        fields = ['id', 'nom', 'adresse', 'telephone', 'email', 'code_etablissement', 'type', 'type_label']
+        read_only_fields = ['id', 'type_label']
+
+    def get_type_label(self, obj):
+        return obj.get_type_display()
 
 
 class AdminEtablissementSerializer(serializers.ModelSerializer):

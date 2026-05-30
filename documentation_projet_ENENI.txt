@@ -1,0 +1,887 @@
+================================================================================
+                        PROJET ENENI - DOCUMENTATION COMPLÈTE
+        Plateforme Éducative Numérique pour les Établissements Scolaires Malgaches
+================================================================================
+
+1. PRÉSENTATION GÉNÉRALE
+================================================================================
+
+ENENI est une plateforme éducative numérique complète destinée aux établissements
+scolaires malgaches (lycées, CEG, EPP). Elle offre une solution intégrée pour la
+gestion des cours, des examens avec surveillance anti-triche, de la visioconférence,
+d'une boutique de ressources pédagogiques, d'un fil d'actualités, et d'un système
+de recommandations basé sur l'intelligence artificielle.
+
+Le projet a été développé dans le cadre du Projet Transversal L2SIO avec :
+- Backend : Django REST Framework 6.0.3 (Python)
+- Frontend : React 19.2.5 (JavaScript) avec Vite 8.0.10
+- Base de données : PostgreSQL
+- Authentification : JWT (JSON Web Tokens) via djangorestframework-simplejwt
+- Internationalisation : malgache (MG), français (FR), anglais (EN)
+- Interface : responsive, accessible (TTS/STT), 3 thèmes (Ministère, Sombre, Clair)
+
+
+2. ARCHITECTURE DU PROJET
+================================================================================
+
+2.1 Structure des dossiers
+
+Les arborescences ci-dessous sont générées par les commandes suivantes :
+
+    tree Backend/ --dirsfirst
+    tree frontend/src/ --dirsfirst
+
+---
+
+Backend/
+├── core
+│   ├── management
+│   │   ├── commands
+│   │   │   ├── __init__.py
+│   │   │   ├── seed_all.py
+│   │   │   └── seed_schools.py
+│   │   └── __init__.py
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_alter_adminetablissement_options_and_more.py
+│   │   ├── 0003_alter_commande_options_and_more.py
+│   │   ├── 0004_alter_etablissement_options_etablissement_type.py
+│   │   ├── 0005_classe_etudiant_classe.py
+│   │   ├── 0006_add_enseignant_niveau.py
+│   │   ├── 0007_add_chapitre_createur.py
+│   │   └── __init__.py
+│   ├── models
+│   │   ├── base.py
+│   │   ├── boutique.py
+│   │   ├── communications.py
+│   │   ├── etablissements.py
+│   │   ├── examens.py
+│   │   ├── __init__.py
+│   │   ├── intelligence_artificielle.py
+│   │   ├── pedagogie.py
+│   │   ├── utilisateurs.py
+│   │   └── visioconference.py
+│   ├── serializers
+│   │   ├── base_serializers.py
+│   │   ├── boutique_serializers.py
+│   │   ├── communications_serializers.py
+│   │   ├── etablissements_serializers.py
+│   │   ├── examens_serializers.py
+│   │   ├── ia_serializers.py
+│   │   ├── __init__.py
+│   │   ├── pedagogie_serializers.py
+│   │   ├── utilisateurs_serializers.py
+│   │   └── visioconference_serializers.py
+│   ├── services
+│   │   ├── graph_service.py
+│   │   ├── __init__.py
+│   │   ├── livekit_service.py
+│   │   ├── scoring_service.py
+│   │   ├── trie_service.py
+│   │   └── voice_service.py
+│   ├── static
+│   │   └── core
+│   │       └── css
+│   │           └── style.css
+│   ├── views
+│   │   ├── boutique_views.py
+│   │   ├── communications_views.py
+│   │   ├── etablissements_views.py
+│   │   ├── examens_views.py
+│   │   ├── ia_views.py
+│   │   ├── __init__.py
+│   │   ├── pedagogie_views.py
+│   │   ├── stats_views.py
+│   │   ├── utilisateurs_views.py
+│   │   └── visioconference_views.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── auth_backends.py
+│   ├── permissions.py
+│   ├── tests.py
+│   ├── translation.py
+│   ├── urls.py
+│   └── views.py
+├── documentation
+│   ├── API_REST_DOCUMENTATION.md
+│   ├── ARCHITECTURE.md
+│   ├── CHECKLIST.md
+│   ├── EXEMPLES_REQUETES.md
+│   ├── GUIDE_IMPLEMENTATION.md
+│   ├── README_API_REST.md
+│   └── README.md
+├── ENENI
+│   ├── asgi.py
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── locale
+│   ├── en
+│   │   └── LC_MESSAGES
+│   │       ├── django.mo
+│   │       └── django.po
+│   ├── fr
+│   │   └── LC_MESSAGES
+│   │       ├── django.mo
+│   │       └── django.po
+│   └── mg
+│       └── LC_MESSAGES
+│           ├── django.mo
+│           └── django.po
+├── data.json
+├── db.sqlite3
+├── fonction_back.txt
+└── manage.py
+
+---
+
+frontend/src/
+├── assets
+│   ├── hero.png
+│   ├── react.svg
+│   └── vite.svg
+├── components
+│   ├── Exam
+│   │   └── ExamMode.jsx
+│   ├── Feed
+│   │   ├── AdminDashboard.jsx
+│   │   ├── InfiniteScrollContainer.jsx
+│   │   ├── MesClasses.css
+│   │   ├── MesClasses.jsx
+│   │   ├── ProgressChart.jsx
+│   │   ├── Stories.jsx
+│   │   ├── StudentDashboard.jsx
+│   │   ├── TeacherCourseManager.jsx
+│   │   └── TeacherDashboard.jsx
+│   ├── Layout
+│   │   └── Navbar.jsx
+│   ├── UI
+│   │   ├── AttentionIndicator.jsx
+│   │   ├── LanguageSwitcher.jsx
+│   │   ├── ThemeSwitcher.jsx
+│   │   └── VoiceInput.jsx
+│   └── Visio
+│       └── VisioGrid.jsx
+├── context
+│   └── ThemeContext.jsx
+├── hooks
+│   ├── useAuth.js
+│   ├── useCourseTimer.js
+│   ├── useExamSecurity.js
+│   ├── useFullscreen.js
+│   ├── useNotifications.js
+│   ├── useSpeech.js
+│   └── useSurveillance.js
+├── locales
+│   ├── en
+│   │   └── translation.json
+│   ├── fr
+│   │   └── translation.json
+│   └── mg
+│       └── translation.json
+├── pages
+│   ├── BulletinPage.jsx
+│   ├── CorrectionsPage.jsx
+│   ├── CoursePlayer.jsx
+│   ├── CoursesPage.jsx
+│   ├── ExamsPage.jsx
+│   ├── LandingPage.jsx
+│   ├── LiveClass.jsx
+│   ├── LoginPage.jsx
+│   └── ShopPage.jsx
+├── services
+│   └── api.js
+├── App.css
+├── App.jsx
+├── i18n.js
+├── index.css
+└── main.jsx
+
+
+3. TECHNOLOGIES UTILISÉES
+================================================================================
+
+3.1 Backend
+
+  Technologie          Version   Rôle
+  ───────────────────  ────────  ─────────────────────────────────
+  Python               3.x       Langage de programmation
+  Django               6.0.3     Framework web backend
+  Django REST Frame.   3.x       Création d'API REST
+  PostgreSQL           16.x      Base de données
+  djangorestframework-simplejwt  Authentification JWT
+  django-modeltranslation        Internationalisation des modèles
+  django-cors-headers            Gestion CORS
+
+3.2 Frontend
+
+  Technologie          Version   Rôle
+  ───────────────────  ────────  ─────────────────────────────────
+  React                19.2.5    Bibliothèque d'interface utilisateur
+  Vite                 8.0.10    Outil de build
+  Tailwind CSS         3.4.19    Framework CSS utilitaire
+  React Router DOM     7.14.2    Routage côté client
+  Axios                1.15.2    Client HTTP
+  Framer Motion        12.38.0   Animations
+  i18next              26.x      Internationalisation
+  react-i18next        17.x      Internationalisation React
+  Lucide React         1.14.0    Icônes
+  react-intersection-observer    10.x      Observateur d'intersection
+
+3.3 Outils de développement
+
+  Outil     Rôle
+  ───────   ─────────────────────────────────────────────────────
+  VS Code   Éditeur de code
+  Git/GitHub Gestion de version
+  Postman   Test des API REST
+  ESLint    Linting du code frontend
+
+
+4. MODÈLES DE DONNÉES (BASE DE DONNÉES)
+================================================================================
+
+4.1 Classes abstraites
+
+  TimeStampedModel (abstrait)
+  ├── date_creation      DateTime (auto_now_add)
+  └── date_modification  DateTime (auto_now)
+
+  SoftDeleteModel (abstrait)
+  ├── est_actif          Boolean (default=True)
+  └── date_suppression   DateTime (nullable)
+
+4.2 Module Utilisateurs
+
+  Utilisateur (extends AbstractUser + TimeStampedModel + SoftDeleteModel)
+  ├── username           CharField (unique)
+  ├── prenom             CharField(100)
+  ├── email              EmailField (unique)
+  ├── langue_preferee    CharField(2)  MG/FR/EN
+  ├── options_accessibilite  JSONField
+  ├── photo_profil       ImageField (nullable)
+  └── type_utilisateur   CharField(25)  ETUDIANT/ENSEIGNANT/ADMINISTRATEUR
+
+  Étudiant (OneToOne → Utilisateur)
+  ├── utilisateur        OneToOneField(Utilisateur)
+  ├── etablissement      ForeignKey(Établissement)
+  ├── numero_etudiant    CharField(20, unique)
+  ├── niveau             ForeignKey(NiveauScolaire)
+  ├── classe             ForeignKey(Classe)
+  └── points_global      IntegerField
+
+  Enseignant (OneToOne → Utilisateur)
+  ├── utilisateur        OneToOneField(Utilisateur)
+  ├── etablissement      ForeignKey(Établissement)
+  ├── specialite         CharField(100)
+  ├── date_embauche      DateField
+  └── niveau             ForeignKey(NiveauScolaire)
+
+  AdminPlateforme (OneToOne → Utilisateur)
+  ├── utilisateur        OneToOneField(Utilisateur)
+  └── niveau_acces       CharField(50)
+
+4.3 Module Établissements
+
+  Établissement
+  ├── nom                CharField(255)
+  ├── adresse            CharField(255)
+  ├── telephone          CharField(20)
+  ├── email              EmailField
+  ├── code_etablissement CharField(20, unique)
+  └── type               CharField(10)  LYCEE/CEG/EPP/AUTRE
+
+  AdminEtablissement
+  ├── utilisateur        OneToOneField(Utilisateur)
+  ├── etablissement      ForeignKey(Établissement)
+  └── fonction           CharField(100)
+
+  Classe
+  ├── nom                CharField(100)
+  ├── niveau             ForeignKey(NiveauScolaire)
+  └── etablissement      ForeignKey(Établissement)
+  (unique_together: nom + etablissement)
+
+4.4 Module Pédagogie
+
+  NiveauScolaire
+  ├── nom                CharField(20) CP/CE1/.../Terminale
+  ├── ordre              IntegerField (unique)
+  └── description        TextField
+
+  Matiere
+  ├── nom                CharField(100)
+  ├── code               CharField(20, unique)
+  ├── description        TextField
+  ├── niveaux            ManyToManyField(NiveauScolaire)
+  └── ordre              IntegerField
+
+  Chapitre
+  ├── titre              CharField(200)
+  ├── order              PositiveIntegerField
+  ├── matiere            ForeignKey(Matiere)
+  ├── niveau             ForeignKey(NiveauScolaire)
+  ├── description        TextField
+  └── createur           ForeignKey(Enseignant)
+  (unique_together: matiere + niveau + order)
+
+  Lecon
+  ├── titre              CharField(200)
+  ├── order              PositiveIntegerField
+  ├── chapitre           ForeignKey(Chapitre)
+  ├── contenue_texte     TextField
+  ├── duree_estimee      PositiveIntegerField (minutes)
+  └── objectifs          TextField
+
+  FichierMultimedia
+  ├── type_fichier       CharField(20)  VIDEO/AUDIO/PDF
+  ├── titre              CharField(200)
+  ├── url_fichier        URLField
+  ├── taille_no          FloatField
+  ├── lecon              ForeignKey(Lecon)
+  ├── format             CharField(10)
+  ├── est_telechargeable Boolean
+  └── metadata           JSONField
+
+  ProgressionChapitre
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── chapitre           ForeignKey(Chapitre)
+  ├── temps_passe_secondes PositiveIntegerField
+  ├── est_valide         BooleanField
+  └── date_derniere_session DateTime(auto_now)
+
+  SessionEtude
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── chapitre           ForeignKey(Chapitre)
+  ├── date_debut         DateTime(auto_now_add)
+  ├── date_fin           DateTime (nullable)
+  ├── derniere_activite  DateTime(auto_now)
+  ├── temps_cumule_secondes PositiveIntegerField
+  └── statut             CharField(20) EN_COURS/PAUSE/TERMINE/ABANDONNE
+
+4.5 Module Examens
+
+  Examen
+  ├── titre              CharField(200)
+  ├── enseignant         ForeignKey(Enseignant)
+  ├── matiere            ForeignKey(Matiere)
+  ├── niveau             ForeignKey(NiveauScolaire)
+  ├── duree_minutes      PositiveIntegerField
+  ├── date_debut         DateTimeField
+  ├── date_fin           DateTimeField
+  ├── est_publie         BooleanField
+  ├── coefficient        FloatField
+  ├── type_examen        CharField(20) QCM/TEXTE/REDACTION/MIXTE
+  └── lecture_automatique BooleanField
+
+  QuestionExamen
+  ├── examen             ForeignKey(Examen)
+  ├── texte              TextField
+  ├── type_question      CharField(10) QCM/TEXTE/NUMERIQUE/VRAI_FAUX/REDACTION
+  ├── points             FloatField
+  ├── ordre              PositiveIntegerField
+  ├── options            JSONField (liste pour QCM)
+  ├── reponse_correcte   TextField
+  ├── mot_min/max        PositiveIntegerField (nullable)
+  ├── criteres_correction JSONField
+  └── obligatoire        BooleanField
+
+  CopieExamen
+  ├── examen             ForeignKey(Examen)
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── date_debut         DateTime(auto_now_add)
+  ├── date_soumission    DateTime (nullable)
+  ├── note_obtenue       FloatField (nullable, 0-20)
+  └── est_termine        BooleanField
+
+  ReponseExamen
+  ├── copie              ForeignKey(CopieExamen)
+  ├── question           ForeignKey(QuestionExamen)
+  ├── reponse_etudiant   TextField
+  ├── est_correct        BooleanField
+  ├── points_obtenus     FloatField
+  ├── nb_mots            PositiveIntegerField (nullable)
+  ├── fautes_orthographe  JSONField
+  └── correction_commentaire TextField
+
+  LogSurveillance
+  ├── copie              ForeignKey(CopieExamen)
+  ├── evenement          CharField(200)
+  ├── details            JSONField
+  └── date_evenement     DateTime(auto_now_add)
+
+4.6 Module Visioconférence
+
+  SessionVisio
+  ├── titre              CharField(200)
+  ├── enseignant         ForeignKey(Enseignant)
+  ├── lecon              ForeignKey(Lecon)
+  ├── date_debut         DateTimeField
+  ├── date_fin           DateTimeField
+  ├── url_visio          URLField
+  └── est_active         BooleanField
+
+  ParticipationVisio
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── session            ForeignKey(SessionVisio)
+  ├── date_joindre       DateTime(auto_now_add)
+  ├── date_quitter       DateTime (nullable)
+  ├── duree_participation PositiveIntegerField
+  └── evenements_inactive JSONField
+
+  QuestionVisio
+  ├── session            ForeignKey(SessionVisio)
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── contenu            TextField
+  ├── date_creation      DateTime(auto_now_add)
+  └── est_answered       BooleanField
+
+4.7 Module Boutique
+
+  RessourceBoutique
+  ├── titre              CharField(200)
+  ├── description        TextField
+  ├── prix               DecimalField
+  ├── type_contenu       CharField(10) LIVRE/EXERCICES/COURS/VIDEO
+  ├── fichier            ForeignKey(FichierMultimedia, nullable)
+  ├── niveau             ForeignKey(NiveauScolaire, nullable)
+  ├── matiere            ForeignKey(Matiere, nullable)
+  ├── est_disponible     BooleanField
+  └── stock              PositiveIntegerField
+
+  Panier
+  └── etudiant           OneToOneField(Étudiant)
+
+  PanierItem
+  ├── panier             ForeignKey(Panier)
+  ├── ressources         ForeignKey(RessourceBoutique)
+  ├── quantite           PositiveIntegerField
+  └── date_ajout         DateTime(auto_now_add)
+
+  Commande
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── montant_total      DecimalField
+  ├── statut_paiement    CharField(20) EN_ATTENTE/PAYEE/LIVREE/ANNULEE
+  ├── reference_paiement CharField(100, unique)
+  └── date_paiement      DateTime (nullable)
+
+4.8 Module Communications
+
+  Actualite
+  ├── titre              CharField(200)
+  ├── contenu            TextField
+  ├── categorie          CharField(30) Examens/Cours/Événements/Annonces/Sport/Culture
+  ├── est_important      BooleanField
+  ├── image              ImageField (nullable)
+  ├── video_url          URLField (nullable)
+  ├── lien_externe       URLField (nullable)
+  ├── lien_label         CharField(100)
+  ├── auteur             ForeignKey(Utilisateur)
+  ├── date_expiration    DateTime (nullable)
+  ├── est_publie         BooleanField
+  ├── public_ciblie      CharField(20) TOUS/ETUDIANTS/ENSEIGNANTS/ETABLISSEMENT
+  └── etablissement_cible ForeignKey(Établissement, nullable)
+
+  Notification
+  ├── utilisateur        ForeignKey(Utilisateur)
+  ├── titre              CharField(200)
+  ├── message            TextField
+  ├── est_lue            BooleanField
+  ├── date_lecture       DateTime (nullable)
+  └── url_lien           URLField
+
+  Partenaire
+  ├── nom                CharField(100)
+  ├── logo               CharField(255)
+  ├── url                URLField
+  └── ordre              IntegerField
+
+  Renovation
+  ├── annee              CharField(4)
+  ├── titre              CharField(200)
+  ├── description        TextField
+  └── ordre              IntegerField
+
+4.9 Module Intelligence Artificielle
+
+  RequestIA
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── request            TextField
+  ├── reponse            TextField
+  └── type_requete       CharField(20) NAVIGATION/RECOMMANDATION/AIDE
+
+  Recommandation
+  ├── etudiant           ForeignKey(Étudiant)
+  ├── lecon              ForeignKey(Lecon)
+  ├── score_pertinence   FloatField (0-1)
+  ├── explication        TextField
+  └── est_consultee      BooleanField
+
+
+5. API REST - ENDPOINTS (80+ endpoints)
+================================================================================
+
+5.1 Authentification
+  POST   /api/auth/login/               Connexion JWT
+  POST   /api/auth/logout/              Déconnexion
+  POST   /api/auth/refresh/             Rafraîchir token
+  GET    /api/auth/me/                  Profil utilisateur connecté
+
+5.2 Utilisateurs (CRUD)
+  GET/POST   /api/utilisateurs/         Liste/Créer utilisateurs
+  GET/PUT/DEL /api/utilisateurs/{id}/   Détail/Modifier/Supprimer
+  GET/POST   /api/etudiants/            Étudiants
+  GET/POST   /api/enseignants/          Enseignants
+  GET/POST   /api/admins-plateforme/    Admins plateforme
+
+5.3 Établissements
+  GET/POST   /api/etablissements/       Établissements
+  GET/POST   /api/classes/              Classes
+  GET/POST   /api/niveaux-scolaires/    Niveaux scolaires
+
+5.4 Pédagogie (Cours)
+  GET/POST   /api/matieres/             Matières
+  GET/POST   /api/chapitres/            Chapitres
+  GET/POST   /api/lecons/               Leçons
+  GET/POST   /api/fichiers-multimedia/  Fichiers (vidéo/audio/PDF)
+  GET/POST   /api/sessions-etude/       Sessions d'étude
+  GET        /api/courses/              Catalogue de cours
+
+5.5 Examens
+  GET/POST   /api/examens/              CRUD examens
+  POST       /api/examens/{id}/start/   Lancer examen
+  POST       /api/examens/{id}/submit/  Soumettre copie
+  GET        /api/examens/{id}/timer/   Minuteur synchro
+  POST       /api/examens/{id}/logs/    Log surveillance
+  POST       /api/examens/{id}/publier/ Publier examen
+  POST       /api/examens/{id}/soumettre/ Forcer soumission
+  GET/POST   /api/questions-examen/     Questions
+  GET/POST   /api/copies-examen/        Copies
+  GET/POST   /api/reponses-examen/      Réponses
+  GET/POST   /api/logs-surveillance/    Logs anti-triche
+
+5.6 Corrections
+  GET        /api/corrections/          Liste copies à corriger
+  GET        /api/corrections/classes/  Classes pour filtre
+  GET        /api/corrections/matieres/ Matières pour filtre
+  POST       /api/corrections/{id}/noter/ Noter une copie
+  GET        /api/corrections/{id}/spellcheck/ Vérification orthographe
+
+5.7 Notes et Bulletins
+  GET        /api/mes-notes/            Bulletin de notes étudiant
+
+5.8 Visioconférence
+  GET/POST   /api/sessions-visio/       Sessions visio
+  GET/POST   /api/live-sessions/        Sessions live
+  POST       /api/live-sessions/{id}/join/ Rejoindre
+  POST       /api/live-sessions/{id}/leave/ Quitter
+  POST       /api/live-sessions/{id}/raise-hand/ Main levée
+  POST       /api/live-sessions/{id}/lower-hand/ Baisser main
+  POST       /api/live-sessions/{id}/questions/ Question
+  PATCH      /api/live-sessions/{id}/questions/{qid}/answered/ Marquer répondue
+  POST       /api/live-sessions/{id}/ban/ Bannir étudiant
+
+5.9 Boutique
+  GET/POST   /api/boutique/             Ressources boutique
+  GET/POST   /api/panier/               Panier
+  POST       /api/panier/add/           Ajouter au panier
+  GET/POST   /api/commandes/            Commandes
+
+5.10 Communications
+  GET/POST   /api/actualites/           Actualités (fil infini)
+  GET/POST   /api/notifications/        Notifications
+  PATCH      /api/notifications/lire/{id}/ Marquer lue
+  POST       /api/notifications/tout-lire/ Tout lire
+  GET        /api/notifications/compte/ Compteur non lues
+
+5.11 Intelligence Artificielle
+  GET/POST   /api/requetes-ia/          Requêtes IA
+  GET/POST   /api/recommandations/      Recommandations de leçons
+
+5.12 Statistiques
+  GET        /api/stats/                Stats globales
+  GET        /api/stats/student/        Stats étudiant
+  GET        /api/stats/teacher/        Stats enseignant
+
+5.13 Endpoints publics
+  GET        /api/public/search/        Recherche publique
+  GET        /api/public/stats/         Statistiques publiques
+  GET        /api/public/partners/      Partenaires
+  GET        /api/public/renovations/   Rénovations
+
+5.14 Gestion enseignant (cours)
+  GET/POST   /api/teacher/chapitres/    CRUD chapitres (enseignant)
+  GET/POST   /api/teacher/lecons/       CRUD leçons (enseignant)
+  GET        /api/courses/{id}/files/{fid}/download/ Téléchargement fichier
+
+
+6. FONCTIONNALITÉS (R1 À R21)
+================================================================================
+
+  R1  - Authentification multiniveau avec sélection établissement + rôle + JWT
+  R2  - Dashboard étudiant (progression, matières, notifications)
+  R3  - Landing page publique (statistiques, partenaires)
+  R4  - Navigation responsive (3 thèmes, multilingue)
+  R5  - Dashboard professeur (classes, matières)
+  R6  - Gestion des cours par l'enseignant (CRUD chapitres/leçons)
+  R7  - Upload de fichiers multimédia (vidéo, audio, PDF)
+  R8  - Visioconférence (WebRTC, main levée, questions, bannissement)
+  R9  - Notifications (alertes examens, visios)
+  R10 - Création d'examens (QCM, texte, rédaction, mixte)
+  R11 - Auto-correction (QCM, Vrai/Faux)
+  R12 - Correction manuelle (interface enseignant)
+  R13 - Gestion des apprenants (suivi par l'enseignant)
+  R14 - Navigation cours étudiant (chapitres, leçons)
+  R15 - Suivi de progression (temps d'étude, heartbeat 30s)
+  R16 - Passage d'examen (mode plein écran)
+  R17 - Sécurité anti-triche (blocage clavier, logs)
+  R18 - Minuteur synchronisé (compte à rebours)
+  R19 - Soumission automatique et manuelle
+  R20 - Bulletin de notes (notes, moyennes)
+  R21 - Boutique de ressources pédagogiques
+
+
+7. SYSTÈME D'AUTHENTIFICATION
+================================================================================
+
+- Trois rôles : ÉTUDIANT, ENSEIGNANT, ADMINISTRATEUR
+- Connexion en 3 étapes : Établissement → Rôle → Identifiants (username/email/matricule + mot de passe)
+- JWT : access_token (24h) + refresh_token (7j)
+- Rafraîchissement automatique via intercepteur Axios
+- Stockage des tokens dans sessionStorage
+- Backend d'authentification personnalisé (EmailOrUsernameModelBackend)
+- Point d'entrée unique avec profil enrichi (/api/auth/me/)
+
+
+8. SYSTÈME DE PERMISSIONS
+================================================================================
+
+  Permission              Rôle autorisé en écriture   Lecture
+  ─────────────────────── ─────────────────────────── ───────────────────
+  IsAuthenticated         Tous authentifiés           Tous authentifiés
+  IsEnseignantOrReadOnly  ENSEIGNANT, ADMINISTRATEUR  Tous authentifiés
+  IsAdminOrReadOnly       ADMINISTRATEUR              Tous authentifiés
+  IsEtudiant              ÉTUDIANT                    ÉTUDIANT
+
+
+9. DIAGRAMMES UML COMPORTEMENTAUX
+================================================================================
+
+9.1 Diagramme d'état-transition (DET) - Examen
+  Fichier : ModelisationUML/diagramme_etat_transition.puml
+  États : Brouillon → Publié → EnCours → Terminé → EnCorrection → NotesPubliées
+          + Annulé (état final alternatif)
+  Détails : 
+  - État composite Brouillon avec entry/do/exit
+  - Gardes : [questions_valides], [date_debut <= maintenant], [copies_toutes_corrigées]
+  - Actions : / préparer_sujet, / verrouiller_sujet, / collecter_copies, etc.
+
+9.2 Diagramme d'état-transition (DET) - CopieExamen
+  Fichier : ModelisationUML/diagramme_etat_transition_copie.puml
+  États : EnAttente → EnCours → Suspendue → Soumise/SoumiseAnticipée → 
+          EnCorrectionAuto/EnAttenteCorrection → EnCorrectionManuelle → Notée
+  Détails :
+  - Gestion des pertes de focus avec temporisation (30s)
+  - Deux chemins de correction : auto (QCM/VF) et manuelle (texte/rédaction)
+
+9.3 Diagramme d'activité (DAC) - Passage d'examen
+  Fichier : ModelisationUML/diagramme_activite.puml
+  Couloirs : Étudiant, Frontend React, API Django, Minuteur, Enseignant
+  Processus : Authentification → Choix examen → Lancement (plein écran + blocage) 
+              → Boucle questions (QCM/Texte/VF/Rédaction) → Soumission 
+              → Correction auto/manuelle → Résultat
+
+9.4 Diagramme de séquence (DSE) - Passage d'examen
+  Fichier : ModelisationUML/diagramme_sequence.puml
+  Acteurs : Étudiant, Frontend React, API Django, Base de données, Minuteur
+  Fragments :
+  - par [parallèle] : minuteur + questions + heartbeat
+  - alt [alternatives] : soumission volontaire vs minuteur expire
+  - opt [optionnel] : détection perte de focus
+  - loop [boucles] : questions, heartbeat, tic minuteur
+  Messages synchrones (-> ++ / --> --) pour appels API
+  Messages asynchrones (->>) pour minuteur et notifications
+  Création (create) et destruction (destroy) du minuteur
+
+9.5 Diagramme de temps (DTP) - Session d'examen (60 min)
+  Fichier : ModelisationUML/diagramme_temps.puml
+  Lignes de vie : Étudiant, Minuteur, CopieExamen, PleinÉcran, LogSurveillance
+  Échelle : @0 à @67 minutes
+  Événements : perte de focus à t=17, restauration à t=17.5, expiration à t=65
+  Minuteur : 60:00 à t=5 → 00:00 à t=65 (60 min de décompte)
+
+
+10. SERVICES AVANCÉS
+================================================================================
+
+10.1 TrieService - Auto-complétion
+  Structure de données Trie (arbre préfixe) pour la recherche rapide
+  et l'auto-complétion du contenu éducatif.
+
+10.2 GraphService - Parcours d'apprentissage
+  Modélisation des graphes de prérequis entre cours.
+  Permet de déterminer les parcours d'apprentissage optimaux.
+
+10.3 ScoringService - Système de notation
+  Évaluation dynamique des étudiants et recommandation de parcours
+  personnalisés en fonction des résultats.
+
+10.4 VoiceService - Synthèse vocale
+  Text-to-Speech (TTS) et Speech-to-Text (STT) pour l'accessibilité
+  des apprenants malvoyants ou à mobilité réduite.
+
+
+11. SÉCURITÉ DES EXAMENS (ANTI-TRICHE)
+================================================================================
+
+Le système implémente plusieurs couches de sécurité pour les examens :
+
+1. Mode plein écran obligatoire pendant toute la durée de l'examen
+2. Blocage des touches sensibles :
+   - F12 (outils développeur)
+   - Ctrl+C (copier)
+   - Ctrl+V (coller)
+   - Ctrl+U (code source)
+   - PrintScreen (capture d'écran)
+   - Alt+Tab (changement fenêtre)
+3. Désactivation du clic droit
+4. Journalisation de tous les événements suspects dans LogSurveillance
+5. Détection de perte de focus avec temporisation (30s avant soumission forcée)
+6. Minuteur synchronisé côté serveur (empêche la triche par manipulation horloge)
+7. Heartbeat toutes les 30 secondes pour vérifier la présence active
+
+
+12. INTERNATIONALISATION
+================================================================================
+
+Langues supportées :
+- Malgache (MG) - langue par défaut
+- Français (FR)
+- Anglais (EN)
+
+Technologies :
+- Backend : django-modeltranslation + LocaleMiddleware
+- Frontend : i18next + react-i18next
+- Détection automatique de la langue via Accept-Language header
+- URLs préfixées par langue (/mg/, /fr/, /en/)
+
+
+13. THÈMES
+================================================================================
+
+Trois thèmes disponibles via ThemeContext :
+1. Ministère - thème officiel (défaut)
+2. Sombre - mode nuit
+3. Clair - thème lumineux
+
+Les thèmes sont gérés via des variables CSS dynamiques.
+
+
+14. ACCESSIBILITÉ
+================================================================================
+
+- Support Text-to-Speech (TTS) pour la lecture des cours
+- Support Speech-to-Text (STT) pour la dictée des réponses
+- Contraste adapté pour malvoyants
+- Options d'accessibilité stockées dans le profil utilisateur
+- Interface responsive pour tous les appareils
+
+
+15. DIAGRAMMES DE MODÉLISATION (ModelisationUML/)
+================================================================================
+
+Fichier                               Type              Sujet
+───────────────────────────────────── ───────────────── ────────────────────────────
+Classe.drawio                         Diagramme classes Structure complète des données
+Diagramme_de_cas_dutilation.drawio    Cas d'utilisation Acteurs et fonctionnalités
+diagramme_paquetage.drawio            Paquetage          Modules et dépendances
+diagramme_etat_transition.puml        État-transition    Cycle de vie d'un Examen
+diagramme_etat_transition_copie.puml  État-transition    Cycle de vie d'une Copie
+diagramme_activite.puml               Activité           Passage d'examen étudiant
+diagramme_sequence.puml               Séquence           Interactions détaillées
+diagramme_temps.puml                  Temps              Session chronométrée
+
+
+16. STRUCTURE DU FRONTEND (PAGES)
+================================================================================
+
+Page               Route            Rôle
+────────────────── ──────────────── ─────────────────────────────────────────
+LandingPage        /                Page d'accueil publique + partenaires
+LoginPage          /login           Connexion multiniveau
+StudentDashboard   /dashboard       Progression, matières, notifications (étudiant)
+TeacherDashboard   /dashboard       Classes, matières, examens (enseignant)
+AdminDashboard     /dashboard       Gestion plateforme (admin)
+CoursesPage        /courses         Catalogue de cours par niveau/matière
+CoursePlayer       /courses/:id     Lecteur de cours (chapitres, leçons)
+ExamsPage          /exams           Planning + passage d'examens
+BulletinPage       /bulletin        Notes par matière + moyenne générale
+LiveClass          /live/:id        Visioconférence WebRTC
+ShopPage           /shop            Boutique ressources pédagogiques
+CorrectionsPage    /corrections     Correction des copies (enseignant)
+
+
+17. HOOKS REACT PERSONNALISÉS
+================================================================================
+
+Hook               Rôle
+────────────────── ─────────────────────────────────────────────────────────
+useAuth            Gestion état d'authentification et rafraîchissement JWT
+useExamSecurity    Blocage clavier, plein écran, journalisation
+useFullscreen      Contrôle du mode plein écran
+useSurveillance    Détection perte focus, logs anti-triche
+useCourseTimer     Minuteur synchronisé pour sessions d'étude
+useNotifications   Gestion des notifications (CRUD, compteur)
+useSpeech          Synthèse vocale (TTS/STT)
+
+
+18. FONCTIONNEMENT DU SYSTÈME D'EXAMEN (FLUX COMPLET)
+================================================================================
+
+  1. Enseignant crée un examen (titre, matière, durée, questions)
+  2. Enseignant publie l'examen (est_publie = true)
+  3. Étudiant consulte le planning et choisit un examen
+  4. Système active le mode plein écran et bloque les touches
+  5. API crée une CopieExamen (statut = EN_COURS)
+  6. Minuteur démarre (durée définie par l'enseignant)
+  7. Étudiant répond aux questions (boucle)
+     - QCM : sélection d'options
+     - Vrai/Faux : choix binaire
+     - Texte : saisie libre avec comptage de mots
+     - Rédaction : texte long avec vérification orthographique
+  8. Heartbeat toutes les 30s pour tracker le temps actif
+  9. LogSurveillance enregistre tout événement suspect
+  10. Fin d'examen : soumission volontaire OU minuteur expire
+  11. Auto-correction des questions QCM/VF
+  12. Si questions rédaction : correction manuelle par l'enseignant
+  13. Note enregistrée et consultable dans le bulletin
+
+
+19. ÉTAPES DE DÉVELOPPEMENT (HISTORIQUE)
+================================================================================
+
+  15 Avril 2026 - Initialisation du projet Django
+  18 Avril 2026 - Modélisation de la base de données
+  22 Avril 2026 - Algorithmes avancés (Trie, Graphes, Scoring)
+  26 Avril 2026 - Intégration IA et services vocaux
+  29 Avril 2026 - Vues pédagogiques et examens
+  02 Mai 2026   - Internationalisation (MG/FR/EN)
+  14 Mai 2026   - Implémentation complète R1-R21
+  13-14 Mai 2026 - Modernisation UI, authentification multiniveau, dashboard Aura v2
+
+
+20. PERSPECTIVES D'AMÉLIORATION
+================================================================================
+
+  1. Notifications par email et SMS
+  2. Application mobile React Native
+  3. IA générative pour création automatique de questions
+  4. Détection des difficultés d'apprentissage par analyse
+  5. Parcours d'apprentissage personnalisé
+  6. Tableau de bord analytics avancé
+
+
+================================================================================
+                      FIN DE LA DOCUMENTATION
+================================================================================

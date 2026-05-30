@@ -1,0 +1,879 @@
+================================================================================
+                     ENENI - FONCTIONNALITÉS DU BACKEND
+================================================================================
+                     Django 6.0.3 | Django REST Framework
+                           Base de données : SQLite
+================================================================================
+
+TABLE DES MATIÈRES
+------------------
+1.  AUTHENTIFICATION (JWT)
+2.  UTILISATEURS (Gestion des comptes)
+3.  ÉTABLISSEMENTS (Gestion des écoles)
+4.  PÉDAGOGIE (Cours, Leçons, Chapitres)
+5.  EXAMENS (QCM, Rédaction, Correction)
+6.  VISIOCONFÉRENCE (Live classes)
+7.  BOUTIQUE (Ressources payantes)
+8.  COMMUNICATIONS (Actualités, Notifications, Partenaires)
+9.  INTELLIGENCE ARTIFICIELLE (Trie, Scoring, Graphe, NLP)
+10. STATISTIQUES (Dashboard global & étudiant)
+11. SERVICES BACKEND (Moteurs internes)
+12. MODÈLES DE DONNÉES
+13. PERMISSIONS
+14. AUTH BACKENDS
+
+
+================================================================================
+1. AUTHENTIFICATION (JWT)
+================================================================================
+
+  [POST]   /api/auth/login/
+           → Connexion avec username/email/numéro_étudiant + mot de passe
+           → Retourne un token JWT (access + refresh) avec les infos utilisateur
+           → Vérifie le rôle et l'établissement si fournis
+           View: CustomTokenObtainPairView
+
+  [POST]   /api/auth/logout/
+           → Déconnexion (côté client : suppression du token JWT)
+           View: LogoutView
+
+  [POST]   /api/auth/refresh/
+           → Rafraîchir le token JWT access à partir du refresh token
+           View: TokenRefreshView (SimpleJWT)
+
+  [GET]    /api/auth/me/
+           → Profil de l'utilisateur connecté
+           → Retourne : id, username, email, prénom, rôle, établissement,
+             niveau (étudiant), spécialité (enseignant), matières enseignées
+           View: UserMeView (APIView)
+
+
+================================================================================
+2. UTILISATEURS (Gestion des comptes)
+================================================================================
+
+2.1 UtilisateurViewSet  ──  /api/utilisateurs/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/utilisateurs/
+           → Liste paginée de tous les utilisateurs
+           → Filtres : recherche par username/email/prenom, tri par date_creation/username
+
+  [POST]   /api/utilisateurs/
+           → Créer un nouvel utilisateur
+
+  [GET]    /api/utilisateurs/{id}/
+           → Détail d'un utilisateur (avec options_accessibilite, date_suppression)
+
+  [PUT]    /api/utilisateurs/{id}/
+           → Mettre à jour un utilisateur
+
+  [PATCH]  /api/utilisateurs/{id}/
+           → Mise à jour partielle d'un utilisateur
+
+  [DELETE] /api/utilisateurs/{id}/
+           → Supprimer un utilisateur
+
+  [GET]    /api/utilisateurs/actifs/
+           → Lister uniquement les utilisateurs actifs (est_actif=True)
+
+2.2 EtudiantViewSet  ──  /api/etudiants/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/etudiants/
+           → Liste paginée des étudiants (tri par date_inscription/points_global)
+
+  [POST]   /api/etudiants/
+           → Créer un étudiant (lier à un utilisateur existant)
+
+  [GET/PUT/PATCH/DELETE]  /api/etudiants/{id}/
+           → CRUD sur un étudiant
+
+  [GET]    /api/etudiants/top-points/
+           → Top N étudiants selon points_global (paramètre ?limit=, défaut 10)
+
+2.3 EnseignantViewSet  ──  /api/enseignants/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/enseignants/
+           → Liste des enseignants (recherche par username/spécialité)
+
+  [POST]   /api/enseignants/
+           → Créer un enseignant
+
+  [GET/PUT/PATCH/DELETE]  /api/enseignants/{id}/
+           → CRUD sur un enseignant
+
+2.4 AdminPlateformeViewSet  ──  /api/admins-plateforme/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/admins-plateforme/
+           → Liste des administrateurs plateforme
+
+  [POST]   /api/admins-plateforme/
+           → Créer un admin plateforme
+
+  [GET/PUT/PATCH/DELETE]  /api/admins-plateforme/{id}/
+           → CRUD sur un admin plateforme
+
+
+================================================================================
+3. ÉTABLISSEMENTS (Gestion des écoles)
+================================================================================
+
+3.1 EtablissementViewSet  ──  /api/etablissements/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/etablissements/
+           → Liste des établissements (lecture publique, recherche par nom/code/email)
+
+  [POST]   /api/etablissements/
+           → Créer un établissement
+
+  [GET/PUT/PATCH/DELETE]  /api/etablissements/{id}/
+           → CRUD sur un établissement
+
+3.2 AdminEtablissementViewSet  ──  /api/admin-etablissements/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/admin-etablissements/
+           → Liste des admins d'établissement (tri par établissement/fonction)
+
+  [POST]   /api/admin-etablissements/
+           → Créer un admin d'établissement
+
+  [GET/PUT/PATCH/DELETE]  /api/admin-etablissements/{id}/
+           → CRUD sur un admin d'établissement
+
+
+================================================================================
+4. PÉDAGOGIE (Cours, Leçons, Chapitres)
+================================================================================
+
+4.1 NiveauScolaireViewSet  ──  /api/niveaux-scolaires/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/niveaux-scolaires/
+           → Liste des niveaux scolaires (Maternelle à Terminale)
+           → Lecture pour tous, écriture réservée aux admins
+           → Ordonné par le champ `ordre`
+
+  [POST]  /api/niveaux-scolaires/
+  [GET/PUT/PATCH/DELETE]  /api/niveaux-scolaires/{id}/
+           → CRUD sur un niveau scolaire
+
+4.2 MatiereViewSet  ──  /api/matieres/  et  /api/courses/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/matieres/  ou  /api/courses/
+           → Catalogue des matières (recherche par nom/code)
+
+  [POST]   /api/matieres/
+           → Créer une matière
+
+  [GET/PUT/PATCH/DELETE]  /api/matieres/{id}/
+           → CRUD sur une matière
+
+  [GET]    /api/matieres/{id}/chapitres/
+           → Tous les chapitres d'une matière (avec leçons incluses)
+           → Alias : /api/courses/{id}/ (GET)
+
+  [GET]    /api/courses/{id}/session/start/
+           → Démarrer une session d'étude pour un cours
+
+4.3 ChapitreViewSet  ──  /api/chapitres/  et  /api/teacher/chapitres/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/chapitres/
+           → Liste des chapitres (filtres : ?matiere=, ?niveau=)
+           → Écriture réservée aux enseignants
+
+  [POST]   /api/chapitres/
+           → Créer un chapitre
+
+  [GET/PUT/PATCH/DELETE]  /api/chapitres/{id}/
+           → CRUD sur un chapitre
+
+  [GET]    /api/chapitres/{id}/lecons/
+           → Toutes les leçons d'un chapitre
+
+  [POST]   /api/chapitres/{id}/validate/
+           → Valider un chapitre (marque la progression comme validée pour l'étudiant)
+
+  [GET]    /api/chapitres/{id}/validation-question/
+           → Question de validation aléatoire pour le chapitre
+
+  [POST]   /api/chapitres/{id}/qcm-validation/
+           → Créer un QCM de validation pour le chapitre (enseignant uniquement)
+
+  [POST]   /api/chapitres/upload_file/
+           → Uploader un fichier multimédia pour une leçon (body : lecon_id, fichier, titre)
+
+  [GET/POST]    /api/teacher/chapitres/
+           → CRUD enseignant pour les chapitres
+
+  [GET/PUT/PATCH/DELETE]  /api/teacher/chapitres/{id}/
+           → CRUD détaillé enseignant pour un chapitre
+
+4.4 LeconViewSet  ──  /api/lecons/  et  /api/teacher/lecons/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/lecons/
+           → Liste des leçons
+           → Filtres : ?niveau=, ?matiere=, ?chapitre=
+           → Détecte automatiquement le niveau de l'étudiant connecté
+
+  [POST]   /api/lecons/
+           → Créer une leçon
+
+  [GET/PUT/PATCH/DELETE]  /api/lecons/{id}/
+           → CRUD sur une leçon
+
+  [GET]    /api/lecons/{id}/progress/
+           → Progression de l'étudiant sur le chapitre de cette leçon
+
+  [GET]    /api/lecons/enseignants/
+           → Leçons filtrées par la spécialité de l'enseignant connecté
+
+  [GET/POST]    /api/teacher/lecons/
+           → CRUD enseignant pour les leçons
+
+  [GET/PUT/PATCH/DELETE]  /api/teacher/lecons/{id}/
+           → CRUD détaillé enseignant pour une leçon
+
+4.5 FichierMultimediaViewSet  ──  /api/fichiers-multimedia/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/fichiers-multimedia/
+           → Fichiers multimédias (vidéos, audios, PDF)
+           → Recherche par titre/type_fichier
+
+  [POST]   /api/fichiers-multimedia/
+  [GET/PUT/PATCH/DELETE]  /api/fichiers-multimedia/{id}/
+           → CRUD sur un fichier multimédia
+
+4.6 SessionEtudeViewSet  ──  /api/sessions-etude/  et  /api/sessions/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/sessions-etude/
+           → Sessions d'étude de l'étudiant connecté
+
+  [POST]   /api/sessions-etude/
+  [GET/PUT/PATCH/DELETE]  /api/sessions-etude/{id}/
+           → CRUD sur une session d'étude
+
+  [POST]   /api/sessions/{pk}/heartbeat/
+           → Heartbeat (ajoute 30 secondes au temps cumulé)
+           → Met aussi à jour ProgressionChapitre
+
+  [POST]   /api/sessions/{pk}/pause/
+           → Mettre en pause une session d'étude
+
+  [POST]   /api/sessions/{pk}/resume/
+           → Reprendre une session d'étude
+
+  [POST]   /api/sessions/{pk}/end/
+           → Terminer une session d'étude
+
+4.7 Recherche Publique
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/public/search/?q=mot-cle
+           → Recherche publique dans les matières, chapitres et établissements
+           View: PublicSearchView
+           → Minimum 2 caractères requis
+
+
+================================================================================
+5. EXAMENS (QCM, Rédaction, Correction)
+================================================================================
+
+5.1 ExamenViewSet  ──  /api/examens/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/examens/
+           → Liste des examens
+           → Enseignant : voit uniquement ses propres examens
+           → Filtres : ?matiere=, ?niveau=
+
+  [POST]   /api/examens/
+           → Créer un examen (assigne automatiquement l'enseignant connecté)
+
+  [GET/PUT/PATCH/DELETE]  /api/examens/{id}/
+           → CRUD sur un examen
+
+  [GET]    /api/examens/publies/
+           → Examens publiés uniquement
+
+  [POST]   /api/examens/{id}/publier/
+           → Publier un examen (est_publie = true)
+
+  [POST]   /api/examens/{id}/start/
+           → Commencer un examen (crée une CopieExamen pour l'étudiant)
+
+  [GET]    /api/examens/{id}/timer/
+           → Timer de l'examen (temps total et restant en secondes)
+
+  [POST]   /api/examens/{id}/logs/
+           → Journaliser un événement de surveillance (anti-triche)
+
+  [POST]   /api/examens/{id}/ajouter-question/
+           → Ajouter une question à l'examen
+
+  [GET]    /api/examens/{id}/questions/
+           → Questions de l'examen (ordonnées par ordre)
+
+  [POST]   /api/examens/{id}/soumettre/
+           → Soumettre l'examen avec les réponses
+           → Auto-correction QCM/Vrai-Faux
+           → Vérification orthographique pour les réponses texte
+
+  [GET]    /api/examens/corrigeables/
+           → Copies à corriger (enseignant, ses examens uniquement)
+
+  [POST]   /api/examens/{pk}/corriger/{copie_id}/
+           → Corriger une copie (note et commentaire par réponse)
+
+5.2 QuestionExamenViewSet  ──  /api/questions-examen/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/questions-examen/
+           → Questions d'examen (filtre : ?examen=)
+           → Écriture réservée aux enseignants
+
+  [POST]   /api/questions-examen/
+  [GET/PUT/PATCH/DELETE]  /api/questions-examen/{id}/
+           → CRUD sur une question
+
+5.3 CopieExamenViewSet  ──  /api/copies-examen/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/copies-examen/
+           → Copies d'examen
+           → Étudiant : voit ses propres copies
+           → Filtre : ?examen=
+
+  [POST]   /api/copies-examen/
+  [GET/PUT/PATCH/DELETE]  /api/copies-examen/{id}/
+           → CRUD sur une copie
+
+  [POST]   /api/copies-examen/{id}/soumettre/
+           → Soumettre une copie (marque est_termine=True)
+
+5.4 ReponseExamenViewSet  ──  /api/reponses-examen/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/reponses-examen/
+           → Réponses d'examen (paginé)
+
+  [POST]   /api/reponses-examen/
+  [GET/PUT/PATCH/DELETE]  /api/reponses-examen/{id}/
+           → CRUD sur une réponse
+
+5.5 LogSurveillanceViewSet  ──  /api/logs-surveillance/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/logs-surveillance/
+           → Logs de surveillance (trié par -date_evenement)
+
+  [POST]   /api/logs-surveillance/
+  [GET/PUT/PATCH/DELETE]  /api/logs-surveillance/{id}/
+           → CRUD sur un log
+
+5.6 CorrectionViewSet  ──  /api/corrections/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/corrections/
+           → Copies en attente de correction (enseignant uniquement)
+           → Filtres : ?matiere=, ?niveau=, ?search= (nom/numéro étudiant)
+
+  [GET]    /api/corrections/classes/
+           → Niveaux distincts pour filtre (enseignant)
+
+  [GET]    /api/corrections/matieres/
+           → Matières distinctes pour filtre (enseignant)
+
+  [POST]   /api/corrections/{id}/noter/
+           → Noter une copie (body: { "note": 15.0 })
+
+  [GET]    /api/corrections/{id}/spellcheck/
+           → Vérification orthographique automatique d'une copie
+
+5.7 Téléchargement & Notes
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/courses/{course_id}/files/{file_id}/download/
+           → Téléchargement authentifié d'un fichier multimédia
+           View: FileDownloadView
+
+  [GET]    /api/mes-notes/
+           → Bulletin de notes de l'étudiant connecté
+           → Notes par matière, coefficient, date
+           View: MesNotesView
+
+
+================================================================================
+6. VISIOCONFÉRENCE (Live classes)
+================================================================================
+
+6.1 SessionVisioViewSet  ──  /api/sessions-visio/  et  /api/live-sessions/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/sessions-visio/  ou  /api/live-sessions/
+           → Sessions de visioconférence (recherche par titre/enseignant)
+
+  [POST]   /api/sessions-visio/  ou  /api/live-sessions/
+           → Créer une session visio
+
+  [GET/PUT/PATCH/DELETE]  /api/sessions-visio/{id}/
+           → CRUD sur une session visio
+
+  [POST]   /api/live-sessions/{id}/join/
+           → Rejoindre une session visio (étudiant)
+
+  [POST]   /api/live-sessions/{id}/leave/
+           → Quitter une session visio (calcule la durée de participation)
+
+  [POST]   /api/live-sessions/{id}/raise-hand/
+           → Lever la main
+
+  [POST]   /api/live-sessions/{id}/lower-hand/
+           → Baisser la main
+
+  [GET]    /api/live-sessions/{id}/questions/
+           → Voir les questions de la session
+
+  [POST]   /api/live-sessions/{id}/questions/
+           → Poser une question
+
+  [PATCH]  /api/live-sessions/{id}/questions/{qid}/answered/
+           → Marquer une question comme répondue
+
+  [POST]   /api/live-sessions/{id}/ban/
+           → Bannir un utilisateur de la session (body: user_id, duration_hours)
+
+6.2 ParticipationVisioViewSet  ──  /api/participations-visio/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/participations-visio/
+           → Participations aux visioconférences (tri par date_joindre/durée)
+
+  [POST]   /api/participations-visio/
+  [GET/PUT/PATCH/DELETE]  /api/participations-visio/{id}/
+           → CRUD sur une participation
+
+
+================================================================================
+7. BOUTIQUE (Ressources payantes)
+================================================================================
+
+7.1 RessourceBoutiqueViewSet  ──  /api/boutique/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/boutique/
+           → Ressources de la boutique (recherche par titre/description, tri par prix/date)
+
+  [POST]   /api/boutique/
+           → Créer une ressource
+
+  [GET/PUT/PATCH/DELETE]  /api/boutique/{id}/
+           → CRUD sur une ressource
+
+  [GET]    /api/boutique/disponibles/
+           → Ressources disponibles uniquement (est_disponible=True)
+
+7.2 PanierViewSet  ──  /api/paniers/  et  /api/panier/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/paniers/
+           → Paniers d'achat
+
+  [POST]   /api/paniers/
+  [GET/PUT/PATCH/DELETE]  /api/paniers/{id}/
+           → CRUD sur un panier
+
+  [GET]    /api/panier/
+           → Panier de l'étudiant connecté
+
+  [POST]   /api/panier/add/
+           → Ajouter une ressource au panier (body: ressource_id)
+
+7.3 PanierItemViewSet  ──  /api/panier-items/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/panier-items/
+           → Articles du panier
+
+  [POST]   /api/panier-items/
+  [GET/PUT/PATCH/DELETE]  /api/panier-items/{id}/
+           → CRUD sur un article
+
+7.4 CommandeViewSet  ──  /api/commandes/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/commandes/
+           → Commandes (tri par date/montant)
+
+  [POST]   /api/commandes/
+  [GET/PUT/PATCH/DELETE]  /api/commandes/{id}/
+           → CRUD sur une commande
+
+
+================================================================================
+8. COMMUNICATIONS (Actualités, Notifications, Partenaires)
+================================================================================
+
+8.1 ActualiteViewSet  ──  /api/actualites/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/actualites/
+           → Actualités publiées
+           → Filtres : ?etablissement=, ?categorie=
+           → Les admins voient aussi les brouillons (non publiés)
+
+  [POST]   /api/actualites/
+           → Créer une actualité (authentifié requis)
+
+  [GET/PUT/PATCH/DELETE]  /api/actualites/{id}/
+           → CRUD sur une actualité
+
+  [GET]    /api/actualites/infinite/
+           → Toutes les actualités sans pagination (fil infini)
+
+8.2 NotificationViewSet  ──  /api/notifications/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/notifications/
+           → Notifications de l'utilisateur connecté
+           → Filtre : ?non_lues=true
+
+  [POST]   /api/notifications/
+  [GET/PUT/PATCH/DELETE]  /api/notifications/{id}/
+           → CRUD sur une notification
+
+  [POST]   /api/notifications/creer-visio/
+           → Notifier tous les étudiants (ou d'un établissement) d'une visio
+
+  [POST]   /api/notifications/notifier-ban/
+           → Notifier un utilisateur de son bannissement
+
+  [PATCH]  /api/notifications/lire/{id}/
+           → Marquer une notification comme lue
+
+  [POST]   /api/notifications/tout-lire/
+           → Marquer toutes les notifications comme lues
+
+  [GET]    /api/notifications/compte/
+           → Nombre de notifications non lues
+
+8.3 PartenaireViewSet  ──  /api/partenaires/  et  /api/public/partners/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/partenaires/  ou  /api/public/partners/
+           → Partenaires institutionnels (public, sans pagination)
+
+  [GET]    /api/partenaires/{id}/
+           → Détail d'un partenaire
+
+8.4 RenovationViewSet  ──  /api/renovations/  et  /api/public/renovations/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/renovations/  ou  /api/public/renovations/
+           → Rénovations / actualités historiques (public, sans pagination)
+
+  [GET]    /api/renovations/{id}/
+           → Détail d'une rénovation
+
+
+================================================================================
+9. INTELLIGENCE ARTIFICIELLE
+================================================================================
+
+9.1 RequestIAViewSet  ──  /api/requetes-ia/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/requetes-ia/
+           → Requêtes IA (recherche par type : NAVIGATION/RECOMMANDATION/AIDE)
+
+  [POST]   /api/requetes-ia/
+  [GET/PUT/PATCH/DELETE]  /api/requetes-ia/{id}/
+           → CRUD sur une requête IA
+
+  [GET]    /api/requetes-ia/recherche-rapide/?q=prefixe
+           → RECHERCHE TRIE : Autocomplétion ultra-rapide
+           → Parcourt les matières, chapitres et leçons commençant par le préfixe
+           → Utilise l'algorithme Trie (arbre de préfixes) en mémoire
+
+  [GET]    /api/requetes-ia/trajectoire/?matiere_id=X&lecon_id=Y
+           → CALCUL DE TRAJECTOIRE : Parcours d'apprentissage optimal
+           → Modélisation par graphe orienté des leçons
+           → Retourne la prochaine étape et le chemin complet restant
+           → Utilise CurriculumGraph (liste d'adjacence)
+
+  [POST]   /api/requetes-ia/commande-vocale/
+           → COMMANDE VOCALE NLP : Traitement du langage naturel
+           → Body : { "texte_dicte": "Ouvrir la leçon de maths" }
+           → Retourne une action structurée (navigation, ouverture, examen...)
+           → Utilise VoiceCommandProcessor (moteur NLP à base de regex)
+
+9.2 RecommandationViewSet  ──  /api/recommandations/
+──────────────────────────────────────────────────────────────────────────
+  [GET]    /api/recommandations/
+           → Recommandations personnalisées (tri par score_pertinence)
+
+  [POST]   /api/recommandations/
+  [GET/PUT/PATCH/DELETE]  /api/recommandations/{id}/
+           → CRUD sur une recommandation
+
+  [POST]   /api/recommandations/generer/
+           → MOTEUR DE SCORING : Générer une recommandation
+           → Body : { "matiere_id": X }
+           → Analyse les 5 dernières copies de l'étudiant pour cette matière
+           → Si moyenne < 10/20, recommande la leçon fondamentale
+           → Utilise ScoringService (algorithme de scoring)
+
+
+================================================================================
+10. STATISTIQUES
+================================================================================
+
+  [GET]    /api/stats/  ou  /api/public/stats/
+           → Statistiques globales de la plateforme
+           → Retourne : total_users, total_students, total_schools, total_lessons
+           View: GlobalStatsView
+
+  [GET]    /api/stats/student/
+           → Statistiques personnelles de l'étudiant connecté
+           → Retourne : temps_total_heures, temps_par_matière, exercices_validés
+           View: StudentStatsView
+
+
+================================================================================
+11. SERVICES BACKEND (Moteurs internes)
+================================================================================
+
+11.1 NavigationTrie  (core/services/trie_service.py)
+──────────────────────────────────────────────────────────────────────────
+  → Assistant de Navigation - Algorithme de recherche par préfixe
+  → Singleton : l'arbre reste en mémoire après initialisation
+  → Indexe les matières, chapitres et leçons
+  → Méthodes :
+      - initialize_from_db() : Construit l'arbre depuis la BDD
+      - insert(mot, metadata) : Insère un mot avec ses métadonnées
+      - search_prefix(préfixe) : Recherche DFS, retourne toutes les correspondances
+
+11.2 ScoringService  (core/services/scoring_service.py)
+──────────────────────────────────────────────────────────────────────────
+  → Moteur de Recommandation - Algorithme de scoring
+  → Analyse les performances aux examens
+  → Méthodes :
+      - analyser_et_recommander(etudiant, matiere) :
+          * Récupère les 5 dernières copies de l'étudiant
+          * Calcule la moyenne
+          * Si moyenne < 10/20 → génère une recommandation
+      - _generer_recommandation(...) :
+          * Recommande la leçon fondamentale (Chapitre 1, Leçon 1)
+          * Score de pertinence = 1.0 - (moyenne / 20.0)
+
+11.3 CurriculumGraph  (core/services/graph_service.py)
+──────────────────────────────────────────────────────────────────────────
+  → Calcul de Trajectoire - Modélisation par Graphes orientés
+  → Construit une liste d'adjacence des leçons dans l'ordre linéaire
+  → Méthodes :
+      - find_next_step(current_lecon_id) : Prochaine leçon optimale
+      - get_full_path(start_lecon_id) : Chemin complet restant
+
+11.4 VoiceCommandProcessor  (core/services/voice_service.py)
+──────────────────────────────────────────────────────────────────────────
+  → Moteur NLP basique pour commandes vocales
+  → Transforme le texte en intention + action
+  → Intents reconnus :
+      - OUVRIR_LECON : Ouvrir une leçon spécifique
+      - PASSER_EXAMEN : Lancer un examen
+      - NAVIGATION_GLOBALE : Aller au tableau de bord / profil
+      - BOUTIQUE : Ouvrir la boutique
+  → Méthodes :
+      - process(texte) : Point d'entrée principal
+      - _identify_intent(texte) : Correspondance par regex
+      - _handle_ouvrir_lecon(texte) : Recherche de leçon par titre
+      - _handle_passer_examen(texte) : Recherche d'examen par titre/matière
+
+
+================================================================================
+12. MODÈLES DE DONNÉES
+================================================================================
+
+12.1 Utilisateurs
+──────────────────────────────────────────────────────────────────────────
+  Utilisateur (AbstractUser + TimeStampedModel + SoftDeleteModel)
+    - prenom, email (unique), langue_preferee (MG/FR/EN)
+    - options_accessibilite (JSON), photo_profil (ImageField)
+    - type_utilisateur (ETUDIANT/ENSEIGNANT/ADMINISTRATEUR)
+    - est_actif (bool), date_suppression (DateTime)
+    - date_creation, date_modification (auto)
+
+  Etudiant
+    - utilisateur (OneToOne → Utilisateur)
+    - etablissement (FK → Etablissement)
+    - numero_etudiant (unique), niveau (FK → NiveauScolaire)
+    - points_global (int, defaut=0), date_inscription
+
+  Enseignant
+    - utilisateur (OneToOne → Utilisateur)
+    - etablissement (FK → Etablissement)
+    - specialite, date_embauche
+
+  AdminPlateforme
+    - utilisateur (OneToOne → Utilisateur)
+    - niveau_acces (defaut='super_admin')
+
+12.2 Établissements
+──────────────────────────────────────────────────────────────────────────
+  Etablissement
+    - nom, adresse, telephone (regex), email
+    - code_etablissement (unique)
+
+  AdminEtablissement
+    - utilisateur (OneToOne → Utilisateur)
+    - etablissement (FK → Etablissement), fonction
+
+12.3 Pédagogie
+──────────────────────────────────────────────────────────────────────────
+  NiveauScolaire
+    - nom (choice: Maternelle→Terminale, unique), ordre (unique)
+    - description
+
+  Matiere
+    - nom, code (unique), description
+    - niveaux (M2M → NiveauScolaire), ordre
+
+  Chapitre
+    - titre, order (PositiveInteger)
+    - matiere (FK → Matiere), niveau (FK → NiveauScolaire)
+    - description
+    - unique_together : (matiere, niveau, order)
+
+  Lecon
+    - titre, order, chapitre (FK → Chapitre)
+    - contenue_texte, duree_estimee (minutes), objectifs
+    - unique_together : (chapitre, order)
+
+  FichierMultimedia
+    - type_fichier (VIDEO/AUDIO/PDF), titre
+    - url_fichier (URL), taille_no (float), lecon (FK → Lecon)
+    - format, est_telechargeable (bool), metadata (JSON)
+
+  ProgressionChapitre
+    - etudiant (FK → Etudiant), chapitre (FK → Chapitre)
+    - temps_passe_secondes, est_valide, date_derniere_session
+    - unique_together : (etudiant, chapitre)
+
+  SessionEtude
+    - etudiant (FK → Etudiant), chapitre (FK → Chapitre)
+    - date_debut, date_fin, derniere_activite
+    - temps_cumule_secondes
+    - statut (EN_COURS/PAUSE/TERMINE/ABANDONNE)
+
+12.4 Examens
+──────────────────────────────────────────────────────────────────────────
+  Examen (TimeStampedModel)
+    - titre, enseignant (FK → Enseignant)
+    - matiere (FK → Matiere), niveau (FK → NiveauScolaire)
+    - duree_minutes, date_debut, date_fin
+    - est_publie, coefficient, type_examen (QCM/TEXTE/REDACTION/MIXTE)
+    - lecture_automatique
+
+  QuestionExamen
+    - examen (FK → Examen), texte
+    - type_question (QCM/TEXTE/NUMERIQUE/VRAI_FAUX/REDACTION)
+    - points, ordre, options (JSON), reponse_correcte
+    - mot_min, mot_max, criteres_correction (JSON), obligatoire
+    - unique_together : (examen, ordre)
+
+  CopieExamen
+    - examen (FK → Examen), etudiant (FK → Etudiant)
+    - date_debut, date_soumission
+    - note_obtenue (0-20), est_termine
+    - unique_together : (examen, etudiant)
+
+  ReponseExamen
+    - copie (FK → CopieExamen), question (FK → QuestionExamen)
+    - reponse_etudiant, est_correct, points_obtenus
+    - nb_mots, fautes_orthographe (JSON), correction_commentaire
+    - unique_together : (copie, question)
+
+  LogSurveillance
+    - copie (FK → CopieExamen), evenement, details (JSON)
+    - date_evenement
+
+12.5 Visioconférence
+──────────────────────────────────────────────────────────────────────────
+  SessionVisio (TimeStampedModel)
+    - titre, enseignant (FK → Enseignant), lecon (FK → Lecon)
+    - date_debut, date_fin, url_visio, est_active
+
+  ParticipationVisio
+    - etudiant (FK → Etudiant), session (FK → SessionVisio)
+    - date_joindre, date_quitter, duree_participation
+    - evenements_inactive (JSON)
+    - unique_together : (etudiant, session)
+
+  QuestionVisio
+    - session (FK → SessionVisio), etudiant (FK → Etudiant)
+    - contenu, date_creation, est_answered (bool)
+
+12.6 Boutique
+──────────────────────────────────────────────────────────────────────────
+  RessourceBoutique (TimeStampedModel)
+    - titre, description, prix (Decimal)
+    - type_contenu (LIVRE/EXERCICES/COURS/VIDEO)
+    - fichier (FK → FichierMultimedia), niveau, matiere
+    - est_disponible, stock
+
+  Panier
+    - etudiant (OneToOne → Etudiant), date_derniere_modif
+
+  PanierItem
+    - panier (FK → Panier), ressources (FK → RessourceBoutique)
+    - quantite, date_ajout
+    - unique_together : (panier, ressources)
+
+  Commande (TimeStampedModel)
+    - etudiant (FK → Etudiant), montant_total (Decimal)
+    - statut_paiement (EN_ATTENTE/PAYEE/LIVREE/ANNULEE)
+    - reference_paiement (unique), date_paiement
+
+12.7 Communications
+──────────────────────────────────────────────────────────────────────────
+  Actualite (TimeStampedModel)
+    - titre, contenu, categorie (Examens/Cours/Événements/Annonces/Sport/Culture)
+    - est_important, image (ImageField), video_url, lien_externe, lien_label
+    - auteur (FK → Utilisateur), date_expiration
+    - est_publie, public_ciblie (TOUS/ETUDIANTS/ENSEIGNANTS/ETABLISSEMENT)
+    - etablissement_cible (FK → Etablissement)
+
+  Notification (TimeStampedModel)
+    - utilisateur (FK → Utilisateur), titre, message
+    - est_lue, date_lecture, url_lien
+
+  Partenaire
+    - nom, logo, url, ordre
+
+  Renovation
+    - annee, titre, description, ordre
+
+12.8 Intelligence Artificielle
+──────────────────────────────────────────────────────────────────────────
+  RequestIA (TimeStampedModel)
+    - etudiant (FK → Etudiant), request, reponse
+    - type_requete (NAVIGATION/RECOMMANDATION/AIDE)
+
+  Recommandation (TimeStampedModel)
+    - etudiant (FK → Etudiant), lecon (FK → Lecon)
+    - score_pertinence (0.0-1.0), explication, est_consultee
+
+
+================================================================================
+13. PERMISSIONS
+================================================================================
+
+  IsEnseignantOrReadOnly
+    → Lecture (GET/HEAD/OPTIONS) : tous les utilisateurs authentifiés
+    → Écriture (POST/PUT/PATCH/DELETE) : ENSEIGNANT ou ADMINISTRATEUR uniquement
+
+  IsAdminOrReadOnly
+    → Lecture : tous les utilisateurs authentifiés
+    → Écriture : ADMINISTRATEUR uniquement
+
+  IsEtudiant
+    → Accès réservé aux utilisateurs de type ETUDIANT
+
+
+================================================================================
+14. AUTH BACKENDS
+================================================================================
+
+  EmailOrUsernameModelBackend
+    → Authentification par username, email OU numero_etudiant
+    → Insensible à la casse (iexact)
+    → Filtre optionnel par rôle (paramètre `role`)
+    → Ordre de recherche : username → email → numero_etudiant
+
+  ModelBackend (Django par défaut)
+    → Authentification standard par username
+
+
+================================================================================
+                     Total : ~240 endpoints API
+                       30 ViewSets | 9 APIViews
+           19 modèles de données | 4 services backend | 3 permissions
+================================================================================

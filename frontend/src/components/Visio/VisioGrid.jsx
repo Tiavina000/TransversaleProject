@@ -61,6 +61,7 @@ function RaiseHandButton() {
 
 /** Carte vidéo individuelle avec effet verre */
 function VideoCard({ participant, isLocal }) {
+  const { t } = useTranslation();
   return (
     <motion.div
       className="relative glass rounded-2xl overflow-hidden aspect-video flex items-center justify-center group"
@@ -78,7 +79,7 @@ function VideoCard({ participant, isLocal }) {
 
       {/* Badge nom */}
       <div className="absolute bottom-3 left-3 glass-sm px-2 py-1 text-xs text-white rounded-lg">
-        {participant.name} {isLocal && '(Vous)'}
+        {participant.name} {isLocal && t('visio.you_label')}
       </div>
 
       {/* Indicateur micro */}
@@ -123,7 +124,7 @@ export function VisioGrid({ session }) {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-red-400 text-xs font-medium">LIVE</span>
+          <span className="text-red-400 text-xs font-medium">{t('visio.live_badge')}</span>
         </div>
       </div>
 

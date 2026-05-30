@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord — ENENI</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="dashboard">
+  <div id="app-navbar"></div>
+  <main class="page-main">
+    <div class="container page-content" id="dashboard-content"></div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (!ENENI.requireAuth()) throw '';
+    const user = ENENI.getUser();
+    const container = document.getElementById('dashboard-content');
+
+    if (user.type_utilisateur === 'ADMINISTRATEUR') renderAdmin();
+    else if (user.type_utilisateur === 'ENSEIGNANT') renderTeacher();
+    else renderStudent();
+
+    function renderStudent() {
+      const stats = ENENI_DATA.studentStats;
+      const cats = ['Tout', 'Examens', 'Cours', 'Événements', 'Annonces', 'Sport', 'Culture'];
+      let activeCat = 'Tout';
+
+      container.innerHTML = `
+        <div class="dashboard-grid">
+          <div class="dashboard-hero">
+            <div class="dashboard-hero-content">
+              <p style="font-size:0.75rem;opacity:0.8;margin:0">Bon retour,</p>
+              <h1 style="font-size:2rem;font-weight:900;margin:0.25rem 0">${user.prenom} ${user.nom}</h1>
+              <p style="font-size:0.875rem;opacity:0.9;margin:0">${user.etablissement} · ${user.niveau || ''}</p>
+              <div class="flex gap-4" style="margin-top:1rem">
+                <div><span style="font-size:1.5rem;font-weight:900">${stats.cours_en_cours}</span><p style="font-size:0.75rem;margin:0;opacity:0.8">En cours</p></div>
+                <div><span style="font-size:1.5rem;font-weight:900">${stats.progression}%</span><p style="font-size:0.75rem;margin:0;opacity:0.8">Progression</p></div>
+                <div><span style="font-size:1.5rem;font-weight:900">${stats.heures_etude}h</span><p style="font-size:0.75rem;margin:0;opacity:0.8">Étude</p></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="glass" style="padding:1.25rem;border-radius:1.5rem;height:fit-content">
+            <div style="text-align:center;margin-bottom:1rem">
+              <div style="width:5rem;height:5rem;border-radius:50%;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));margin:0 auto 0.75rem;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;font-weight:900">${user.prenom[0]}${user.nom[0]}</div>
+              <h3 style="font-weight:700;margin:0">${user.prenom} ${user.nom}</h3>
+              <p class="text-muted" style="font-size:0.75rem;margin:0.25rem 0">${user.numero_etudiant || ''}</p>
+              <p class="text-primary" style="font-size:0.75rem;font-weight:600">${user.points || 0} points</p>
+            </div>
+            <div class="glass-sm" style="padding:1rem;border-radius:1rem;margin-bottom:1rem">
+              <div class="flex items-center gap-2" style="margin-bottom:0.5rem">
+                <i data-lucide="calendar" style="width:14px;height:14px;color:var(--color-primary)"></i>
+                <span style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted)">Prochain examen</span>
+              </div>
+              <div id="countdown"></div>
+            </div>
+            <a href="exams.html" class="btn-metal" style="width:100%;justify-content:center;font-size:0.875rem">Voir les examens</a>
+          </aside>
+
+          <section>
+            <div class="flex gap-2 flex-wrap" style="margin-bottom:1rem;overflow-x:auto" id="cat-filters">
+              ${cats.map(c => `<button class="filter-chip ${c === 'Tout' ? 'active' : ''}" data-cat="${c}">${c}</button>`).join('')}
+            </div>
+            <div id="news-feed"></div>
+            <button class="btn-ghost" id="load-more" style="width:100%;justify-content:center;margin-top:0.5rem">Charger plus</button>
+          </section>
+
+          <aside class="glass" style="padding:1.25rem;border-radius:1.5rem;height:fit-content">
+            <h4 style="font-weight:700;margin:0 0 1rem;font-size:0.875rem">Examens à venir</h4>
+            <div id="upcoming-exams"></div>
+            <h4 style="font-weight:700;margin:1.5rem 0 1rem;font-size:0.875rem">Progression</h4>
+            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${stats.progression}%"></div></div>
+            <p class="text-muted" style="font-size:0.75rem;margin-top:0.5rem">${stats.progression}% complété</p>
+          </aside>
+        </div>
+      `;
+
+      // Countdown
+      const target = new Date(stats.prochain_examen);
+      function updateCountdown() {
+        const dist = target - Date.now();
+        if (dist < 0) { document.getElementById('countdown').innerHTML = '<p style="font-size:0.875rem">Examen en cours</p>'; return; }
+        const d = Math.floor(dist / 86400000);
+        const h = Math.floor((dist % 86400000) / 3600000);
+        const m = Math.floor((dist % 3600000) / 60000);
+        const s = Math.floor((dist % 60000) / 1000);
+        document.getElementById('countdown').innerHTML = `
+          <div class="flex justify-between gap-2">
+            ${[{v:d,l:'J'},{v:h,l:'H'},{v:m,l:'M'},{v:s,l:'S'}].map(t => `
+              <div style="text-align:center"><span style="font-size:1.25rem;font-weight:900">${String(t.v).padStart(2,'0')}</span><br><span style="font-size:8px;font-weight:700;color:var(--color-primary)">${t.l}</span></div>
+            `).join('')}
+          </div>`;
+      }
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+
+      document.getElementById('upcoming-exams').innerHTML = ENENI_DATA.upcomingExams.map(e => `
+        <div class="glass-sm" style="padding:0.75rem;border-radius:0.75rem;margin-bottom:0.5rem">
+          <p style="font-size:0.875rem;font-weight:600;margin:0">${e.titre}</p>
+          <p class="text-muted" style="font-size:0.75rem;margin:0.25rem 0 0">${new Date(e.date).toLocaleDateString('fr-FR')}</p>
+        </div>
+      `).join('');
+
+      let feedCount = 3;
+      function renderFeed() {
+        const filtered = activeCat === 'Tout' ? ENENI_DATA.news : ENENI_DATA.news.filter(n => n.categorie === activeCat);
+        const items = filtered.slice(0, feedCount);
+        document.getElementById('news-feed').innerHTML = items.map(renderNewsCard).join('');
+        lucide.createIcons();
+      }
+
+      function renderNewsCard(item) {
+        const ytId = item.video_url?.match(/(?:v=|youtu\.be\/)([^&]+)/)?.[1];
+        return `
+          <article class="glass news-card">
+            <div class="news-card-header">
+              <div class="flex items-center gap-3">
+                <div class="news-avatar"><i data-lucide="newspaper" style="width:18px;height:18px"></i></div>
+                <div>
+                  <h5 style="font-size:0.875rem;font-weight:700;margin:0">${item.auteur_nom} ${item.est_important ? '⭐' : ''}</h5>
+                  <p style="font-size:10px;color:var(--text-muted);margin:0">${new Date(item.date_creation).toLocaleDateString('fr-FR')} · ${item.categorie}</p>
+                </div>
+              </div>
+            </div>
+            ${item.image_url ? `<img src="${item.image_url}" alt="" class="news-image" loading="lazy">` : ''}
+            ${ytId ? `<div style="aspect-ratio:16/9"><iframe src="https://www.youtube.com/embed/${ytId}" style="width:100%;height:100%;border:none" allowfullscreen></iframe></div>` : ''}
+            <div style="padding:1rem">
+              <h4 style="font-weight:700;margin:0 0 0.5rem">${item.titre}</h4>
+              <p class="text-sec" style="font-size:0.875rem;line-height:1.5;margin:0">${item.contenu}</p>
+            </div>
+            <div class="news-actions">
+              <button class="news-action-btn" onclick="this.classList.toggle('liked')"><i data-lucide="heart" style="width:18px;height:18px"></i> J'aime</button>
+              <button class="news-action-btn"><i data-lucide="message-circle" style="width:18px;height:18px"></i></button>
+              <button class="news-action-btn"><i data-lucide="share-2" style="width:18px;height:18px"></i></button>
+              <button class="news-action-btn" style="margin-left:auto"><i data-lucide="bookmark" style="width:18px;height:18px"></i></button>
+            </div>
+          </article>
+        `;
+      }
+
+      document.getElementById('cat-filters').addEventListener('click', e => {
+        if (!e.target.dataset.cat) return;
+        activeCat = e.target.dataset.cat;
+        document.querySelectorAll('#cat-filters .filter-chip').forEach(b => b.classList.toggle('active', b.dataset.cat === activeCat));
+        feedCount = 3;
+        renderFeed();
+      });
+      document.getElementById('load-more').addEventListener('click', () => { feedCount += 3; renderFeed(); });
+      renderFeed();
+    }
+
+    function renderTeacher() {
+      container.innerHTML = `
+        <div style="margin-bottom:2rem">
+          <h1 style="font-size:1.75rem;font-weight:800;margin:0">Espace Enseignant</h1>
+          <p class="text-sec" style="margin-top:0.25rem">Bienvenue, ${user.prenom} ${user.nom} · ${user.etablissement}</p>
+        </div>
+        <div class="grid grid-4 gap-4" style="margin-bottom:2rem">
+          ${[
+            { icon: 'book-open', label: 'Gérer mes cours', href: 'courses.html', color: 'var(--color-primary)' },
+            { icon: 'file-text', label: 'Créer un examen', href: 'exams.html', color: 'var(--color-accent)' },
+            { icon: 'check-square', label: 'Corrections', href: 'corrections.html', color: 'var(--color-warning)' },
+            { icon: 'video', label: 'Visioconférence', href: '#', color: '#7C3AED' },
+          ].map(a => `
+            <a href="${a.href}" class="glass card-topline" style="padding:1.5rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:0.75rem;transition:transform 0.2s" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+              <div style="width:3rem;height:3rem;border-radius:1rem;background:${a.color}20;display:flex;align-items:center;justify-content:center;color:${a.color}">
+                <i data-lucide="${a.icon}"></i>
+              </div>
+              <span style="font-weight:600;font-size:0.875rem;color:var(--text-primary)">${a.label}</span>
+            </a>
+          `).join('')}
+        </div>
+        <div class="glass" style="padding:1.25rem;border-radius:1rem;border-left:4px solid var(--color-warning);margin-bottom:2rem">
+          <div class="flex items-center gap-3">
+            <i data-lucide="alert-triangle" style="color:var(--color-warning)"></i>
+            <div>
+              <p style="font-weight:700;margin:0">${ENENI_DATA.corrections.filter(c => c.statut === 'SOUMIS').length} copies en attente de correction</p>
+              <a href="corrections.html" class="text-primary" style="font-size:0.875rem">Corriger maintenant →</a>
+            </div>
+          </div>
+        </div>
+        <div class="glass" style="padding:1.5rem;border-radius:1rem">
+          <h3 style="font-weight:700;margin:0 0 1rem">Mes classes</h3>
+          <div class="grid grid-3 gap-4">
+            ${['Terminale S', 'Première S', 'Seconde'].map(c => `
+              <div class="glass-sm" style="padding:1rem;border-radius:0.75rem">
+                <p style="font-weight:700;margin:0">${c}</p>
+                <p class="text-muted" style="font-size:0.75rem;margin:0.25rem 0">32 élèves · Mathématiques</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdmin() {
+      container.innerHTML = `
+        <div style="margin-bottom:2rem">
+          <h1 style="font-size:1.75rem;font-weight:800;margin:0">Administration — Actualités</h1>
+          <p class="text-sec" style="margin-top:0.25rem">Gérez les publications de la plateforme</p>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr;gap:2rem">
+          <div class="glass" style="padding:1.5rem;border-radius:1rem">
+            <h3 style="font-weight:700;margin:0 0 1rem">Nouvelle actualité</h3>
+            <form id="news-form">
+              <div class="form-group"><label class="form-label">Titre</label><input class="form-input" id="news-title" required></div>
+              <div class="form-group"><label class="form-label">Contenu</label><textarea class="form-input" id="news-content" rows="3" required></textarea></div>
+              <div class="form-group"><label class="form-label">Catégorie</label>
+                <select class="form-input" id="news-cat"><option>Annonces</option><option>Examens</option><option>Cours</option><option>Événements</option></select>
+              </div>
+              <button type="submit" class="btn-metal">Publier</button>
+            </form>
+          </div>
+          <div id="admin-news-list">
+            ${ENENI_DATA.news.map(n => `
+              <div class="glass" style="padding:1rem;border-radius:0.75rem;margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center">
+                <div><p style="font-weight:600;margin:0">${n.titre}</p><p class="text-muted" style="font-size:0.75rem;margin:0">${n.categorie}</p></div>
+                <button class="btn-danger" style="padding:0.375rem 0.75rem;font-size:0.75rem" onclick="deleteNews(${n.id})">Supprimer</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      document.getElementById('news-form')?.addEventListener('submit', e => {
+        e.preventDefault();
+        ENENI_DATA.news.unshift({
+          id: Date.now(),
+          titre: document.getElementById('news-title').value,
+          contenu: document.getElementById('news-content').value,
+          categorie: document.getElementById('news-cat').value,
+          est_important: false,
+          date_creation: new Date().toISOString().slice(0, 10),
+          auteur_nom: 'Admin ENENI',
+        });
+        ENENI.showToast('Actualité publiée');
+        renderAdmin();
+      });
+      window.deleteNews = id => {
+        const idx = ENENI_DATA.news.findIndex(n => n.id === id);
+        if (idx >= 0) ENENI_DATA.news.splice(idx, 1);
+        renderAdmin();
+      };
+    }
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>

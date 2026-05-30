@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
@@ -9,6 +10,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
  * @param {Array} stories - [{ id, title, content, emoji, color }]
  */
 export function Stories({ stories = [] }) {
+  const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(null);
 
   if (!stories.length) return null;
@@ -88,7 +90,7 @@ export function Stories({ stories = [] }) {
                   onClick={() => setActiveIdx(Math.max(0, activeIdx - 1))}
                   disabled={activeIdx === 0}
                 >
-                  <ChevronLeft size={16} /> Préc.
+                  <ChevronLeft size={16} /> {t('studentDashboard.story_prev')}
                 </button>
                 <button
                   className="btn-metal text-sm flex items-center gap-1"
@@ -97,7 +99,7 @@ export function Stories({ stories = [] }) {
                     else setActiveIdx(null);
                   }}
                 >
-                  Suiv. <ChevronRight size={16} />
+                  {t('studentDashboard.story_next')} <ChevronRight size={16} />
                 </button>
               </div>
             </motion.div>

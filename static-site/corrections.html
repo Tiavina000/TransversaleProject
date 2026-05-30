@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corrections — ENENI</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="dashboard">
+  <div id="app-navbar"></div>
+  <main class="page-main">
+    <div class="container page-content">
+      <h1 style="font-size:1.5rem;font-weight:800;margin:0">Corrections</h1>
+      <p class="text-sec" style="margin-bottom:1.5rem">Évaluez les copies soumises par vos élèves</p>
+      <div class="flex gap-2 flex-wrap" style="margin-bottom:2rem" id="filter-tabs">
+        <button class="filter-chip active" data-filter="SOUMIS">Soumises</button>
+        <button class="filter-chip" data-filter="CORRIGE">Corrigées</button>
+        <button class="filter-chip" data-filter="ALL">Toutes</button>
+      </div>
+      <div id="copies-list"></div>
+    </div>
+  </main>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (!ENENI.requireAuth()) throw '';
+    const user = ENENI.getUser();
+    if (user.type_utilisateur !== 'ENSEIGNANT' && user.type_utilisateur !== 'ADMINISTRATEUR') {
+      window.location.href = 'dashboard.html';
+      throw '';
+    }
+
+    let filter = 'SOUMIS';
+
+    function render() {
+      const copies = ENENI_DATA.corrections.filter(c =>
+        filter === 'ALL' ? true : c.statut === filter
+      );
+      document.getElementById('copies-list').innerHTML = copies.length ? copies.map(c => `
+        <div class="glass card-topline" style="padding:1.5rem;border-radius:1rem;margin-bottom:1rem">
+          <div class="flex justify-between items-start flex-wrap gap-3" style="margin-bottom:1rem">
+            <div>
+              <h3 style="font-weight:700;margin:0">${c.eleve}</h3>
+              <p class="text-muted" style="font-size:0.875rem;margin:0.25rem 0">${c.examen} · ${c.date}</p>
+            </div>
+            <span style="font-size:0.75rem;font-weight:700;padding:0.25rem 0.75rem;border-radius:999px;background:${c.statut==='CORRIGE'?'rgba(27,138,90,0.15)':'rgba(217,119,6,0.15)'};color:${c.statut==='CORRIGE'?'var(--color-primary)':'var(--color-warning)'}">
+              ${c.statut === 'CORRIGE' ? 'Corrigé' : 'En attente'}
+            </span>
+          </div>
+          <p class="text-sec" style="font-size:0.875rem;line-height:1.6;background:var(--overlay-light);padding:1rem;border-radius:0.75rem;margin-bottom:1rem">${c.contenu}</p>
+          ${c.statut === 'SOUMIS' ? `
+            <div class="flex gap-3 items-center flex-wrap">
+              <input type="number" min="0" max="20" step="0.5" class="form-input" id="grade-${c.id}" placeholder="Note /20" style="width:6rem">
+              <button class="btn-metal" onclick="gradeCopy(${c.id})" style="font-size:0.875rem">Noter</button>
+            </div>
+          ` : `<p style="font-weight:700;color:var(--color-primary);margin:0">Note attribuée : ${c.note}/20</p>`}
+        </div>
+      `).join('') : `
+        <div style="text-align:center;padding:4rem">
+          <i data-lucide="inbox" style="width:48px;height:48px;color:var(--text-muted);margin:0 auto 1rem"></i>
+          <p class="text-muted">Aucune copie trouvée</p>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    window.gradeCopy = id => {
+      const input = document.getElementById('grade-' + id);
+      const note = parseFloat(input?.value);
+      if (isNaN(note) || note < 0 || note > 20) { ENENI.showToast('Note invalide (0-20)'); return; }
+      const copy = ENENI_DATA.corrections.find(c => c.id === id);
+      if (copy) { copy.statut = 'CORRIGE'; copy.note = note; }
+      ENENI.showToast('Note enregistrée : ' + note + '/20');
+      render();
+    };
+
+    document.getElementById('filter-tabs').addEventListener('click', e => {
+      if (!e.target.dataset.filter) return;
+      filter = e.target.dataset.filter;
+      document.querySelectorAll('#filter-tabs .filter-chip').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+      render();
+    });
+
+    render();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

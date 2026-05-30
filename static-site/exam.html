@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mode Examen — ENENI</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body.exam-mode { padding-top: 0; }
+    .exam-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      background: var(--bg-app); border-bottom: 1px solid var(--border-glass);
+      padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .exam-body { padding-top: 4.5rem; min-height: 100vh; }
+    .q-nav-btn {
+      width: 2rem; height: 2rem; border-radius: 0.5rem; border: 1px solid var(--border-glass);
+      background: var(--bg-card); cursor: pointer; font-size: 0.75rem; font-weight: 600;
+    }
+    .q-nav-btn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+    .q-nav-btn.answered { border-color: var(--color-primary); color: var(--color-primary); }
+  </style>
+</head>
+<body class="exam-mode exam-mode-bg" data-page="exam">
+  <header class="exam-header">
+    <div class="flex items-center gap-3">
+      <div class="logo-icon" style="width:2rem;height:2rem;font-size:0.625rem">EN</div>
+      <div>
+        <p style="font-size:0.75rem;font-weight:700;margin:0" id="exam-title">Mode Examen</p>
+        <p class="text-muted" style="font-size:0.625rem;margin:0">Surveillance active</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="attention-dot green" title="Attention"></div>
+      <div style="text-align:center">
+        <p class="text-muted" style="font-size:0.625rem;margin:0">Temps restant</p>
+        <p id="exam-timer" style="font-size:1.25rem;font-weight:900;margin:0;color:var(--color-primary)">--:--</p>
+      </div>
+      <button class="btn-danger" id="submit-exam" style="padding:0.5rem 1rem;font-size:0.875rem">Soumettre</button>
+    </div>
+  </header>
+
+  <main class="exam-body">
+    <div class="container" style="max-width:48rem;padding:2rem 1rem">
+      <div class="glass" style="padding:0.75rem 1rem;border-radius:0.75rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem">
+        <i data-lucide="alert-triangle" style="width:16px;color:var(--color-warning)"></i>
+        <p style="font-size:0.75rem;margin:0;color:var(--text-secondary)">Quitter cette page sera enregistré. Copier-coller désactivé.</p>
+      </div>
+      <div id="question-area"></div>
+      <div class="flex justify-between" style="margin-top:2rem">
+        <button class="btn-ghost" id="prev-q" style="font-size:0.875rem">← Précédent</button>
+        <button class="btn-metal" id="next-q" style="font-size:0.875rem">Suivant →</button>
+      </div>
+      <div class="flex gap-2 flex-wrap justify-center" style="margin-top:2rem" id="q-nav"></div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (!ENENI.requireAuth()) throw '';
+    const examId = +new URLSearchParams(location.search).get('id') || 1;
+    const exam = ENENI_DATA.exams.find(e => e.id === examId) || ENENI_DATA.exams[0];
+    const questions = ENENI_DATA.examQuestions[examId] || ENENI_DATA.examQuestions[1];
+    let currentQ = 0;
+    const answers = {};
+    let timeLeft = (exam.duree_minutes || 60) * 60;
+
+    document.getElementById('exam-title').textContent = exam.titre;
+    document.title = exam.titre + ' — ENENI';
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }
+
+    const timerEl = document.getElementById('exam-timer');
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = formatTime(timeLeft);
+      if (timeLeft <= 300) timerEl.style.color = 'var(--color-danger)';
+      if (timeLeft <= 0) { clearInterval(timerInterval); submitExam(true); }
+    }, 1000);
+    timerEl.textContent = formatTime(timeLeft);
+
+    function renderQuestion() {
+      const q = questions[currentQ];
+      document.getElementById('question-area').innerHTML = `
+        <p class="text-muted" style="font-size:0.875rem;margin-bottom:0.5rem">Question ${currentQ + 1} / ${questions.length}</p>
+        <h2 style="font-size:1.25rem;font-weight:700;margin:0 0 1.5rem">${q.texte}</h2>
+        ${q.type === 'QCM' ? q.options.map((o, i) => `
+          <label class="glass-sm flex items-center gap-3" style="padding:1rem;border-radius:0.75rem;margin-bottom:0.5rem;cursor:pointer;display:flex">
+            <input type="radio" name="answer" value="${i}" ${answers[q.id] === i ? 'checked' : ''}>
+            <span>${o}</span>
+          </label>
+        `).join('') : ''}
+        ${q.type === 'VRAI_FAUX' ? `
+          <label class="glass-sm" style="padding:1rem;border-radius:0.75rem;margin-bottom:0.5rem;cursor:pointer;display:flex;gap:0.75rem">
+            <input type="radio" name="answer" value="true" ${answers[q.id] === true ? 'checked' : ''}> Vrai
+          </label>
+          <label class="glass-sm" style="padding:1rem;border-radius:0.75rem;cursor:pointer;display:flex;gap:0.75rem">
+            <input type="radio" name="answer" value="false" ${answers[q.id] === false ? 'checked' : ''}> Faux
+          </label>
+        ` : ''}
+        ${q.type === 'TEXTE' ? `<textarea class="form-input" id="text-answer" rows="6" placeholder="Votre réponse...">${answers[q.id] || ''}</textarea>` : ''}
+      `;
+
+      document.querySelectorAll('input[name=answer]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          answers[q.id] = inp.value === 'true' ? true : inp.value === 'false' ? false : +inp.value;
+          renderQNav();
+        });
+      });
+      document.getElementById('text-answer')?.addEventListener('input', e => { answers[q.id] = e.target.value; renderQNav(); });
+
+      document.getElementById('q-nav').innerHTML = questions.map((_, i) => `
+        <button class="q-nav-btn ${i === currentQ ? 'active' : ''} ${answers[questions[i].id] !== undefined ? 'answered' : ''}" onclick="goTo(${i})">${i + 1}</button>
+      `).join('');
+      document.getElementById('prev-q').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+      document.getElementById('next-q').textContent = currentQ === questions.length - 1 ? 'Soumettre →' : 'Suivant →';
+    }
+
+    function renderQNav() {
+      document.querySelectorAll('.q-nav-btn').forEach((btn, i) => {
+        btn.classList.toggle('answered', answers[questions[i].id] !== undefined);
+      });
+    }
+
+    window.goTo = i => { saveCurrent(); currentQ = i; renderQuestion(); };
+    function saveCurrent() {
+      const q = questions[currentQ];
+      const radio = document.querySelector('input[name=answer]:checked');
+      const text = document.getElementById('text-answer');
+      if (radio) answers[q.id] = radio.value === 'true' ? true : radio.value === 'false' ? false : +radio.value;
+      if (text) answers[q.id] = text.value;
+    }
+
+    document.getElementById('prev-q').onclick = () => { if (currentQ > 0) { saveCurrent(); currentQ--; renderQuestion(); } };
+    document.getElementById('next-q').onclick = () => {
+      saveCurrent();
+      if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+      else submitExam();
+    };
+    document.getElementById('submit-exam').onclick = () => {
+      if (confirm('Voulez-vous vraiment soumettre ?')) submitExam();
+    };
+
+    function submitExam(auto = false) {
+      clearInterval(timerInterval);
+      document.body.innerHTML = `
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem">
+          <div class="glass" style="padding:3rem;border-radius:1.5rem;text-align:center;max-width:28rem">
+            <i data-lucide="check-circle" style="width:64px;height:64px;color:var(--color-primary);margin:0 auto 1rem"></i>
+            <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 0.5rem">Examen soumis !</h1>
+            <p class="text-sec" style="margin-bottom:2rem">${auto ? 'Temps écoulé. ' : ''}Vos réponses ont été enregistrées.</p>
+            <a href="exams.html" class="btn-metal">Retour aux examens</a>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) console.warn('[Surveillance] Changement d\'onglet détecté');
+    });
+
+    try { document.documentElement.requestFullscreen?.(); } catch {}
+    renderQuestion();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
