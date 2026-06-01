@@ -75,8 +75,8 @@ LOGOUT_REDIRECT_URL = 'login'
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -221,13 +221,23 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
 ]
-CORS_ALLOW_ALL_ORIGINS = False
 
-#Nommez explicitement vos domaines Frontend autorisés :
 CORS_ALLOWED_ORIGINS = [
     "https://transversale-project.vercel.app",
     "https://transversale-project-49gvgu99s-213810auzh-7084s-projects.vercel.app", # Votre URL de preview actuelle
 ]
 
 # Autorisez l'envoi de cookies, jetons et credentials :
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# Option de secours ultra-robuste si les expressions régulières ont un raté :
+CORS_ALLOW_ALL_ORIGINS = True  
 CORS_ALLOW_CREDENTIALS = True
