@@ -28,6 +28,14 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_debut', 'titre']
     ordering = ['-date_debut']
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        enseignant = getattr(user, 'enseignant_profile', None)
+        serializer.save(
+            enseignant=enseignant,
+            url_visio=f"livekit://session-{enseignant.id if enseignant else 0}-{serializer.validated_data.get('titre', 'visio')}"
+        )
+
     def _get_etudiant(self, user):
         if user.is_authenticated and user.type_utilisateur == 'ETUDIANT' and hasattr(user, 'etudiant_profile'):
             return user.etudiant_profile

@@ -6,10 +6,10 @@ from .pedagogie import Lecon
 class SessionVisio(TimeStampedModel):
     titre = models.CharField(max_length=200)
     enseignant = models.ForeignKey(Enseignant , on_delete=models.CASCADE , related_name='sessions_visio')
-    lecon = models.ForeignKey(Lecon , on_delete=models.CASCADE , related_name='sessions_visio')
+    lecon = models.ForeignKey(Lecon , on_delete=models.CASCADE , related_name='sessions_visio', null=True, blank=True)
     date_debut = models.DateTimeField()
     date_fin = models.DateTimeField()
-    url_visio = models.URLField()
+    url_visio = models.URLField(blank=True, default='')
     est_active = models.BooleanField(default=False)
     
     class Meta :

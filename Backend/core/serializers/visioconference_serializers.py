@@ -37,7 +37,11 @@ class SessionVisioSerializer(serializers.ModelSerializer):
             'url_visio', 'est_active',
             'date_creation', 'date_modification'
         ]
-        read_only_fields = ['id', 'date_creation', 'date_modification']
+        read_only_fields = ['id', 'date_creation', 'date_modification', 'enseignant']
+        extra_kwargs = {
+            'lecon': {'required': False, 'allow_null': True},
+            'url_visio': {'required': False, 'allow_blank': True},
+        }
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
