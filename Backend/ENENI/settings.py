@@ -221,11 +221,13 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
 ]
+CORS_ALLOW_ALL_ORIGINS = False
 
-# Autoriser votre Frontend Vercel à faire des requêtes
+#Nommez explicitement vos domaines Frontend autorisés :
 CORS_ALLOWED_ORIGINS = [
     "https://transversale-project.vercel.app",
+    "https://transversale-project-49gvgu99s-213810auzh-7084s-projects.vercel.app", # Votre URL de preview actuelle
 ]
 
-# Optionnel mais fortement recommandé pour le développement initial :
-CORS_ALLOW_ALL_ORIGINS = True
+# Autorisez l'envoi de cookies, jetons et credentials :
+CORS_ALLOW_CREDENTIALS = True
