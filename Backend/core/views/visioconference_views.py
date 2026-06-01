@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,14 +10,6 @@ from core.serializers.visioconference_serializers import (
     SessionVisioSerializer, ParticipationVisioSerializer, QuestionVisioSerializer
 )
 from core.services.livekit_service import generate_livekit_token, get_livekit_url
-=======
-from rest_framework import viewsets, filters
-from rest_framework.pagination import PageNumberPagination
-from core.models import SessionVisio, ParticipationVisio
-from core.serializers.visioconference_serializers import (
-    SessionVisioSerializer, ParticipationVisioSerializer
-)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class StandardPagination(PageNumberPagination):
@@ -37,7 +28,6 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_debut', 'titre']
     ordering = ['-date_debut']
 
-<<<<<<< HEAD
     def _get_etudiant(self, user):
         if user.is_authenticated and user.type_utilisateur == 'ETUDIANT' and hasattr(user, 'etudiant_profile'):
             return user.etudiant_profile
@@ -161,8 +151,6 @@ class SessionVisioViewSet(viewsets.ModelViewSet):
             part.save()
         return Response({'status': 'banned', 'user_id': user_id})
 
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 class ParticipationVisioViewSet(viewsets.ModelViewSet):
     """API pour gérer les participations aux visioconférences"""

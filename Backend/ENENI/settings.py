@@ -9,13 +9,9 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
-<<<<<<< HEAD
-import os
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 from pathlib import Path
 
+import os 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,16 +25,14 @@ SECRET_KEY = 'django-insecure-@fmh^0o6xojoc2y1foes+at7@3rj_auoj#4848q&&id#qlmck*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD
+
 ALLOWED_HOSTS = ['*']
-=======
 ALLOWED_HOSTS = []
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 # Application definition
 
-<<<<<<< HEAD
+
 TRANSLATABLE_MODEL_MODULES = [
     'core.models.pedagogie',
     'core.models.etablissements',
@@ -50,11 +44,9 @@ TRANSLATABLE_MODEL_MODULES = [
     'core.models.intelligence_artificielle',
 ]
 
+    
 INSTALLED_APPS = [
     'modeltranslation',
-=======
-INSTALLED_APPS = [
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -62,10 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-<<<<<<< HEAD
+
     'rest_framework_simplejwt',
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     'core'
 ]
 
@@ -87,10 +77,8 @@ LOGOUT_REDIRECT_URL = 'login'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-<<<<<<< HEAD
+
     'django.middleware.locale.LocaleMiddleware',
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -123,17 +111,9 @@ WSGI_APPLICATION = 'ENENI.wsgi.application'
 
 DATABASES = {
     'default': {
-<<<<<<< HEAD
+
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-=======
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ma_nouvelle_base',
-        'USER': 'postgres',
-        'PASSWORD': '213810',
-        'HOST': 'localhost',
-        'PORT': '5432',
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     }
 }
 
@@ -160,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-<<<<<<< HEAD
+
 from django.utils.translation import gettext_lazy as _
 
 LANGUAGE_CODE = 'fr'
@@ -174,9 +154,7 @@ LANGUAGES = [
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
-=======
 LANGUAGE_CODE = 'en-us'
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 TIME_ZONE = 'UTC'
 
@@ -189,7 +167,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-<<<<<<< HEAD
+
 
 # Media files (uploads: images actualités, etc.)
 MEDIA_URL = '/media/'
@@ -201,10 +179,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-=======
 AUTH_USER_MODEL = 'core.Utilisateur'
 
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -216,7 +192,7 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-<<<<<<< HEAD
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -237,6 +213,4 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 }

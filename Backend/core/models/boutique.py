@@ -23,14 +23,9 @@ class RessourceBoutique(TimeStampedModel):
     stock = models.PositiveIntegerField(default=0)
     
     class Meta:
-<<<<<<< HEAD
         verbose_name = "Ressource boutique"
         verbose_name_plural = "Ressources boutique"
         ordering = ['-id']
-=======
-        verbose_name = "Ressources boutique "
-        verbose_name_plural = "Ressorces boutique"
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         
         
 class Panier(models.Model):
@@ -41,10 +36,7 @@ class Panier(models.Model):
     class Meta:
         verbose_name = "Panier"
         verbose_name_plural = "Paniers"
-<<<<<<< HEAD
         ordering = ['-id']
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     
 class PanierItem(models.Model):
@@ -57,10 +49,7 @@ class PanierItem(models.Model):
         verbose_name = "Element du panier "
         verbose_name_plural = "Elements du panier "
         unique_together = ['panier' , 'ressources']
-<<<<<<< HEAD
         ordering = ['-id']
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         
 
 class Commande(TimeStampedModel):
@@ -79,9 +68,5 @@ class Commande(TimeStampedModel):
     
     class Meta :
         verbose_name = "Commande"
-<<<<<<< HEAD
         verbose_name_plural = "Commandes"
-=======
-        verbose_name_plural = "Commades"
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         ordering = ['-date_creation']

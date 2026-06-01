@@ -31,7 +31,6 @@ class ParticipationVisio(models.Model):
     class Meta : 
         verbose_name = "Participation visioconférence"
         verbose_name_plural = "Participations visioconférence"
-<<<<<<< HEAD
         unique_together = ['etudiant' , 'session']
         ordering = ['-id']
 
@@ -46,6 +45,3 @@ class QuestionVisio(models.Model):
         verbose_name = "Question visioconférence"
         verbose_name_plural = "Questions visioconférence"
         ordering = ['date_creation']
-=======
-        unique_together = ['etudiant' , 'session']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

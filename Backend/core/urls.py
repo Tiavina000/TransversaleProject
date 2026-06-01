@@ -8,26 +8,18 @@ from core.views import (
     EtablissementViewSet, AdminEtablissementViewSet,
     # Pédagogie
     NiveauScolaireViewSet, MatiereViewSet, ChapitreViewSet,
-<<<<<<< HEAD
     LeconViewSet, FichierMultimediaViewSet, SessionEtudeViewSet,
     ClasseViewSet,
     # Examens
     ExamenViewSet, QuestionExamenViewSet, CopieExamenViewSet,
     ReponseExamenViewSet, LogSurveillanceViewSet,
     CorrectionViewSet,
-=======
-    LeconViewSet, FichierMultimediaViewSet,
-    # Examens
-    ExamenViewSet, QuestionExamenViewSet, CopieExamenViewSet,
-    ReponseExamenViewSet, LogSurveillanceViewSet,
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     # Visioconférence
     SessionVisioViewSet, ParticipationVisioViewSet,
     # Boutique
     RessourceBoutiqueViewSet, PanierViewSet, PanierItemViewSet,
     CommandeViewSet,
     # Communications
-<<<<<<< HEAD
     ActualiteViewSet, NotificationViewSet, PartenaireViewSet, RenovationViewSet,
     # IA
     RequestIAViewSet, RecommandationViewSet,
@@ -35,12 +27,6 @@ from core.views import (
 )
 from core.views.stats_views import GlobalStatsView, StudentStatsView, TeacherStatsView
 from core.views.examens_views import FileDownloadView, MesNotesView, NotesEnseignantView
-=======
-    ActualiteViewSet, NotificationViewSet,
-    # IA
-    RequestIAViewSet, RecommandationViewSet,
-)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 # Initialiser le routeur
 router = DefaultRouter()
@@ -61,11 +47,8 @@ router.register(r'matieres', MatiereViewSet, basename='matiere')
 router.register(r'chapitres', ChapitreViewSet, basename='chapitre')
 router.register(r'lecons', LeconViewSet, basename='lecon')
 router.register(r'fichiers-multimedia', FichierMultimediaViewSet, basename='fichier-multimedia')
-<<<<<<< HEAD
 router.register(r'sessions-etude', SessionEtudeViewSet, basename='session-etude')
 router.register(r'classes', ClasseViewSet, basename='classe')
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 # Enregistrer les ViewSets pour les examens
 router.register(r'examens', ExamenViewSet, basename='examen')
@@ -79,11 +62,7 @@ router.register(r'sessions-visio', SessionVisioViewSet, basename='session-visio'
 router.register(r'participations-visio', ParticipationVisioViewSet, basename='participation-visio')
 
 # Enregistrer les ViewSets pour la boutique
-<<<<<<< HEAD
 router.register(r'boutique', RessourceBoutiqueViewSet, basename='ressource-boutique')
-=======
-router.register(r'ressources-boutique', RessourceBoutiqueViewSet, basename='ressource-boutique')
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 router.register(r'paniers', PanierViewSet, basename='panier')
 router.register(r'panier-items', PanierItemViewSet, basename='panier-item')
 router.register(r'commandes', CommandeViewSet, basename='commande')
@@ -91,17 +70,13 @@ router.register(r'commandes', CommandeViewSet, basename='commande')
 # Enregistrer les ViewSets pour les communications
 router.register(r'actualites', ActualiteViewSet, basename='actualite')
 router.register(r'notifications', NotificationViewSet, basename='notification')
-<<<<<<< HEAD
 router.register(r'partenaires', PartenaireViewSet, basename='partenaire')
 router.register(r'renovations', RenovationViewSet, basename='renovation')
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 # Enregistrer les ViewSets pour l'IA
 router.register(r'requetes-ia', RequestIAViewSet, basename='requete-ia')
 router.register(r'recommandations', RecommandationViewSet, basename='recommandation')
 
-<<<<<<< HEAD
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -253,8 +228,4 @@ urlpatterns = [
     path('api/teacher/chapitres/<int:pk>/', ChapitreViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='teacher-chapitre-detail'),
     path('api/teacher/lecons/', LeconViewSet.as_view({'get': 'list', 'post': 'create'}), name='teacher-lecons'),
     path('api/teacher/lecons/<int:pk>/', LeconViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='teacher-lecon-detail'),
-=======
-urlpatterns = [
-    path('api/', include(router.urls)),
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 ]

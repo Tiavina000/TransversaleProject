@@ -4,7 +4,6 @@ from .base_serializers import UtilisateurSerializer
 
 
 class EtablissementSerializer(serializers.ModelSerializer):
-<<<<<<< HEAD
     type_label = serializers.SerializerMethodField()
 
     class Meta:
@@ -14,12 +13,6 @@ class EtablissementSerializer(serializers.ModelSerializer):
 
     def get_type_label(self, obj):
         return obj.get_type_display()
-=======
-    class Meta:
-        model = Etablissement
-        fields = ['id', 'nom', 'adresse', 'telephone', 'email', 'code_etablissement']
-        read_only_fields = ['id']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class AdminEtablissementSerializer(serializers.ModelSerializer):

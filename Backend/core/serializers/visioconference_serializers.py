@@ -1,9 +1,5 @@
 from rest_framework import serializers
-<<<<<<< HEAD
 from core.models import SessionVisio, ParticipationVisio, QuestionVisio
-=======
-from core.models import SessionVisio, ParticipationVisio
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class ParticipationVisioSerializer(serializers.ModelSerializer):
@@ -16,7 +12,6 @@ class ParticipationVisioSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'date_joindre']
 
 
-<<<<<<< HEAD
 class QuestionVisioSerializer(serializers.ModelSerializer):
     etudiant_nom = serializers.SerializerMethodField()
 
@@ -33,17 +28,10 @@ class SessionVisioSerializer(serializers.ModelSerializer):
     participations_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     enseignant_details = serializers.SerializerMethodField()
-=======
-class SessionVisioSerializer(serializers.ModelSerializer):
-    participations = ParticipationVisioSerializer(
-        many=True, read_only=True, source='participationvisio_set'
-    )
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
     class Meta:
         model = SessionVisio
         fields = [
-<<<<<<< HEAD
             'id', 'titre', 'enseignant', 'enseignant_details', 'status', 'participations_count',
             'lecon', 'date_debut', 'date_fin',
             'url_visio', 'est_active',
@@ -68,10 +56,3 @@ class SessionVisioSerializer(serializers.ModelSerializer):
             'nom': obj.enseignant.utilisateur.username if obj.enseignant and obj.enseignant.utilisateur else 'Inconnu',
             'photo': None
         }
-=======
-            'id', 'titre', 'enseignant', 'lecon', 'date_debut', 'date_fin',
-            'url_visio', 'est_active', 'participations',
-            'date_creation', 'date_modification'
-        ]
-        read_only_fields = ['id', 'date_creation', 'date_modification']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

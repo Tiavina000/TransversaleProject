@@ -1,5 +1,4 @@
 from rest_framework import serializers
-<<<<<<< HEAD
 from django.db.models import Count
 from core.models import (
     NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia, SessionEtude,
@@ -12,11 +11,6 @@ class SessionEtudeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionEtude
         fields = '__all__'
-=======
-from core.models import (
-    NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia
-)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class NiveauScolaireSerializer(serializers.ModelSerializer):
@@ -41,20 +35,16 @@ class MatiereSerializer(serializers.ModelSerializer):
 
 
 class FichierMultimediaSerializer(serializers.ModelSerializer):
-<<<<<<< HEAD
     nom = serializers.ReadOnlyField(source='titre')
     taille = serializers.SerializerMethodField()
     type = serializers.ReadOnlyField(source='format')
     isDownloadable = serializers.ReadOnlyField(source='est_telechargeable')
     url = serializers.ReadOnlyField(source='url_fichier')
 
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     class Meta:
         model = FichierMultimedia
         fields = [
             'id', 'type_fichier', 'titre', 'url_fichier', 'taille_no',
-<<<<<<< HEAD
             'lecon', 'format', 'metadata', 'nom', 'taille', 'type', 'isDownloadable', 'url'
         ]
         read_only_fields = ['id']
@@ -71,20 +61,10 @@ class LeconSerializer(serializers.ModelSerializer):
     description = serializers.ReadOnlyField(source='objectifs')
     enseignant = serializers.SerializerMethodField()
     video_url_display = serializers.SerializerMethodField()
-=======
-            'lecon', 'format', 'metadata'
-        ]
-        read_only_fields = ['id']
-
-
-class LeconSerializer(serializers.ModelSerializer):
-    fichiers = FichierMultimediaSerializer(many=True, read_only=True)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
     class Meta:
         model = Lecon
         fields = [
-<<<<<<< HEAD
             'id', 'titre', 'order', 'chapitre', 'matiere', 'niveau',
             'description', 'enseignant', 'video_url', 'video_url_display',
             'contenue_texte', 'content_html', 'duree_estimee', 'objectifs',
@@ -114,12 +94,6 @@ class LeconSerializer(serializers.ModelSerializer):
             return obj.video_url
         video = obj.fichiers.filter(type_fichier='VIDEO').first()
         return video.url_fichier if video else None
-=======
-            'id', 'titre', 'order', 'chapitre', 'contenue_texte',
-            'duree_estimee', 'objectifs', 'fichiers'
-        ]
-        read_only_fields = ['id']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class ChapitreSerializer(serializers.ModelSerializer):
@@ -132,24 +106,17 @@ class ChapitreSerializer(serializers.ModelSerializer):
             'description', 'lecons'
         ]
         read_only_fields = ['id']
-<<<<<<< HEAD
         validators = []
         extra_kwargs = {
             'order': {'required': False},
         }
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class ChapitreDetailSerializer(serializers.ModelSerializer):
     """Serializer complet avec les leçons imbriquées"""
     matiere = MatiereSerializer(read_only=True)
     niveau = NiveauScolaireSerializer(read_only=True)
-<<<<<<< HEAD
     lecons = serializers.SerializerMethodField()
-=======
-    lecons = LeconSerializer(many=True, read_only=True)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
     class Meta:
         model = Chapitre
@@ -157,7 +124,6 @@ class ChapitreDetailSerializer(serializers.ModelSerializer):
             'id', 'titre', 'order', 'matiere', 'niveau',
             'description', 'lecons'
         ]
-<<<<<<< HEAD
 
     def get_lecons(self, obj):
         lecons = obj.lecons.all()
@@ -255,5 +221,3 @@ class ClasseDetailSerializer(serializers.ModelSerializer):
                 'matieres_enseignees': list(matieres) if matieres else [ens.specialite] if ens.specialite else [],
             })
         return result
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

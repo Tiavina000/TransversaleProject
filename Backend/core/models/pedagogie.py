@@ -49,10 +49,7 @@ class Chapitre(models.Model):
     matiere = models.ForeignKey(Matiere , on_delete=models.CASCADE , related_name='chapitres')
     niveau = models.ForeignKey(NiveauScolaire , on_delete=models.CASCADE , related_name='chapitres')
     description = models.TextField(blank=True)
-<<<<<<< HEAD
     createur = models.ForeignKey('core.Enseignant', on_delete=models.SET_NULL, null=True, blank=True, related_name='chapitres_crees')
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     class Meta:
         app_label = 'core'
@@ -68,18 +65,12 @@ class Lecon(models.Model):
     titre = models.CharField(max_length=200)
     order = models.PositiveIntegerField()
     chapitre = models.ForeignKey(Chapitre , on_delete=models.CASCADE , related_name='lecons')
-<<<<<<< HEAD
     contenue_texte = models.TextField(blank=True, help_text="Contenu en HTML (rich text)")
     video_url = models.URLField(blank=True, help_text="URL vidéo externe (YouTube, Vimeo, etc.)")
     duree_estimee = models.PositiveIntegerField(help_text="Durée estimée en minutes")
     objectifs  = models.TextField(blank=True)
     est_publie = models.BooleanField(default=False, help_text="La leçon est visible par les étudiants")
     createur = models.ForeignKey('core.Enseignant', on_delete=models.SET_NULL, null=True, blank=True, related_name='lecons_crees')
-=======
-    contenue_texte = models.TextField(blank=True)
-    duree_estimee = models.PositiveIntegerField(help_text="Durée estimée en minutes")
-    objectifs  = models.TextField(blank=True)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     class Meta:
         app_label = 'core'
@@ -104,16 +95,12 @@ class FichierMultimedia(models.Model):
     taille_no = models.FloatField(validators=[MinValueValidator(0)])
     lecon = models.ForeignKey(Lecon , on_delete=models.CASCADE , related_name='fichiers')
     format = models.CharField(max_length=10)
-<<<<<<< HEAD
     est_telechargeable = models.BooleanField(default=True, help_text="Si faux, le fichier est uniquement lisible sur la plateforme.")
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     metadata = models.JSONField(default=dict , blank=True)
     
     class Meta :
         verbose_name = "Fichier Multimédia"
         verbose_name_plural = "Fichiers Multimédia"
-<<<<<<< HEAD
         ordering = ['-id']
 
 class ProgressionChapitre(models.Model):
@@ -154,6 +141,3 @@ class SessionEtude(models.Model):
 
     def __str__(self):
         return f"Session {self.etudiant} - {self.chapitre} ({self.statut})"
-=======
-        
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

@@ -10,7 +10,6 @@ class Actualite (TimeStampedModel):
         ('ENSEIGNANTS' , 'Enseignants'),
         ('ETABLISSEMENT' , 'Etablissements'),
     ]
-<<<<<<< HEAD
 
     CATEGORY_CHOICES = [
         ('Examens', 'Examens'),
@@ -34,15 +33,6 @@ class Actualite (TimeStampedModel):
     est_publie  = models.BooleanField(default=True)
     public_ciblie = models.CharField(max_length=20 , choices=PUBLIC_CHOICES , default='TOUS')
     etablissement_cible = models.ForeignKey(Etablissement , on_delete=models.SET_NULL , null=True , blank=True, related_name='actualites')
-=======
-    
-    titre = models.CharField(max_length=200)
-    contenu = models.TextField()
-    date_expiration = models.DateTimeField(null=True , blank=True)
-    est_publie  = models.BooleanField(default=True)
-    public_ciblie = models.CharField(max_length=20 , choices=PUBLIC_CHOICES , default='TOUS')
-    etablissement_cible = models.ForeignKey(Etablissement , on_delete=models.SET_NULL , null=True , blank=True)
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     
     class Meta :
         verbose_name = "Actualité"
@@ -61,7 +51,6 @@ class Notification(TimeStampedModel):
     class Meta:
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
-<<<<<<< HEAD
         ordering = ['-date_creation']
 
 class Partenaire(models.Model):
@@ -91,6 +80,3 @@ class Renovation(models.Model):
 
     def __str__(self):
         return f"{self.annee} - {self.titre}"
-=======
-        ordering = ['-date_creation']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

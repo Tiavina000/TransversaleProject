@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin
 from .models.pedagogie import NiveauScolaire, Matiere, Chapitre, Lecon, FichierMultimedia
@@ -14,8 +13,3 @@ from .models.utilisateurs import Enseignant
                 Etablissement, AdminEtablissement, SessionVisio, Enseignant)
 class TranslatedModelAdmin(TranslationAdmin):
     pass
-=======
-# Register your models here.
-
-# Register your models here.
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))

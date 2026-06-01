@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from rest_framework import viewsets, filters, status, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,19 +26,6 @@ class LogoutView(views.APIView):
         return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
 
 
-=======
-from rest_framework import viewsets, filters, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from core.models import Utilisateur, Etudiant, Enseignant, AdminPlateforme
-from core.serializers.base_serializers import UtilisateurSerializer, UtilisateurDetailSerializer
-from core.serializers.utilisateurs_serializers import (
-    EtudiantSerializer, EnseignantSerializer, AdminPlateformeSerializer
-)
-
-
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 class StandardPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -81,11 +67,7 @@ class EtudiantViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_inscription', 'points_global']
     ordering = ['-date_inscription']
 
-<<<<<<< HEAD
     @action(detail=False, methods=['get'], url_path='top-points')
-=======
-    @action(detail=False, methods=['get'])
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     def top_points(self, request):
         """Retourner les étudiants avec le plus de points"""
         limit = request.query_params.get('limit', 10)

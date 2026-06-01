@@ -1,11 +1,7 @@
 from rest_framework import serializers
 from core.models import (
-<<<<<<< HEAD
     Examen, QuestionExamen, CopieExamen, ReponseExamen, LogSurveillance,
     NiveauScolaire
-=======
-    Examen, QuestionExamen, CopieExamen, ReponseExamen, LogSurveillace
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 )
 
 
@@ -14,36 +10,26 @@ class QuestionExamenSerializer(serializers.ModelSerializer):
         model = QuestionExamen
         fields = [
             'id', 'examen', 'texte', 'type_question', 'points',
-<<<<<<< HEAD
             'ordre', 'options', 'reponse_correcte',
             'mot_min', 'mot_max', 'criteres_correction', 'obligatoire'
         ]
         read_only_fields = ['id', 'examen']
-=======
-            'ordre', 'options', 'reponse_correcte'
-        ]
-        read_only_fields = ['id']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class ExamenSerializer(serializers.ModelSerializer):
     questions = QuestionExamenSerializer(many=True, read_only=True)
-<<<<<<< HEAD
     niveau = serializers.PrimaryKeyRelatedField(
         queryset=NiveauScolaire.objects.all(), required=False, allow_null=True
     )
     date_debut = serializers.DateTimeField(required=False, allow_null=True)
     date_fin = serializers.DateTimeField(required=False, allow_null=True)
     soumis = serializers.SerializerMethodField()
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
     class Meta:
         model = Examen
         fields = [
             'id', 'titre', 'enseignant', 'matiere', 'niveau',
             'duree_minutes', 'date_debut', 'date_fin', 'est_publie',
-<<<<<<< HEAD
             'coefficient', 'type_examen', 'lecture_automatique',
             'session',
             'questions', 'date_creation', 'date_modification', 'soumis'
@@ -56,49 +42,32 @@ class ExamenSerializer(serializers.ModelSerializer):
             from core.models import CopieExamen
             return CopieExamen.objects.filter(examen=obj, etudiant=request.user.etudiant_profile, est_termine=True).exists()
         return False
-=======
-            'coefficient', 'questions', 'date_creation', 'date_modification'
-        ]
-        read_only_fields = ['id', 'date_creation', 'date_modification']
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
 
 
 class LogSurveillanceSerializer(serializers.ModelSerializer):
     class Meta:
-<<<<<<< HEAD
         model = LogSurveillance
-=======
-        model = LogSurveillace
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         fields = ['id', 'copie', 'evenement', 'details', 'date_evenement']
         read_only_fields = ['id', 'date_evenement']
 
 
 class ReponseExamenSerializer(serializers.ModelSerializer):
-<<<<<<< HEAD
     question_texte = serializers.ReadOnlyField(source='question.texte')
     question_type = serializers.ReadOnlyField(source='question.type_question')
     question_points = serializers.FloatField(source='question.points', read_only=True)
     question_options = serializers.JSONField(source='question.options', read_only=True)
     question_reponse_correcte = serializers.ReadOnlyField(source='question.reponse_correcte')
 
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
     class Meta:
         model = ReponseExamen
         fields = [
             'id', 'copie', 'question', 'reponse_etudiant',
-<<<<<<< HEAD
             'est_correct', 'points_obtenus',
             'nb_mots', 'fautes_orthographe', 'correction_commentaire',
             'question_texte', 'question_type', 'question_points',
             'question_options', 'question_reponse_correcte',
         ]
         read_only_fields = ['id', 'copie', 'question']
-=======
-            'est_correct', 'points_obtenus'
-        ]
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
         read_only_fields = ['id']
 
 
@@ -113,7 +82,6 @@ class CopieExamenSerializer(serializers.ModelSerializer):
             'note_obtenue', 'est_termine', 'reponses', 'logs'
         ]
         read_only_fields = ['id', 'date_debut']
-<<<<<<< HEAD
 
 
 class CopieCorrectionSerializer(serializers.ModelSerializer):
@@ -176,5 +144,3 @@ class CopieCorrectionSerializer(serializers.ModelSerializer):
     def get_texte(self, obj):
         rep = obj.reponses.first()
         return rep.reponse_etudiant if rep else ''
-=======
->>>>>>> 3240025 (Refonte architecture: Déplacement dans Backend/, sécurisation API et ajout des services IA (Trie, NLP, Graphes))
