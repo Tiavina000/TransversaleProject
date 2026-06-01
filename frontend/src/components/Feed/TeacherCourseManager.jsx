@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   BookOpen, Plus, ChevronDown, ChevronRight, FileText, Upload,
-  Trash2, Loader2, Save, Video, File as FileIcon, CheckSquare, Edit3
+  Trash2, Loader2, Save, Video, File as FileIcon, CheckSquare, Edit3, X
 } from 'lucide-react';
 import { teacherCourseAPI, courseAPI, visioAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
