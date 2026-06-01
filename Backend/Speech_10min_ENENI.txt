@@ -1,0 +1,537 @@
+================================================================================
+                   SPEECH DE PRÉSENTATION — 10 MINUTES
+             Cahier des Normes — Projet ENENI (Projet Transversal L2SIO)
+================================================================================
+
+DURÉE TOTALE : ~10 minutes (60 secondes par slide environ)
+PUBLIC : Jury L2SIO / Parties prenantes
+TON : Professionnel, dynamique, pédagogique
+
+
+--------------------------------------------------------------------------------
+[SLIDE 1 — Page de Titre]  (0:00 → 0:45)
+--------------------------------------------------------------------------------
+
+Bonjour à toutes et à tous. Je vous remercie d'être présents pour cette
+présentation du Cahier des Normes du projet ENENI.
+
+ENENI est l'acronyme de « Espace Numérique d'Éducation et de Nouvelles
+Initiatives ». C'est une plateforme éducative numérique que nous avons
+développée dans le cadre du Projet Transversal L2SIO.
+
+L'objectif est simple : numériser l'enseignement à Madagascar en connectant
+élèves, enseignants et administrateurs d'établissements scolaires au sein
+d'une plateforme unique, moderne et sécurisée.
+
+Ce projet a été pensé pour répondre aux besoins spécifiques du système
+éducatif malgache : couverture multi-établissements, support multilingue
+(français, malgache, anglais), et accessibilité sur tous les appareils.
+
+Nous allons voir ensemble l'architecture technique, les 8 modules
+fonctionnels, les services d'intelligence artificielle, et le stack
+technologique utilisé.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 2 — Sommaire]  (0:45 → 1:30)
+--------------------------------------------------------------------------------
+
+Voici le plan de cette présentation. Nous allons aborder 10 grandes parties.
+
+D'abord, le contexte et la définition du projet ENENI.
+Ensuite, l'architecture technique complète.
+Puis nous détaillerons chaque module : la gestion des utilisateurs,
+le module pédagogique — qui est le cœur du projet —, le système d'examens,
+la visioconférence, la boutique en ligne, et les communications.
+
+Nous finirons par les services d'intelligence artificielle — qui sont
+innovants pour ce type de plateforme —, le stack technologique,
+et une conclusion avec les perspectives.
+
+Commençons sans plus tarder.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 3 — Présentation & Contexte]  (1:30 → 2:30)
+--------------------------------------------------------------------------------
+
+Alors, qu'est-ce qu'ENENI ?
+
+ENENI — Espace Numérique d'Éducation et de Nouvelles Initiatives — est
+une plateforme éducative complète. Elle permet :
+
+Premièrement, la gestion centralisée des établissements scolaires : chaque
+école a son espace dédié avec ses classes, ses niveaux et ses enseignants.
+
+Deuxièmement, la diffusion de contenu pédagogique : les enseignants
+peuvent créer et publier des leçons, des chapitres, des exercices.
+
+Troisièmement, l'organisation d'examens en ligne avec différents types
+de questions : QCM, vrai/faux, texte, numérique, rédaction.
+
+Quatrièmement, la communication entre tous les acteurs via un fil
+d'actualités et un système de notifications.
+
+Et cinquièmement, des outils d'intelligence artificielle pour assister
+les élèves dans leur apprentissage.
+
+Le projet implémente 21 exigences fonctionnelles, numérotées de R1 à R21.
+Ces exigences couvrent l'authentification, la gestion des rôles,
+les parcours pédagogiques, les examens, la visioconférence, le commerce
+électronique de ressources éducatives, et les services IA.
+
+Définition importante — le « Cahier des Normes » est le document qui
+spécifie l'ensemble de ces exigences fonctionnelles et techniques.
+C'est le contrat entre le client et l'équipe de développement. Il décrit
+ce que le système doit faire, comment il doit se comporter, et quelles
+sont les contraintes techniques à respecter. En génie logiciel, on appelle
+aussi cela le « Software Requirements Specification » (SRS).
+
+
+--------------------------------------------------------------------------------
+[SLIDE 4 — Architecture Technique]  (2:30 → 3:30)
+--------------------------------------------------------------------------------
+
+Voyons maintenant l'architecture technique.
+
+Le projet suit une architecture en couches, typique des applications web
+modernes.
+
+Couche 1 — Client : une application React 19 avec Vite 8, qui tourne
+dans le navigateur. Il y a aussi une application mobile.
+
+Couche 2 — Authentification : nous utilisons JWT — JSON Web Tokens —
+via la bibliothèque SimpleJWT. Nous avons personnalisé l'obtention du
+token pour permettre la connexion par nom d'utilisateur, par email,
+ou même par numéro d'étudiant. Voici comment ça se code :
+
+----[CODE EXEMPLE : Authentification JWT]----
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        # Permet de logger avec username, email ou numéro étudiant
+        identifiant = request.data.get('username', '')
+        if '@' in identifiant:
+            request.data['username'] = Utilisateur.objects.get(
+                email__iexact=identifiant
+            ).username
+        # ... vérification numéro étudiant
+        return super().post(request, *args, **kwargs)
+----[FIN CODE]----
+
+Couche 3 — API REST : nous avons 30 ViewSets et plus de 60 endpoints
+API documentés. Django REST Framework nous permet de créer des APIs
+robustes avec très peu de code grâce aux ModelViewSets.
+
+Couche 4 — Services : 5 services métier dont nous parlerons en détail.
+
+Couche 5 — Modèles : 19 modèles de données avec SQLite en développement
+et PostgreSQL en production.
+
+Un point important sur la sécurité : nous avons 3 permissions personnalisées.
+Par exemple, voici comment on code une permission qui restreint l'écriture
+aux enseignants uniquement :
+
+----[CODE EXEMPLE : Permission custom]----
+class IsEnseignantOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return bool(
+            request.user and
+            request.user.is_authenticated and
+            request.user.type_utilisateur in ['ENSEIGNANT', 'ADMINISTRATEUR']
+        )
+----[FIN CODE]----
+
+Cette approche est appelée « Role-Based Access Control » (RBAC) —
+le contrôle d'accès basé sur les rôles. Chaque utilisateur a un rôle
+(Étudiant, Enseignant, Administrateur) qui détermine ce qu'il peut faire.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 5 — Gestion des Utilisateurs]  (3:30 → 4:15)
+--------------------------------------------------------------------------------
+
+Parlons de la gestion des utilisateurs.
+
+Le modèle Utilisateur hérite d'AbstractUser de Django, ce qui nous donne
+toute la gestion de base des comptes, mots de passe, etc. On y ajoute
+des champs spécifiques comme :
+
+- prenom : le prénom de l'utilisateur
+- email : unique, sert aussi d'identifiant
+- type_utilisateur : ETUDIANT, ENSEIGNANT, ou ADMINISTRATEUR
+- langue_preferee : MG, FR, ou EN
+- options_accessibilite : stocké en JSON pour flexibilité
+- photo_profil : image téléchargée
+
+Nous avons aussi deux modèles abstraits fondamentaux :
+TimeStampedModel et SoftDeleteModel.
+
+TimeStampedModel ajoute automatiquement les dates de création et de
+modification à chaque modèle. Voici comment :
+
+----[CODE EXEMPLE : TimeStampedModel]----
+class TimeStampedModel(models.Model):
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+    class Meta:
+        abstract = True
+----[FIN CODE]----
+
+C'est ce qu'on appelle un « mixin » en programmation orientée objet.
+Au lieu de répéter ces deux champs dans chaque modèle, on crée une
+classe abstraite et on l'hérite. C'est le principe DRY — Don't Repeat
+Yourself.
+
+SoftDeleteModel, quant à lui, implémente la suppression logique :
+au lieu de supprimer définitivement un enregistrement, on passe
+est_actif à False et on enregistre la date de suppression. C'est une
+bonne pratique pour garder l'historique des données.
+
+Les établissements sont modélisés avec leur propre hiérarchie :
+Établissement → AdminÉtablissement → Classe → Élèves.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 6 — Module Pédagogique]  (4:15 → 5:00)
+--------------------------------------------------------------------------------
+
+Le module pédagogique est le cœur du projet. Voici sa hiérarchie
+complète :
+
+Niveau Scolaire → Matière → Chapitre → Leçon → Fichiers Multimédia
+
+Cette hiérarchie permet une navigation intuitive : un élève de 3ème
+veut étudier les Mathématiques, chapitre « Statistiques », leçon
+« Moyenne et Médiane ». Il arrive en 3 clics.
+
+Chaque niveau scolaire est ordonné de 0 (Maternelle) à 12 (Terminale).
+Les chapitres sont ordonnés et peuvent être publiés ou non. Les leçons
+utilisent TinyMCE comme éditeur de texte enrichi.
+
+Pour le suivi, nous avons deux modèles :
+
+- ProgressionChapitre : suit quels chapitres un élève a validés.
+- SessionEtude : enregistre le temps passé sur chaque leçon.
+
+Côté permissions, un étudiant ne voit que les leçons publiées
+correspondant à son établissement et son niveau. Un enseignant voit
+ses brouillons ET les leçons publiées.
+
+Le niveau d'accès est contrôlé à la fois par les permissions Django
+et par des filtres dans les ViewSets. C'est ce qu'on appelle
+l'« Object-Level Permissions » combiné au filtrage par queryset.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 7 — Système d'Examens]  (5:00 → 5:45)
+--------------------------------------------------------------------------------
+
+Le système d'examens gère 5 types de questions :
+
+- QCM : choix multiples — correction automatique
+- VRAI/FAUX : binaire — correction automatique
+- TEXTE : réponse courte — correction manuelle
+- NUMÉRIQUE : résultat numérique — correction manuelle
+- RÉDACTION : dissertation — correction manuelle
+
+Le workflow complet est : Création d'examen → Publication → L'étudiant
+démarre → Répond aux questions → Soumet → Correction automatique pour
+QCM/VF → Validation par l'enseignant → Note finale.
+
+Un point important : le modèle LogSurveillance enregistre les
+changements d'onglet pendant un examen. C'est une forme de
+« proctoring » — surveillance d'examen à distance.
+
+Chaque examen a un timer automatique. Quand le temps est écoulé,
+la copie est automatiquement soumise.
+
+Définition : une « ViewSet » dans Django REST Framework est une classe
+qui combine la logique pour lister, créer, lire, mettre à jour et
+supprimer des ressources. Notre ExamenViewSet, par exemple, expose
+automatiquement les endpoints GET /api/examens/, POST /api/examens/,
+GET /api/examens/{id}/, etc. En moins de 20 lignes de code.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 8 — Visioconférence & Boutique]  (5:45 → 6:30)
+--------------------------------------------------------------------------------
+
+Cette slide présente deux modules complémentaires.
+
+La visioconférence utilise LiveKit — une solution WebRTC open-source.
+WebRTC est un standard qui permet la communication audio et vidéo en
+temps réel directement entre navigateurs, sans plugin.
+
+LiveKit gère la signalisation, le routage des médias, et la gestion
+des salles. Notre backend génère des tokens d'accès sécurisés.
+Les fonctionnalités incluent :
+
+- Sessions live avec participants
+- Lever et baisser la main
+- Questions posées en direct
+- Bannissement d'utilisateurs perturbateurs
+
+La boutique — ou module e-commerce — permet d'acheter des ressources
+éducatives. Il y a 4 types de ressources : LIVRE, EXERCICES, COURS,
+et VIDÉO.
+
+Le cycle d'une commande est : l'élève ajoute au panier → crée une
+commande (statut EN_ATTENTE) → paiement → statut PAYÉE → accès au
+téléchargement → statut LIVRÉE.
+
+Le téléchargement est sécurisé : un utilisateur ne peut télécharger
+qu'une ressource qu'il a effectivement achetée et payée. C'est géré
+par une vue API dédiée avec vérification d'autorisation.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 9 — Communications & Statistiques]  (6:30 → 7:00)
+--------------------------------------------------------------------------------
+
+Le module Communications gère trois choses :
+
+1. Les actualités — un fil d'actualités avec chargement infini
+   (pagination basée sur le défilement). Catégories : Examens, Cours,
+   Événements, Annonces, Sports, Culture.
+
+2. Les notifications — système complet avec marquage lu/non lu,
+   compteur, et notifications spécialisées pour la visioconférence
+   et les bannissements.
+
+3. Les statistiques — trois niveaux :
+   - Globales : nombre total d'utilisateurs, d'écoles, de leçons
+   - Étudiant : temps d'étude, exercices validés, temps par matière
+   - Enseignant : cours publiés, élèves atteints, taux de réussite
+
+Ces endpoints statistiques sont implémentés comme des APIViews —
+des vues API simples qui retournent des données agrégées calculées
+à la volée ou mises en cache.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 10 — Services IA]  (7:00 → 8:00)
+--------------------------------------------------------------------------------
+
+Cette slide présente les 4 services d'intelligence artificielle que
+nous avons développés. C'est ce qui différencie ENENI des plateformes
+éducatives classiques.
+
+Premier service : NavigationTrie. C'est un arbre de préfixes
+— aussi appelé Trie ou arbre lexicographique. Voici comment ça marche :
+
+----[CODE EXEMPLE : Trie (extrait)]----
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_of_word = False
+        self.data = []
+
+class NavigationTrie:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.root = TrieNode()
+        return cls._instance
+
+    def search_prefix(self, prefix):
+        node = self.root
+        for char in prefix.lower():
+            if char not in node.children:
+                return []
+            node = node.children[char]
+        results = []
+        self._dfs_collect(node, results)
+        return results
+----[FIN CODE]----
+
+L'avantage du Trie par rapport à une recherche SQL LIKE c'est la
+complexité : O(n) où n est la longueur du préfixe, quelle que soit
+la taille des données. C'est ultra-rapide pour l'autocomplétion.
+
+On utilise le pattern Singleton pour garder l'arbre en mémoire —
+ainsi la construction n'a lieu qu'une seule fois.
+
+Deuxième service : ScoringService. Il analyse les 5 dernières copies
+d'un élève. Si la moyenne est inférieure à 10/20, il recommande des
+révisions. C'est un système expert simple basé sur des règles.
+
+Troisième service : CurriculumGraph. C'est un graphe orienté qui
+modélise les dépendances entre les chapitres. Par exemple, pour
+comprendre les « dérivées », il faut d'abord maîtriser les
+« fonctions ». Le graphe permet d'optimiser le parcours d'apprentissage.
+
+Définition : en théorie des graphes, un graphe orienté est un ensemble
+de nœuds reliés par des arcs qui ont une direction. Ici, on utilise
+une liste d'adjacence comme structure de données.
+
+Quatrième service : VoiceCommandProcessor. C'est un système NLP
+— Natural Language Processing — basé sur des expressions régulières.
+Il reconnaît 4 intentions : OPEN_LESSON (ouvrir une leçon),
+TAKE_EXAM (passer un examen), GLOBAL_NAVIGATION (navigation générale),
+et SHOP (boutique).
+
+
+--------------------------------------------------------------------------------
+[SLIDE 11 — Stack Technologique]  (8:00 → 8:45)
+--------------------------------------------------------------------------------
+
+Le stack technologique.
+
+Backend :
+- Python 3.12+ : langage choisi pour sa simplicité et sa puissance
+- Django 6.0.5 : framework web qui suit le modèle MTV (Model-Template-View)
+  mais nous l'utilisons en mode API uniquement
+- Django REST Framework 3.17 : la bibliothèque standard pour les APIs REST
+  en Django. Ses ViewSets réduisent considérablement le code boilerplate
+- SimpleJWT 5.5 : implémentation JWT robuste
+- SQLite (dev) / PostgreSQL (prod)
+- Gunicorn : serveur WSGI pour la production
+
+Frontend :
+- React 19 : bibliothèque UI développée par Meta
+- Vite 8 : bundler ultra-rapide
+- Tailwind CSS 3 : framework CSS utilitaire
+- Framer Motion : animations fluides
+- i18next : internationalisation complète (3 langues)
+
+Testing :
+- 222 tests unitaires répartis dans 11 fichiers de test
+- 15 tests E2E avec Playwright
+- Couverture de code suivie avec coverage.py
+
+Définition : un test unitaire vérifie une petite unité de code
+(une fonction, une méthode) de manière isolée. Un test E2E (End-to-End)
+teste un scénario complet du début à la fin, comme un vrai utilisateur.
+
+
+--------------------------------------------------------------------------------
+[SLIDE 12 — Conclusion]  (8:45 → 10:00)
+--------------------------------------------------------------------------------
+
+Pour conclure, ENENI c'est :
+
+- 19 modèles de données couvrant l'ensemble du système éducatif
+- 21 fonctionnalités implémentées sur les 21 spécifiées
+- 30 ViewSets et 60+ endpoints API REST
+- 5 services métier dont 4 services d'intelligence artificielle
+- 222 tests unitaires pour garantir la qualité
+- Support multilingue complet
+- Architecture modulaire, sécurisée et évolutive
+
+Le projet nous a permis de mettre en pratique l'ensemble des concepts
+vus en cours : modélisation de données avec UML, conception d'API REST,
+sécurité (JWT, RBAC), algorithmique avancée (Trie, Graphes), et
+développement full-stack avec des technologies modernes.
+
+Les perspectives d'évolution incluent l'ajout d'un système de
+recommandation par machine learning, l'intégration de paiements
+mobiles comme MVola ou Orange Money, et le déploiement sur le cloud
+avec Docker et Kubernetes.
+
+Je vous remercie de votre attention. Je suis maintenant disponible
+pour répondre à vos questions.
+
+
+================================================================================
+                    DÉFINITIONS CLÉS — RÉFÉRENCE RAPIDE
+================================================================================
+
+ENENI : Espace Numérique d'Éducation et de Nouvelles Initiatives.
+        Plateforme éducative numérique pour les écoles malgaches.
+
+Cahier des Normes : Document de spécification des exigences fonctionnelles
+        et techniques d'un projet logiciel (équivalent au SRS).
+
+JWT (JSON Web Token) : Standard ouvert (RFC 7519) pour l'échange sécurisé
+        de jetons d'authentification entre un client et un serveur.
+
+REST API : Interface de programmation qui suit les principes REST
+        (Representational State Transfer) — communication via HTTP
+        avec des méthodes GET, POST, PUT, PATCH, DELETE.
+
+ViewSet : Classe Django REST Framework qui regroupe la logique CRUD
+        (Create, Read, Update, Delete) pour une ressource.
+
+RBAC (Role-Based Access Control) : Contrôle d'accès basé sur les rôles
+        attribués aux utilisateurs.
+
+Trie (Prefix Tree) : Structure de données en arbre permettant la recherche
+        rapide de mots par préfixe. Complexité : O(n) où n = longueur
+        du préfixe — indépendamment du nombre total de mots indexés.
+
+DRY (Don't Repeat Yourself) : Principe de programmation visant à éviter
+        la duplication de code en factorisant les parties communes.
+
+Singleton : Pattern de conception qui garantit qu'une classe n'a qu'une
+        seule instance, accessible globalement.
+
+Mixin : Classe qui fournit des méthodes réutilisables à d'autres classes
+        via l'héritage multiple, sans être une classe à part entière.
+
+WebRTC : Standard du Web pour la communication en temps réel (audio, vidéo)
+        entre navigateurs sans plugin.
+
+NLP (Natural Language Processing) : Traitement du langage naturel —
+        technique permettant à une machine de comprendre et traiter
+        le langage humain.
+
+Graphe orienté : Structure mathématique composée de nœuds reliés par des
+        arcs dirigés, utilisée pour modéliser des relations de dépendance.
+
+Proctoring : Surveillance d'examens à distance via des outils techniques
+        (détection de changements d'onglet, caméra, etc.).
+
+
+================================================================================
+                FAÇONS DE FAIRE DU CODE — BONNES PRATIQUES
+================================================================================
+
+1. COMMENCER PAR LES MODÈLES
+   Toujours commencer par définir les modèles de données. Ce sont le
+   fondement de l'application. Utilisez des modèles abstraits pour
+   les champs communs (TimeStampedModel, SoftDeleteModel).
+
+2. UTILISER LES ViewSets
+   Préférez les ModelViewSet de DRF plutôt que des APIView quand vous
+   faites du CRUD standard. Cela réduit le code de 70%.
+
+3. SÉCURISER AVEC DES PERMISSIONS
+   Ne JAMAIS faire confiance au client. Vérifiez toujours les
+   permissions côté serveur avec des classes de permission personnalisées.
+
+4. FILTRER LES QUERYSETS
+   Surchargez get_queryset() dans vos ViewSets pour que chaque
+   utilisateur ne voie que ses données autorisées. Ne filtrez JAMAIS
+   uniquement dans le frontend.
+
+5. PATTERN SINGLETON
+   Utilisez le Singleton pour les services qui doivent rester en
+   mémoire (comme le Trie). Attention toutefois en environnement
+   multi-processus (Gunicorn) — préférez Redis dans ce cas.
+
+6. TESTS D'ABORD
+   Écrivez les tests avant ou en parallèle du code. Testez :
+   - Les modèles (création, validation)
+   - Les endpoints (status codes, permissions)
+   - Les services métier (cas normaux et limites)
+
+7. INTERNATIONALISATION
+   Prévoyez l'i18n dès le début. Avec Django modeltranslation, les
+   champs traduisibles sont déclarés dans un fichier translation.py.
+
+8. DOCUMENTATION
+   Documentez votre API avec des docstrings et/ou un fichier
+   README_API_REST.md. Les endpoints doivent être clairs et cohérents
+   (nommage au pluriel, verbes HTTP standards).
+
+================================================================================
+                              FIN DU SPEECH
+================================================================================
