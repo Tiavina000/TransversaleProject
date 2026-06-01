@@ -76,8 +76,8 @@ LOGOUT_REDIRECT_URL = 'login'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
-
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -214,3 +214,18 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+ALLOWED_HOSTS = [
+    'transversaleproject-1.onrender.com',
+    '.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
+
+# Autoriser votre Frontend Vercel à faire des requêtes
+CORS_ALLOWED_ORIGINS = [
+    "https://transversale-project.vercel.app",
+]
+
+# Optionnel mais fortement recommandé pour le développement initial :
+CORS_ALLOW_ALL_ORIGINS = True
